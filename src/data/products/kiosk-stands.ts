@@ -5,7 +5,7 @@ export const kioskStandsContent: ProductContent = {
   titleParts: ["The area of ", "lines", " has over."],
   heroBody:
     "EZorders delivers a modern self-service restaurant kiosk that turns rush-hour bottlenecks into fast, accurate, high-conversion orders – giving customers an intuitive flow and your team time back.",
-  heroImage: "/images/kiosk-hero.png",
+  heroImage: "/images/kiosk-hero.webp",
   featuresHeading: "Kiosk Stands Features",
   featuresIntro:
     "A self ordering kiosk for restaurants should be more than a big touchscreen. It should guide every guest-from first tap to paid receipt-without friction.",
