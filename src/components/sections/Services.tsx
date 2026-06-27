@@ -15,7 +15,23 @@ export function Services() {
       </p>
       <div className="mt-12 grid gap-6 md:grid-cols-2">
         {homeServices.map((s) => (
-          <ServiceCard key={s.title} title={s.title} body={s.body} href={s.href} />
+          <ServiceCard
+          key={s.title}
+          title={s.title}
+          body={s.body}
+          href={s.href}
+          icon={
+            (s as { icon?: string }).icon ? (
+              <img
+                src={(s as { icon?: string }).icon}
+                alt=""
+                width={60}
+                height={60}
+                aria-hidden="true"
+              />
+            ) : undefined
+          }
+        />
         ))}
       </div>
     </section>
