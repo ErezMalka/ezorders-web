@@ -5,7 +5,7 @@ export const digitalMenusContent: ProductContent = {
   titleParts: ["Let your menu join ", "the digital world", ""],
   heroBody:
     "Modernize your menu experience. Swap paper for a responsive digital menu for restaurants with real-time edits, built-in upsells, and one-tap order links.",
-  heroImage: "/images/digital-menus-hero.png",
+  heroImage: "/images/digital-menus-hero.webp",
   featuresHeading: "Digital Menu Features",
   featuresIntro:
     "Go digital, stay agile. Your restaurant digital menu updates in moments, looks great on any phone, and helps more diners choose faster.",
