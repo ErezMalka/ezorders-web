@@ -43,7 +43,7 @@ export function AboutUs() {
         <div className="flex justify-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/images/about-chef.png"
+            src="/images/about-chef.svg"
             alt="Chef"
             className="max-h-[460px] w-auto"
           />
