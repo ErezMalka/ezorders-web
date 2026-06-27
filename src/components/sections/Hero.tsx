@@ -1,6 +1,11 @@
 "use client";
 
-import { Player } from "@lottiefiles/react-lottie-player";
+import dynamic from "next/dynamic";
+
+const Player = dynamic(
+  () => import("@lottiefiles/react-lottie-player").then((mod) => mod.Player),
+  { ssr: false }
+);
 import { CTAButton } from "@/components/CTAButton";
 import { SIGNUP_URL } from "@/data/content";
 
