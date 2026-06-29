@@ -119,10 +119,10 @@ return (
   <section dir="rtl" className="relative w-full bg-white py-20 md:py-28 font-sans">
   <div className="mx-auto max-w-container px-5">
   <div className="text-center mb-10 md:mb-14">
-  <p className="text-brand-pink font-semibold tracking-wide mb-3">פלטפורמה אחת לכל המסעדה</p>p>
-  <h2 className="text-brand-dark font-extrabold leading-tight text-4xl md:text-6xl mb-4">המסעדה שלך. מחוברת.</h2>h2>
-  <p className="text-brand-muted text-lg md:text-2xl max-w-2xl mx-auto">תראה איך כל חלק במסעדה עובד יחד – ממקום אחד.</p>p>
-  </div>div>
+  <p className="text-brand-pink font-semibold tracking-wide mb-3">פלטפורמה אחת לכל המסעדה</p>
+  <h2 className="text-brand-dark font-extrabold leading-tight text-4xl md:text-6xl mb-4">המסעדה שלך. מחוברת.</h2>
+  <p className="text-brand-muted text-lg md:text-2xl max-w-2xl mx-auto">תראה איך כל חלק במסעדה עובד יחד – ממקום אחד.</p>
+  </div>
   
   <div className="relative rounded-card border border-slate-100 bg-white shadow-[0_20px_60px_-30px_rgba(25,29,42,0.25)] p-3 md:p-6">
   <svg viewBox="0 0 1000 620" className="w-full h-auto select-none" role="img" aria-label="connected restaurant" onMouseLeave={onLeave}>
@@ -130,11 +130,11 @@ return (
   <radialGradient id="floorGlow" cx="50%" cy="45%" r="60%">
   <stop offset="0%" stopColor="#F5F6FF" />
   <stop offset="100%" stopColor="#FFFFFF" />
-  </radialGradient>radialGradient>
+  </radialGradient>
   <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
   <feDropShadow dx="0" dy="6" stdDeviation="10" floodColor="#191D2A" floodOpacity="0.10" />
-  </filter>filter>
-  </defs>defs>
+  </filter>
+  </defs>
   <rect x="0" y="0" width="1000" height="620" fill="url(#floorGlow)" rx="20" />
   <g strokeLinecap="round" fill="none">
     {links.map(({ a, b, key }) => {
@@ -144,7 +144,7 @@ return (
       <line key={key} x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke={isActive ? "#3B33C8" : "#E5E7F0"} strokeWidth={isActive ? 3 : 1.5} style={{ opacity: dim ? 0.18 : isActive ? 1 : 0.55, transition: "all 360ms cubic-bezier(0.22,1,0.36,1)" }} className={isActive && !reduceMotion ? "er-flow" : ""} />
       );
   })}
-  </g>g>
+  </g>
   
   <g>
     {NODES.map((n) => {
@@ -156,27 +156,26 @@ return (
       <g key={n.id} transform={"translate(" + (n.x - NODE_W / 2) + "," + (n.y - NODE_H / 2) + ")"} style={{ cursor: "pointer", opacity: dim ? 0.32 : 1, transition: "opacity 320ms ease" }} onMouseEnter={() => onEnter(n.id)} onClick={() => onEnter(n.id)} tabIndex={0} onFocus={() => onEnter(n.id)} role="button" aria-label={n.label}>
       <rect width={NODE_W} height={NODE_H} rx="16" fill="#FFFFFF" stroke={isActive || isConnected ? color : "#E5E7F0"} strokeWidth={isActive ? 3 : 1.5} filter="url(#soft)" style={{ transition: "stroke 320ms ease" }} />
       <circle cx="26" cy={NODE_H / 2} r="7" fill={color} style={{ opacity: dim ? 0.4 : 1 }} />
-      <text x={NODE_W - 18} y={NODE_H / 2 + 6} textAnchor="end" fontSize="20" fontWeight="700" fill="#191D2A">{n.label}</text>text>
-      </g>g>
+      <text x={NODE_W - 18} y={NODE_H / 2 + 6} textAnchor="end" fontSize="20" fontWeight="700" fill="#191D2A">{n.label}</text>
+      </g>
       );
   })}
-  </g>g>
-  </svg>svg>
+  </g>
+  </svg>
   
   <div className="mt-4 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-brand-muted">
-  <span className="flex items-center gap-2"><span className="inline-block w-3 h-3 rounded-full" style={{ background: "#3B33C8" }} />ערוצי הזמנה</span>span>
-  <span className="flex items-center gap-2"><span className="inline-block w-3 h-3 rounded-full" style={{ background: "#191D2A" }} />תפעול</span>span>
-  <span className="flex items-center gap-2"><span className="inline-block w-3 h-3 rounded-full" style={{ background: "#F05D86" }} />משלוחים</span>span>
-  <span className="flex items-center gap-2"><span className="inline-block w-3 h-3 rounded-full" style={{ background: "#0EA5A4" }} />צמיחה ובינה</span>span>
-  </div>div>
-  <p className="mt-2 text-center text-brand-muted text-sm md:hidden">הקש על כל רכיב כדי לראות את החיבורים</p>p>
-  <p className="mt-2 text-center text-brand-muted text-sm hidden md:block">העבר את העכבר מעל כל רכיב כדי לראות את החיבורים</p>p>
-  </div>div>
-  </div>div>
-  <style jsx>{STYLE}</style>style>
-  </section>section>
+  <span className="flex items-center gap-2"><span className="inline-block w-3 h-3 rounded-full" style={{ background: "#3B33C8" }} />ערוצי הזמנה</span>
+  <span className="flex items-center gap-2"><span className="inline-block w-3 h-3 rounded-full" style={{ background: "#191D2A" }} />תפעול</span>
+  <span className="flex items-center gap-2"><span className="inline-block w-3 h-3 rounded-full" style={{ background: "#F05D86" }} />משלוחים</span>
+  <span className="flex items-center gap-2"><span className="inline-block w-3 h-3 rounded-full" style={{ background: "#0EA5A4" }} />צמיחה ובינה</span>
+  </div>
+  <p className="mt-2 text-center text-brand-muted text-sm md:hidden">הקש על כל רכיב כדי לראות את החיבורים</p>
+  <p className="mt-2 text-center text-brand-muted text-sm hidden md:block">העבר את העכבר מעל כל רכיב כדי לראות את החיבורים</p>
+  </div>
+  </div>
+  <style jsx>{STYLE}</style>
+  </section>
   );
 }
 
 const STYLE = ".er-flow{stroke-dasharray:8 10;animation:erflow 1.1s linear infinite}@keyframes erflow{to{stroke-dashoffset:-36}}@media (prefers-reduced-motion:reduce){.er-flow{animation:none}}";
-</section>
