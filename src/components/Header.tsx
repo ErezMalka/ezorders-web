@@ -5,6 +5,7 @@ import { useState } from "react";
 import { nav, SIGNUP_URL } from "@/data/content";
 import { CTAButton } from "./CTAButton";
 import { Logo } from "./Logo";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 
 export function Header() {
   const [open, setOpen] = useState(false);
@@ -42,7 +43,8 @@ export function Header() {
           )}
         </nav>
 
-        <div className="hidden md:block">
+        <div className="hidden md:flex items-center gap-6">
+<LanguageSwitcher />
           <CTAButton href={SIGNUP_URL}>Try Free for 14 Days</CTAButton>
         </div>
 
@@ -76,6 +78,7 @@ export function Header() {
                   ))}
               </div>
             ))}
+<LanguageSwitcher className="mt-2 border-t border-gray-100 pt-3" />
             <CTAButton href={SIGNUP_URL} className="mt-2">
               Try Free for 14 Days
             </CTAButton>
