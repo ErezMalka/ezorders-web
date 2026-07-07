@@ -8,19 +8,16 @@ export function PageLayout({
     children,
     locale = defaultLocale,
 }: {
-    children: React.ReactNode;
+    children?: React.ReactNode;
     locale?: Locale;
 }) {
-    // For the default locale, pass no dictionary so Header/Footer use their
-  // existing English content (zero-risk, unchanged behavior). For other
-  // locales, pass the localized dictionary.
-  const dictionary = locale === defaultLocale ? undefined : getDictionary(locale);
+    const dictionary = locale === defaultLocale ? undefined : getDictionary(locale);
 
-  return createElement(
-Fragment,
+return createElement(
+    Fragment,
     null,
-        createElement(Header, { dictionary }),
-        createElement("main", null, children),
-        createElement(Footer, { dictionary })
-      );
+    createElement(Header, { dictionary }),
+    createElement("main", null, children),
+    createElement(Footer, { dictionary })
+    );
 }
