@@ -18,26 +18,28 @@ export const metadata: Metadata = {
 };
 
 export default function HeHomePage() {
-      const content = createElement(
-            "section",
-            {
-                  style: {
-                        padding: "8rem 1.5rem 4rem",
-                        maxWidth: "48rem",
-                        margin: "0 auto",
+      return createElement(
+            PageLayout,
+            { locale: "he" },
+            createElement(
+                  "section",
+                  {
+                        style: {
+                              padding: "8rem 1.5rem 4rem",
+                              maxWidth: "48rem",
+                              margin: "0 auto",
+                        },
                   },
-            },
-            createElement(
-                  "h1",
-                  { style: { fontSize: "2.5rem", fontWeight: 700, marginBottom: "1rem" } },
-                  dict.meta.home.title
-                  ),
-            createElement(
-                  "p",
-                  { style: { color: "#555", lineHeight: 1.7 } },
-                  dict.meta.home.description
+                  createElement(
+                        "h1",
+                        { style: { fontSize: "2.5rem", fontWeight: 700, marginBottom: "1rem" } },
+                        dict.meta.home.title
+                        ),
+                  createElement(
+                        "p",
+                        { style: { color: "#555", lineHeight: 1.7 } },
+                        dict.meta.home.description
+                        )
                   )
             );
-
-return createElement(PageLayout, { locale: "he", children: content });
 }
