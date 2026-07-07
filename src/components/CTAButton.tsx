@@ -3,7 +3,7 @@ import { clsx } from "clsx";
 
 type Props = {
   href?: string;
-  children: React.ReactNode;
+  children?: React.ReactNode;
   variant?: "solid" | "link";
   className?: string;
 };
