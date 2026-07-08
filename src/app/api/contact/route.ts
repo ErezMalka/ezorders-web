@@ -4,35 +4,55 @@ export const runtime = "nodejs";
 
 const MAX_BODY_BYTES = 10 * 1024;
 
-function isValidEmail(value) {
+type UtmFields = Record<string, string | null>;
+
+type ContactPayload = {
+  name?: unknown;
+  email?: unknown;
+  phone?: unknown;
+  businessName?: unknown;
+  message?: unknown;
+  locale?: unknown;
+  pagePath?: unknown;
+  utm?: unknown;
+  company_url?: unknown;
+};
+
+function isValidEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
-export async function POST(request) {
+function asString(value: unknown): string {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+export async function POST(request: Request) {
   const raw = await request.text();
   if (raw.length > MAX_BODY_BYTES) {
     return NextResponse.json({ ok: false, error: "Payload too large" }, { status: 413 });
   }
 
-  let data;
+  let data: ContactPayload;
   try {
-    data = JSON.parse(raw);
+    data = JSON.parse(raw) as ContactPayload;
   } catch {
     return NextResponse.json({ ok: false, error: "Invalid JSON" }, { status: 400 });
   }
 
-  if (typeof data.company_url === "string" && data.company_url.trim() !== "") {
+  const companyUrl = asString(data.company_url);
+  if (companyUrl !== "") {
     return NextResponse.json({ ok: true }, { status: 200 });
   }
 
-  const name = typeof data.name === "string" ? data.name.trim() : "";
-  const email = typeof data.email === "string" ? data.email.trim() : "";
-  const phone = typeof data.phone === "string" ? data.phone.trim() : "";
-  const businessName = typeof data.businessName === "string" ? data.businessName.trim() : "";
-  const message = typeof data.message === "string" ? data.message.trim() : "";
+  const name = asString(data.name);
+  const email = asString(data.email);
+  const phone = asString(data.phone);
+  const businessName = asString(data.businessName);
+  const message = asString(data.message);
   const locale = data.locale === "he" ? "he" : data.locale === "en" ? "en" : null;
   const pagePath = typeof data.pagePath === "string" ? data.pagePath : null;
-  const utm = data.utm && typeof data.utm === "object" ? data.utm : null;
+  const utm =
+    data.utm && typeof data.utm === "object" ? (data.utm as UtmFields) : null;
 
   if (!name || !email || !message) {
     return NextResponse.json({ ok: false, error: "Missing required fields" }, { status: 400 });
@@ -64,7 +84,7 @@ export async function POST(request) {
     utm: utm || null,
   };
 
-  const headers = { "Content-Type": "application/json" };
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
   const secret = process.env.CRM_LEAD_WEBHOOK_SECRET;
   if (secret) {
     headers["X-Webhook-Secret"] = secret;
