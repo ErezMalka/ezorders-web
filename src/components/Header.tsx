@@ -106,7 +106,7 @@ export function Header({ dictionary }: { dictionary?: Dictionary }) {
                           className:
                                         "mx-auto flex max-w-container items-center justify-between px-6 py-6",
               },
-                    createElement(Logo, null),
+                    createElement(Logo, { href: dict.nav[0].href }),
                     desktopNav,
                     createElement(
                                 "div",
