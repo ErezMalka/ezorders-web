@@ -18,7 +18,7 @@ export function Footer({ dictionary }: { dictionary?: Dictionary }) {
                           className:
                                         "mx-auto grid max-w-container gap-10 px-6 py-14 md:grid-cols-4",
               },
-                    createElement(Logo, null),
+                    createElement(Logo, { href: f.learnMore[0].href }),
                     FooterCol({ title: f.learnMoreTitle, links: f.learnMore }),
                     FooterCol({ title: f.solutionsTitle, links: f.solutions }),
                     createElement(
