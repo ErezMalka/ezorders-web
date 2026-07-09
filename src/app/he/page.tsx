@@ -1,45 +1,38 @@
 import type { Metadata } from "next";
-import { createElement } from "react";
 import { PageLayout } from "@/components/PageLayout";
-import { getDictionary } from "@/i18n/getDictionary";
-
-const dict = getDictionary("he");
+import { Hero } from "@/components/sections/Hero";
+import { TrustedUsers } from "@/components/sections/TrustedUsers";
+import { Services } from "@/components/sections/Services";
+import { Benefits } from "@/components/sections/Benefits";
+import { AboutUs } from "@/components/sections/AboutUs";
+import { FriendlyProcess } from "@/components/sections/FriendlyProcess";
+import { SampleApps } from "@/components/sections/SampleApps";
+import { ContactBand } from "@/components/sections/ContactBand";
 
 export const metadata: Metadata = {
-      title: dict.meta.home.title,
-      description: dict.meta.home.description,
-      alternates: {
-            languages: {
-                  en: "/",
-                  he: "/he",
-                  "x-default": "/",
-            },
-      },
+  title: "\u05d3\u05e3 \u05d4\u05d1\u05d9\u05ea - ezorders",
+  description:
+    "EZOrders \u05d4\u05d5\u05e4\u05db\u05ea \u05d0\u05d5\u05e4\u05dc\u05d9\u05d9\u05df \u05dc\u05d0\u05d5\u05e0\u05dc\u05d9\u05d9\u05df \u2014 \u05ea\u05e4\u05e8\u05d9\u05d8\u05d9\u05dd \u05d3\u05d9\u05d2\u05d9\u05d8\u05dc\u05d9\u05d9\u05dd, \u05d4\u05d6\u05de\u05e0\u05d5\u05ea \u05d0\u05d5\u05e0\u05dc\u05d9\u05d9\u05df, \u05e2\u05de\u05d3\u05d5\u05ea \u05e7\u05d9\u05d5\u05e1\u05e7 \u05d5\u05d0\u05e4\u05dc\u05d9\u05e7\u05e6\u05d9\u05d5\u05ea \u05dc\u05de\u05e1\u05e2\u05d3\u05d5\u05ea \u05de\u05d5\u05d3\u05e8\u05e0\u05d9\u05d5\u05ea.",
+  alternates: {
+    languages: {
+      en: "/",
+      he: "/he",
+      "x-default": "/",
+    },
+  },
 };
 
 export default function HeHomePage() {
-      return createElement(
-            PageLayout,
-            { locale: "he" },
-            createElement(
-                  "section",
-                  {
-                        style: {
-                              padding: "8rem 1.5rem 4rem",
-                              maxWidth: "48rem",
-                              margin: "0 auto",
-                        },
-                  },
-                  createElement(
-                        "h1",
-                        { style: { fontSize: "2.5rem", fontWeight: 700, marginBottom: "1rem" } },
-                        dict.meta.home.title
-                        ),
-                  createElement(
-                        "p",
-                        { style: { color: "#555", lineHeight: 1.7 } },
-                        dict.meta.home.description
-                        )
-                  )
-            );
+  return (
+    <PageLayout locale="he">
+      <Hero locale="he" />
+      <TrustedUsers locale="he" />
+      <Services locale="he" />
+      <Benefits locale="he" />
+      <AboutUs locale="he" />
+      <FriendlyProcess locale="he" />
+      <SampleApps locale="he" />
+      <ContactBand locale="he" />
+    </PageLayout>
+  );
 }
