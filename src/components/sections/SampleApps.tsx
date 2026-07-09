@@ -4,9 +4,9 @@ import { useState } from "react";
 import { getHomeContent, type Locale } from "@/data/homeContent";
 
 const sampleApps = [
-  { name: "App 1", image: "/images/sample-app-1.png" },
-  { name: "App 2", image: "/images/sample-app-2.png" },
-  { name: "App 3", image: "/images/sample-app-3.png" },
+  { name: "App 1", image: "/images/benefits-app.png" },
+  { name: "App 2", image: "/images/app-hero.png" },
+  { name: "App 3", image: "/images/website-hero.png" },
 ];
 
 export function SampleApps({ locale = "en" }: { locale?: Locale }) {
