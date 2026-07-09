@@ -36,8 +36,8 @@ export default function HeContactPage() {
       createElement("strong", null, "טלפון: "),
       createElement(
         "a",
-        { href: "tel:1234567890", style: { color: "#e6007e", textDecoration: "none" } },
-        "123-456-7890"
+        { href: "tel:*4958", style: { color: "#e6007e", textDecoration: "none" } },
+        "*4958"
         )
       ),
     createElement(
