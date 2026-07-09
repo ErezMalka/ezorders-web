@@ -1,4 +1,5 @@
 import type { Locale } from "@/data/homeContent";
+export type { Locale };
 
 export type PricingPlan = { price: string; name: string; features: string[]; popular: boolean };
 export type StatItem = { value: string; suffix: string; label: string };
