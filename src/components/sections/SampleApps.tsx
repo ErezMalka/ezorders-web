@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { getHomeContent, type Locale } from "@/data/homeContent";
 
 const sampleApps = [
   { name: "App 1", image: "/images/sample-app-1.png" },
@@ -8,7 +9,8 @@ const sampleApps = [
   { name: "App 3", image: "/images/sample-app-3.png" },
 ];
 
-export function SampleApps() {
+export function SampleApps({ locale = "en" }: { locale?: Locale }) {
+  const t = getHomeContent(locale);
   const [index, setIndex] = useState(0);
 
   const prev = () =>
@@ -21,14 +23,10 @@ export function SampleApps() {
       <div className="grid items-center gap-10 md:grid-cols-2">
         <div>
           <h2 className="text-4xl font-bold md:text-5xl">
-            Sample <span className="text-brand-indigo">Apps</span>
+            {t.sampleTitlePrefix}<span className="text-brand-indigo">{t.sampleTitleAccent}</span>{t.sampleTitleSuffix}
           </h2>
         </div>
-        <p className="text-lg text-brand-muted">
-          See real restaurant apps built with EZorders-fully branded,
-          live-synced menus, powered by the same online restaurant ordering
-          system you can launch.
-        </p>
+        <p className="text-lg text-brand-muted">{t.sampleLead}</p>
       </div>
 
       <div className="relative mt-12 flex items-center justify-center">
