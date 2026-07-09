@@ -29,7 +29,7 @@ export const he: Dictionary = {
           learnMoreTitle: "מידע נוסף",
           solutionsTitle: "פתרונות",
           contactTitle: "צרו קשר",
-          tel: "טלפון: 123-456-7890",
+          tel: "טלפון: *4958",
           rights: "© 2025 EZOrders | כל הזכויות שמורות",
           learnMore: [
             { label: "דף הבית", href: "/he" },
