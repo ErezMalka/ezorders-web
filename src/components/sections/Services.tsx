@@ -13,6 +13,7 @@ export function Services({ locale = "en" }: { locale?: Locale }) {
         {t.services.map((s) => (
           <ServiceCard
             key={s.title}
+            cta={t.ctaLearnMore}
             title={s.title}
             body={s.body}
             href={s.href}
