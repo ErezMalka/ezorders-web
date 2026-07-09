@@ -5,9 +5,10 @@ type Props = {
   body: string;
   href: string;
   icon?: React.ReactNode;
+  cta?: string;
 };
 
-export function ServiceCard({ title, body, href, icon }: Props) {
+export function ServiceCard({ title, body, href, icon, cta }: Props) {
   return (
     <div className="rounded-card bg-brand-grey p-8">
       <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-white text-brand-indigo">
@@ -16,7 +17,7 @@ export function ServiceCard({ title, body, href, icon }: Props) {
       <h3 className="mb-3 text-xl font-semibold">{title}</h3>
       <p className="mb-5 text-brand-muted">{body}</p>
       <CTAButton href={href} variant="link">
-        Learn More
+        {cta ?? "Learn More"}
       </CTAButton>
     </div>
   );
