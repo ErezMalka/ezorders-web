@@ -10,9 +10,11 @@ const Player = dynamic(
 );
 import { CTAButton } from "@/components/CTAButton";
 import { SIGNUP_URL } from "@/data/content";
+import { getHomeContent, type Locale } from "@/data/homeContent";
 
-export function Hero() {
-  const words = ["digital world", "awesome"];
+export function Hero({ locale = "en" }: { locale?: Locale }) {
+  const t = getHomeContent(locale);
+  const words = t.heroWords;
   const [wordIndex, setWordIndex] = useState(0);
   const [text, setText] = useState("");
   const [deleting, setDeleting] = useState(false);
@@ -48,24 +50,21 @@ export function Hero() {
       <div className="mx-auto grid max-w-container items-center gap-10 px-6 md:grid-cols-2">
         <div>
           <span className="mb-6 inline-block rounded-pill bg-brand-tint px-5 py-2 text-sm font-medium text-brand-pink">
-            More than Faster
+            {t.heroBadge}
           </span>
           <h1 className="text-5xl font-bold leading-tight md:text-6xl">
-            Your entrance to the{" "}
+            {t.heroTitlePrefix}
             <span className="text-brand-indigo">
               {text}
               <span className="animate-pulse">|</span>
-            </span>{" "}
-            with a click
+            </span>
+            {t.heroTitleSuffix}
           </h1>
-          <p className="mt-6 max-w-md text-lg text-brand-muted">
-            It’s the time to dive in the newest technology that will let you
-            enjoy the digital world and it’s benefits.
-          </p>
+          <p className="mt-6 max-w-md text-lg text-brand-muted">{t.heroLead}</p>
           <div className="mt-8 flex items-center gap-8">
-            <CTAButton href={SIGNUP_URL}>Try Free for 14 Days</CTAButton>
-            <CTAButton href="/solutions" variant="link">
-              Learn More
+            <CTAButton href={SIGNUP_URL}>{t.ctaTrial}</CTAButton>
+            <CTAButton href={locale === "he" ? "/he/solutions" : "/solutions"} variant="link">
+              {t.ctaLearnMore}
             </CTAButton>
           </div>
         </div>
