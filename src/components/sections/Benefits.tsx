@@ -1,7 +1,8 @@
 import { FeatureCard } from "@/components/FeatureCard";
-import { homeBenefits } from "@/data/content";
+import { getHomeContent, type Locale } from "@/data/homeContent";
 
-export function Benefits() {
+export function Benefits({ locale = "en" }: { locale?: Locale }) {
+  const t = getHomeContent(locale);
   return (
     <section className="mx-auto max-w-container px-6 py-20">
       <div className="grid items-center gap-12 md:grid-cols-2">
@@ -17,15 +18,11 @@ export function Benefits() {
         </div>
         <div>
           <h2 className="text-4xl font-bold md:text-5xl">
-            How it’s <span className="text-brand-indigo">benefits</span> your
-            business?
+            {t.benefitsTitlePrefix}<span className="text-brand-indigo">{t.benefitsTitleAccent}</span>{t.benefitsTitleSuffix}
           </h2>
-          <p className="mt-4 text-brand-muted">
-            Discover why restaurants worldwide trust EzOrders to power their
-            restaurant ordering system.
-          </p>
+          <p className="mt-4 text-brand-muted">{t.benefitsLead}</p>
           <div className="mt-10 space-y-8">
-            {homeBenefits.map((b) => (
+            {t.benefits.map((b) => (
               <FeatureCard key={b.title} title={b.title} body={b.body} />
             ))}
           </div>
