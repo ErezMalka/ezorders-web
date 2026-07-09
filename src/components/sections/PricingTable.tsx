@@ -2,24 +2,25 @@
 
 import { useState } from "react";
 import { clsx } from "clsx";
-import { pricingPlans, SIGNUP_URL } from "@/data/content";
+import { SIGNUP_URL } from "@/data/content";
+import { getPricingContent, type Locale } from "@/data/pricingContent";
 import { CTAButton } from "@/components/CTAButton";
 
-export function PricingTable() {
+export function PricingTable({ locale = "en" }: { locale?: Locale }) {
+  const t = getPricingContent(locale);
   const [yearly, setYearly] = useState(false);
 
   return (
     <section className="mx-auto max-w-container px-6 py-20">
       <div className="mb-10 text-center">
         <p className="mb-2 inline-block rounded-pill bg-brand-tint px-5 py-1 text-sm font-medium text-brand-pink">
-          Pricing
+          {t.badge}
         </p>
         <h2 className="text-4xl font-bold md:text-5xl">
-          <span className="text-brand-indigo">Plans</span> & Pricing
+          <span className="text-brand-indigo">{t.titleAccent}</span>{t.titleRest}
         </h2>
         <p className="mx-auto mt-3 max-w-xl text-brand-muted">
-          Whether your time-saving automation needs are large or small, we’re
-          here to help you scale.
+          {t.lead}
         </p>
 
         <div className="mt-6 inline-flex rounded-pill bg-brand-grey p-1">
@@ -30,7 +31,7 @@ export function PricingTable() {
               !yearly ? "bg-brand-pink text-white" : "text-brand-dark"
             )}
           >
-            MONTHLY
+            {t.monthly}
           </button>
           <button
             onClick={() => setYearly(true)}
@@ -39,13 +40,13 @@ export function PricingTable() {
               yearly ? "bg-brand-pink text-white" : "text-brand-dark"
             )}
           >
-            YEARLY
+            {t.yearly}
           </button>
         </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-4">
-        {pricingPlans.map((plan) => (
+        {t.plans.map((plan) => (
           <div
             key={plan.name}
             className={clsx(
@@ -55,7 +56,7 @@ export function PricingTable() {
           >
             {plan.popular && (
               <span className="mb-3 inline-block rounded-pill bg-brand-pink px-4 py-1 text-xs font-semibold">
-                MOST POPULAR
+                {t.mostPopular}
               </span>
             )}
             <p className="text-3xl font-bold">
@@ -66,7 +67,7 @@ export function PricingTable() {
                   plan.popular ? "text-white/80" : "text-brand-muted"
                 )}
               >
-                /month
+                {t.perMonth}
               </span>
             </p>
             <h3
@@ -91,7 +92,7 @@ export function PricingTable() {
               href={SIGNUP_URL}
               className={clsx(plan.popular && "bg-white !text-brand-indigo")}
             >
-              Choose plan
+              {t.choosePlan}
             </CTAButton>
           </div>
         ))}
