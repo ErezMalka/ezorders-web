@@ -42,7 +42,7 @@ export const en: Dictionary = {
           learnMoreTitle: "Learn More",
           solutionsTitle: "Solutions",
           contactTitle: "Contact Us",
-          tel: "Tel: 123-456-7890",
+          tel: "Tel: *4958",
           rights: "© 2025 EZOrders | All Rights Reserved",
           learnMore: [
             { label: "Home", href: "/" },
