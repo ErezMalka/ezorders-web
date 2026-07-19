@@ -1,0 +1,43 @@
+name: webp-convert
+
+on:
+  push:
+    branches: [feature/he-seo-images]
+    paths: ['.github/workflows/webp-convert.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  convert:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install cwebp
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq webp
+      - name: Convert PNG to WebP
+        run: |
+          set -e
+          cd public/images/ai
+          for f in ezorders-*.png; do
+            cwebp -quiet -q 82 "$f" -o "${f%.png}.webp"
+            rm "$f"
+          done
+          ls -la
+      - name: Update code references
+        run: |
+          set -e
+          FILES=$(grep -rl '/images/ai/ezorders-' src)
+          for f in $FILES; do
+            sed -i 's|\(/images/ai/ezorders-[a-z-]*\)\.png|\1.webp|g' "$f"
+          done
+          sed -i 's|\(ezorders-[a-z-]*\)\.png|\1.webp|g' public/images/ai/README.md
+          grep -rn 'images/ai/ezorders-' src | head -20
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Optimize AI images: convert PNG to WebP (q82) and update references"
+          git push
