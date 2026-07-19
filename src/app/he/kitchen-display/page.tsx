@@ -34,7 +34,7 @@ export default function HeKitchenDisplayPage() {
         </p>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/images/ai/ezorders-kitchen-display-kds.png"
+          src="/images/ai/ezorders-kitchen-display-kds.webp"
           alt="מסך מטבח KDS של EZOrders במטבח מסעדה — שף מסמן מנה כמוכנה על כרטיס הזמנה במסך מגע"
           style={imgStyle}
           loading="lazy"
@@ -64,7 +64,7 @@ export default function HeKitchenDisplayPage() {
         </p>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/images/ai/ezorders-order-status-board.png"
+          src="/images/ai/ezorders-order-status-board.webp"
           alt="לוח סטטוס הזמנות של EZOrders במסעדה — מסך המציג הזמנות בהכנה ומוכנות לאיסוף"
           style={imgStyle}
           loading="lazy"

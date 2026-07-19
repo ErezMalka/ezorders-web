@@ -27,7 +27,7 @@ export default function HeDigitalMenusPage() {
     createElement("span", { style: tagStyle }, "שירות תפריטים דיגיטליים"),
     createElement("h1", { style: h1Style }, "תנו לתפריט שלכם להצטרף לעולם הדיגיטלי"),
     createElement("p", { style: leadStyle }, "החליפו את התפריט המודפס בתפריט דיגיטלי רספונסיבי שמתעדכן בשניות, נראה מצוין בכל טלפון, ומוביל את הסועד בביטחון מהעיון ועד ההזמנה בלחיצה אחת. פחות חיכוך, יותר החלטות — ויותר הזמנות."),
-    createElement("img", { src: "/images/ai/ezorders-mobile-ordering-app.png", alt: "תפריט דיגיטלי למסעדה על מסך טלפון — אפליקציית EZOrders ליד מעמד QR על שולחן", style: imgStyle, loading: "lazy" }),
+    createElement("img", { src: "/images/ai/ezorders-mobile-ordering-app.webp", alt: "תפריט דיגיטלי למסעדה על מסך טלפון — אפליקציית EZOrders ליד מעמד QR על שולחן", style: imgStyle, loading: "lazy" }),
     createElement("h2", { style: h2Style }, "יכולות התפריט הדיגיטלי"),
     createElement("p", { style: introStyle }, "לעבור לדיגיטל ולהישאר גמישים — התפריט מתעדכן ברגע ומותאם לכל סועד."),
     createElement("h3", { style: h3Style }, "עדכון בזמן אמת"),

@@ -33,7 +33,7 @@ export default function HeQrOrderingPage() {
         </p>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/images/ai/ezorders-mobile-ordering-app.png"
+          src="/images/ai/ezorders-mobile-ordering-app.webp"
           alt="הזמנה בסריקת QR במסעדה — טלפון עם תפריט דיגיטלי של EZOrders ליד מעמד QR על שולחן ערוך"
           style={imgStyle}
           loading="lazy"
@@ -57,7 +57,7 @@ export default function HeQrOrderingPage() {
         </p>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/images/ai/ezorders-qr-table-ordering.png"
+          src="/images/ai/ezorders-qr-table-ordering.webp"
           alt="חבורת חברים במסעדה מזמינה מהטלפונים באמצעות מעמד QR ו-NFC על השולחן"
           style={imgStyle}
           loading="lazy"

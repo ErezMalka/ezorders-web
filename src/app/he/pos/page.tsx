@@ -34,7 +34,7 @@ export default function HePosPage() {
         </p>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/images/ai/ezorders-pos-system.png"
+          src="/images/ai/ezorders-pos-system.webp"
           alt="מערכת קופה POS למסעדה של EZOrders — מסך מגע עם תפריט מוצרים ולקוחה משלמת בטלפון"
           style={imgStyle}
           loading="lazy"
@@ -58,7 +58,7 @@ export default function HePosPage() {
         </p>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/images/ai/ezorders-contactless-payment.png"
+          src="/images/ai/ezorders-contactless-payment.webp"
           alt="תשלום ללא מגע במסעדה — לקוחה מקרבת טלפון למסופון ליד עמדת הקופה"
           style={imgStyle}
           loading="lazy"
@@ -77,7 +77,7 @@ export default function HePosPage() {
         </p>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/images/ai/ezorders-analytics-dashboard.png"
+          src="/images/ai/ezorders-analytics-dashboard.webp"
           alt="דשבורד ניהול ודוחות של EZOrders — גרפים של הכנסות ומנות מובילות על מסך מחשב"
           style={imgStyle}
           loading="lazy"

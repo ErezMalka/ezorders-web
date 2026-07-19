@@ -27,7 +27,7 @@ export default function HeOrderingAppPage() {
     createElement("span", { style: tagStyle }, "שירות אפליקציות"),
     createElement("h1", { style: h1Style }, "הכניסו את המסעדה שלכם לעולם המובייל"),
     createElement("p", { style: leadStyle }, "אפליקציית הזמנות ידידותית שמאפשרת לכם לנהל הזמנות אונליין ללא מאמץ, לייעל את התפעול ולהגביר את שביעות רצון הלקוחות. התאימו את התפריט, עקבו אחר הזמנות ומלאי, וקבלו תובנות עסקיות חשובות — הכל ממקום אחד."),
-    createElement("img", { src: "/images/ai/ezorders-qr-table-ordering.png", alt: "לקוחות במסעדה מזמינים מאפליקציית EZOrders בטלפונים שלהם ליד השולחן", style: imgStyle, loading: "lazy" }),
+    createElement("img", { src: "/images/ai/ezorders-qr-table-ordering.webp", alt: "לקוחות במסעדה מזמינים מאפליקציית EZOrders בטלפונים שלהם ליד השולחן", style: imgStyle, loading: "lazy" }),
     createElement("h2", { style: h2Style }, "יכולות האפליקציה"),
     createElement("p", { style: introStyle }, "פתרון הכל-באחד שמעמיק את הקשר עם הלקוחות ומחזיר אותם שוב ושוב."),
     createElement("h3", { style: h3Style }, "התראות פוש"),

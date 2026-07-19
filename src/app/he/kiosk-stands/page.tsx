@@ -27,7 +27,7 @@ export default function HeKioskStandsPage() {
     createElement("span", { style: tagStyle }, "שירות עמדות קיוסק"),
     createElement("h1", { style: h1Style }, "עידן התורים הארוכים נגמר"),
     createElement("p", { style: leadStyle }, "עמדת קיוסק מודרנית בשירות עצמי שהופכת את פקקי שעות השיא להזמנות מהירות, מדויקות ובעלות המרה גבוהה. הלקוחות נהנים מתהליך אינטואיטיבי, והצוות שלכם מקבל בחזרה זמן יקר להתמקד באירוח."),
-    createElement("img", { src: "/images/ai/ezorders-self-service-kiosk.png", alt: "עמדת קיוסק להזמנה עצמית של EZOrders — לקוחה מזמינה במסך מגע ממותג במסעדה", style: imgStyle, loading: "lazy" }),
+    createElement("img", { src: "/images/ai/ezorders-self-service-kiosk.webp", alt: "עמדת קיוסק להזמנה עצמית של EZOrders — לקוחה מזמינה במסך מגע ממותג במסעדה", style: imgStyle, loading: "lazy" }),
     createElement("h2", { style: h2Style }, "יכולות עמדת הקיוסק"),
     createElement("p", { style: introStyle }, "עמדת קיוסק טובה היא הרבה יותר ממסך מגע גדול — היא מלווה כל סועד מהמגע הראשון ועד הקבלה, בלי חיכוך."),
     createElement("h3", { style: h3Style }, "עיצוב מרשים וממותג"),

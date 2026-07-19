@@ -27,7 +27,7 @@ export default function HeOrderingWebsitePage() {
     createElement("span", { style: tagStyle }, "שירות אתר הזמנות"),
     createElement("h1", { style: h1Style }, "אתר הזמנות למסעדה שעובד בשבילכם"),
     createElement("p", { style: leadStyle }, "אתר הזמנות אונליין ממותג משלכם, שמלווה את הלקוח מהעיון בתפריט ועד לתשלום המאובטח — בלי עמלות של פלטפורמות חיצוניות. הלקוחות מזמינים בקצב שלהם, בונים את ההזמנה בדיוק כרצונם, ואתם מקבלים כל הזמנה ישירות למטבח, מסודרת וברורה."),
-    createElement("img", { src: "/images/ai/ezorders-online-ordering-laptop.png", alt: "אתר הזמנות למסעדה של EZOrders על מסך לפטופ — תפריט עם סל קניות ותשלום", style: imgStyle, loading: "lazy" }),
+    createElement("img", { src: "/images/ai/ezorders-online-ordering-laptop.webp", alt: "אתר הזמנות למסעדה של EZOrders על מסך לפטופ — תפריט עם סל קניות ותשלום", style: imgStyle, loading: "lazy" }),
     createElement("h2", { style: h2Style }, "יכולות מרכזיות"),
     createElement("p", { style: introStyle }, "כל מה שמסעדה מודרנית צריכה כדי למכור יותר ולעבוד חכם — במקום אחד."),
     createElement("h3", { style: h3Style }, "מערכת אפסייל חכמה"),

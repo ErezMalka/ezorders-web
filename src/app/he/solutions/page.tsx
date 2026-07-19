@@ -99,7 +99,7 @@ const content = createElement(
     "EZOrders מציעה חבילה שלמה של כלים דיגיטליים למסעדות — כולם מסונכרנים ומתעדכנים בזמן אמת, כדי לתת לכם שליטה מלאה על התפריט, המחירים והחוויה."
     ),
   createElement("img", {
-    src: "/images/ai/ezorders-hero-restaurant-scene.png",
+    src: "/images/ai/ezorders-hero-restaurant-scene.webp",
     alt: "מסעדה דיגיטלית עם מערכת EZOrders — עמדת קיוסק, קופה, מסכי תפריט ולקוחות מזמינים מהטלפון",
     style: { width: "100%", height: "auto", borderRadius: "1rem", marginBottom: "2.5rem" },
     loading: "lazy",
