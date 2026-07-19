@@ -46,8 +46,8 @@ export default function HeContactPage() {
       createElement("strong", null, "אימייל: "),
       createElement(
         "a",
-        { href: "mailto:hello@ezorders.com", style: { color: "#e6007e", textDecoration: "none" } },
-        "hello@ezorders.com"
+        { href: "mailto:contact@ezorders.com", style: { color: "#e6007e", textDecoration: "none" } },
+        "contact@ezorders.com"
         )
       )
     );

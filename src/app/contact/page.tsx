@@ -29,10 +29,10 @@ export default function ContactPage() {
             <p className="mt-6 font-semibold">
               Already a customer?{" "}
               <a
-                href="mailto:support@ezorders.com"
+                href="mailto:contact@ezorders.com"
                 className="font-normal text-brand-pink underline"
               >
-                support@ezorders.com
+                contact@ezorders.com
               </a>
             </p>
             <p className="mt-2 font-semibold">
