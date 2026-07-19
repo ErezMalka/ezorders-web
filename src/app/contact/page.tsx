@@ -36,13 +36,8 @@ export default function ContactPage() {
               </a>
             </p>
             <p className="mt-2 font-semibold">
-              Want to try EZOrders?{" "}
-              <a
-                href="https://admin.ezorders.com/#/create-account"
-                className="font-normal text-brand-pink underline"
-              >
-                Start your 30 day free trial now.
-              </a>
+              Want to see EZOrders in action? Fill out the form and we\u2019ll
+              get back to you shortly to schedule a live demo.
             </p>
           </div>
           <div className="rounded-card bg-brand-indigo p-8 md:p-12">

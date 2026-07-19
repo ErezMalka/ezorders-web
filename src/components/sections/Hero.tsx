@@ -9,7 +9,6 @@ const Player = dynamic(
   { ssr: false }
 );
 import { CTAButton } from "@/components/CTAButton";
-import { SIGNUP_URL } from "@/data/content";
 import { getHomeContent, type Locale } from "@/data/homeContent";
 
 export function Hero({ locale = "en" }: { locale?: Locale }) {
@@ -62,7 +61,7 @@ export function Hero({ locale = "en" }: { locale?: Locale }) {
           </h1>
           <p className="mt-6 max-w-md text-lg text-brand-muted">{t.heroLead}</p>
           <div className="mt-8 flex items-center gap-8">
-            <CTAButton href={SIGNUP_URL}>{t.ctaTrial}</CTAButton>
+            <CTAButton href={locale === "he" ? "/he/contact" : "/contact"}>{t.ctaTrial}</CTAButton>
             <CTAButton href={locale === "he" ? "/he/solutions" : "/solutions"} variant="link">
               {t.ctaLearnMore}
             </CTAButton>

@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { clsx } from "clsx";
-import { SIGNUP_URL } from "@/data/content";
 import { getPricingContent, type Locale } from "@/data/pricingContent";
 import { CTAButton } from "@/components/CTAButton";
 
@@ -89,7 +88,7 @@ export function PricingTable({ locale = "en" }: { locale?: Locale }) {
               ))}
             </ul>
             <CTAButton
-              href={SIGNUP_URL}
+              href="/contact"
               className={clsx(plan.popular && "bg-white !text-brand-indigo")}
             >
               {t.choosePlan}
