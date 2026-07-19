@@ -18,6 +18,7 @@ const h3Style = { fontSize: "1.2rem", fontWeight: 600, marginBottom: "0.4rem" } 
 const bodyStyle = { color: "#555", lineHeight: 1.8, marginBottom: "1.5rem" } as const;
 const ctaWrapStyle = { marginTop: "3rem" } as const;
 const ctaStyle = { display: "inline-block", background: "#e5306f", color: "#fff", padding: "0.9rem 2rem", borderRadius: "999px", fontWeight: 600, textDecoration: "none" } as const;
+const imgStyle = { width: "100%", height: "auto", borderRadius: "1rem", marginBottom: "2.5rem" } as const;
 
 export default function HeDigitalMenusPage() {
   const content = createElement(
@@ -26,6 +27,7 @@ export default function HeDigitalMenusPage() {
     createElement("span", { style: tagStyle }, "שירות תפריטים דיגיטליים"),
     createElement("h1", { style: h1Style }, "תנו לתפריט שלכם להצטרף לעולם הדיגיטלי"),
     createElement("p", { style: leadStyle }, "החליפו את התפריט המודפס בתפריט דיגיטלי רספונסיבי שמתעדכן בשניות, נראה מצוין בכל טלפון, ומוביל את הסועד בביטחון מהעיון ועד ההזמנה בלחיצה אחת. פחות חיכוך, יותר החלטות — ויותר הזמנות."),
+    createElement("img", { src: "/images/ai/ezorders-mobile-ordering-app.webp", alt: "תפריט דיגיטלי למסעדה על מסך טלפון — אפליקציית EZOrders ליד מעמד QR על שולחן", style: imgStyle, loading: "lazy" }),
     createElement("h2", { style: h2Style }, "יכולות התפריט הדיגיטלי"),
     createElement("p", { style: introStyle }, "לעבור לדיגיטל ולהישאר גמישים — התפריט מתעדכן ברגע ומותאם לכל סועד."),
     createElement("h3", { style: h3Style }, "עדכון בזמן אמת"),

@@ -18,6 +18,7 @@ const h3Style = { fontSize: "1.2rem", fontWeight: 600, marginBottom: "0.4rem" } 
 const bodyStyle = { color: "#555", lineHeight: 1.8, marginBottom: "1.5rem" } as const;
 const ctaWrapStyle = { marginTop: "3rem" } as const;
 const ctaStyle = { display: "inline-block", background: "#e5306f", color: "#fff", padding: "0.9rem 2rem", borderRadius: "999px", fontWeight: 600, textDecoration: "none" } as const;
+const imgStyle = { width: "100%", height: "auto", borderRadius: "1rem", marginBottom: "2.5rem" } as const;
 
 export default function HeOrderingWebsitePage() {
   const content = createElement(
@@ -26,6 +27,7 @@ export default function HeOrderingWebsitePage() {
     createElement("span", { style: tagStyle }, "שירות אתר הזמנות"),
     createElement("h1", { style: h1Style }, "אתר הזמנות למסעדה שעובד בשבילכם"),
     createElement("p", { style: leadStyle }, "אתר הזמנות אונליין ממותג משלכם, שמלווה את הלקוח מהעיון בתפריט ועד לתשלום המאובטח — בלי עמלות של פלטפורמות חיצוניות. הלקוחות מזמינים בקצב שלהם, בונים את ההזמנה בדיוק כרצונם, ואתם מקבלים כל הזמנה ישירות למטבח, מסודרת וברורה."),
+    createElement("img", { src: "/images/ai/ezorders-online-ordering-laptop.webp", alt: "אתר הזמנות למסעדה של EZOrders על מסך לפטופ — תפריט עם סל קניות ותשלום", style: imgStyle, loading: "lazy" }),
     createElement("h2", { style: h2Style }, "יכולות מרכזיות"),
     createElement("p", { style: introStyle }, "כל מה שמסעדה מודרנית צריכה כדי למכור יותר ולעבוד חכם — במקום אחד."),
     createElement("h3", { style: h3Style }, "מערכת אפסייל חכמה"),

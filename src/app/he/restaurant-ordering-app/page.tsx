@@ -18,6 +18,7 @@ const h3Style = { fontSize: "1.2rem", fontWeight: 600, marginBottom: "0.4rem" } 
 const bodyStyle = { color: "#555", lineHeight: 1.8, marginBottom: "1.5rem" } as const;
 const ctaWrapStyle = { marginTop: "3rem" } as const;
 const ctaStyle = { display: "inline-block", background: "#e5306f", color: "#fff", padding: "0.9rem 2rem", borderRadius: "999px", fontWeight: 600, textDecoration: "none" } as const;
+const imgStyle = { width: "100%", height: "auto", borderRadius: "1rem", marginBottom: "2.5rem" } as const;
 
 export default function HeOrderingAppPage() {
   const content = createElement(
@@ -26,6 +27,7 @@ export default function HeOrderingAppPage() {
     createElement("span", { style: tagStyle }, "שירות אפליקציות"),
     createElement("h1", { style: h1Style }, "הכניסו את המסעדה שלכם לעולם המובייל"),
     createElement("p", { style: leadStyle }, "אפליקציית הזמנות ידידותית שמאפשרת לכם לנהל הזמנות אונליין ללא מאמץ, לייעל את התפעול ולהגביר את שביעות רצון הלקוחות. התאימו את התפריט, עקבו אחר הזמנות ומלאי, וקבלו תובנות עסקיות חשובות — הכל ממקום אחד."),
+    createElement("img", { src: "/images/ai/ezorders-qr-table-ordering.webp", alt: "לקוחות במסעדה מזמינים מאפליקציית EZOrders בטלפונים שלהם ליד השולחן", style: imgStyle, loading: "lazy" }),
     createElement("h2", { style: h2Style }, "יכולות האפליקציה"),
     createElement("p", { style: introStyle }, "פתרון הכל-באחד שמעמיק את הקשר עם הלקוחות ומחזיר אותם שוב ושוב."),
     createElement("h3", { style: h3Style }, "התראות פוש"),
