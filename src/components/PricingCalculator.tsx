@@ -79,7 +79,31 @@ function buildInitial(): CalcState {
 // ============================================================
 //  Inline icons (no external deps)
 // ============================================================
+const BRAND_ICONS: Record<string, string> = {
+  pos: "Pos",
+  globe: "WEB",
+  kiosk: "Kiosk",
+  users: "Loyalty",
+  wallet: "Wallet",
+  chat: "Feedbacks",
+  card: "Payment_Terminal",
+  shield: "Payment_Terminal",
+  settings: "Settings",
+};
+
 function Icon({ name, className }: { name: string; className?: string }) {
+  const brand = BRAND_ICONS[name];
+  if (brand) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={`/icons/${brand}.svg`}
+        alt=""
+        aria-hidden="true"
+        className={`${className ?? ""} object-contain`}
+      />
+    );
+  }
   const paths: Record<string, React.ReactNode> = {
     pos: <path d="M4 4h16v10H4zM8 18h8M12 14v4" />,
     globe: <path d="M12 3a9 9 0 100 18 9 9 0 000-18zM3 12h18M12 3c3 3.5 3 14.5 0 18-3-3.5-3-14.5 0-18z" />,
