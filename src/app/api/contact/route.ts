@@ -117,10 +117,37 @@ export async function POST(request: Request) {
     );
     emailOk = res.ok;
     if (!res.ok) {
-      console.error("[contact] FormSubmit returned status " + res.status);
+      console.error("[contact] FormSubmit AJAX returned status " + res.status);
     }
   } catch (err) {
-    console.error("[contact] FormSubmit request failed", err);
+    console.error("[contact] FormSubmit AJAX request failed", err);
+  }
+
+  // Fallback: regular (non-AJAX) FormSubmit endpoint. This path works even
+  // before the address is activated and triggers the activation email.
+  if (!emailOk) {
+    try {
+      const form = new URLSearchParams();
+      for (const [k, v] of Object.entries(emailBody)) {
+        form.append(k, v);
+      }
+      form.append("_captcha", "false");
+      const res = await fetchWithTimeout(
+        "https://formsubmit.co/" + LEAD_EMAIL,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: form.toString(),
+        },
+        10000
+      );
+      emailOk = res.ok;
+      if (!res.ok) {
+        console.error("[contact] FormSubmit form endpoint returned status " + res.status);
+      }
+    } catch (err) {
+      console.error("[contact] FormSubmit form endpoint failed", err);
+    }
   }
 
   // --- Secondary channel (optional): CRM webhook, if configured ---
