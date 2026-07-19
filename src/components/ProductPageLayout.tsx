@@ -4,7 +4,6 @@ import { FeatureCard } from "./FeatureCard";
 import { PricingTable } from "./sections/PricingTable";
 import { FAQ } from "./sections/FAQ";
 import { ContactBand } from "./sections/ContactBand";
-import { SIGNUP_URL } from "@/data/content";
 
 export type ProductContent = {
   tag: string;
@@ -39,7 +38,7 @@ export function ProductPageLayout({ content }: { content: ProductContent }) {
               {content.heroBody}
             </p>
             <div className="mt-8 flex items-center gap-8">
-              <CTAButton href={SIGNUP_URL}>Try Free for 14 Days</CTAButton>
+              <CTAButton href="/contact">Book a Demo Now</CTAButton>
               <CTAButton href="/solutions" variant="link">
                 All Services
               </CTAButton>
