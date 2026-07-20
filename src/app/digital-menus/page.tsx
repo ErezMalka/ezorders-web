@@ -9,5 +9,5 @@ export const metadata: Metadata = {
 };
 
 export default function DigitalMenusPage() {
-  return <ProductPageLayout content={digitalMenusContent} />;
+  return <ProductPageLayout content={digitalMenusContent.en} />;
 }

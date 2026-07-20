@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
-import { createElement } from "react";
 import { PageLayout } from "@/components/PageLayout";
+import { CTAButton } from "@/components/CTAButton";
+import { StatsStrip } from "@/components/sections/StatsStrip";
+import { Testimonials } from "@/components/sections/Testimonials";
+import { ContactBand } from "@/components/sections/ContactBand";
+import { SIGNUP_URL } from "@/data/content";
 
 export const metadata: Metadata = {
   title: "אודות - ezorders",
@@ -16,46 +20,58 @@ export const metadata: Metadata = {
 };
 
 export default function HeAboutPage() {
-  const content = createElement(
-    "section",
-    {
-      style: {
-        padding: "8rem 1.5rem 4rem",
-        maxWidth: "48rem",
-        margin: "0 auto",
-      },
-    },
-    createElement(
-      "h1",
-      { style: { fontSize: "2.5rem", fontWeight: 700, marginBottom: "1rem" } },
-      "אודות EZOrders"
-      ),
-    createElement(
-      "p",
-      { style: { color: "#555", lineHeight: 1.8, marginBottom: "2rem" } },
-      "EZOrders הופכת כל צפייה בתפריט לרגע של החלטה. אנחנו בונים תפריטים דיגיטליים מבוססי מובייל למסעדות, שמתעדכנים בשניות, נראים מצוין בכל מכשיר, ומלווים את הלקוחות בצורה חלקה מהעיון ועד ההזמנה — מגדילים את הסל הממוצע ומפחיתים עומס בשירות."
-      ),
-    createElement(
-      "h2",
-      { style: { fontSize: "1.6rem", fontWeight: 700, marginBottom: "0.75rem" } },
-      "המשימה שלנו"
-      ),
-    createElement(
-      "p",
-      { style: { color: "#555", lineHeight: 1.8, marginBottom: "2rem" } },
-      "לתת לבעלי מסעדות שליטה מלאה — גם בשיא העומס. EZOrders מציבה מחירים, זמינות ומבצעים במרחק הקלקה אחת, בטלפון, בטאבלט או בעמדת קיוסק, כך שתוכלו להגיב לביקוש בלי הדפסות מחדש ובלי המתנה לעיצוב."
-      ),
-    createElement(
-      "h2",
-      { style: { fontSize: "1.6rem", fontWeight: 700, marginBottom: "0.75rem" } },
-      "החזון שלנו"
-      ),
-    createElement(
-      "p",
-      { style: { color: "#555", lineHeight: 1.8 } },
-      "תפריטים הופכים לחוויות דינמיות ומבוססות נתונים שמתאימות את עצמן לרגע — לשעה ביום, למלאי ולביקוש. אנחנו בונים לעבר המלצות חכמות יותר, כרטיסי פריט עשירים ואנליטיקה שמדגישה את מה שחשוב, בלי מורכבות."
-      )
-    );
+  return (
+    <PageLayout locale="he">
+      {/* HERO */}
+      <section className="bg-brand-grey pb-20 pt-36 text-center">
+        <div className="mx-auto max-w-3xl px-6">
+          <span className="mb-6 inline-block rounded-pill bg-brand-tint px-6 py-2 text-sm font-medium text-brand-pink">
+            אודות
+          </span>
+          <h1 className="text-5xl font-bold leading-tight md:text-6xl">
+            הכירו את <span className="text-brand-pink">EZ</span>
+            <span className="text-brand-indigo">Orders.</span>
+          </h1>
+          <p className="mt-6 text-lg text-brand-muted">
+            EZOrders הופכת כל צפייה בתפריט לרגע של החלטה. אנחנו בונים תפריטים
+            דיגיטליים מבוססי מובייל למסעדות, שמתעדכנים בשניות, נראים מצוין בכל
+            מכשיר, ומלווים את הלקוחות בצורה חלקה מהעיון ועד ההזמנה — מגדילים את
+            הסל הממוצע ומפחיתים עומס בשירות.
+          </p>
+        </div>
+      </section>
 
-return createElement(PageLayout, { locale: "he" }, content);
+      {/* MISSION + VISION */}
+      <section className="mx-auto max-w-container px-6 py-20">
+        <div className="grid gap-12 md:grid-cols-2">
+          <div>
+            <h2 className="mb-4 text-3xl font-bold">המשימה שלנו</h2>
+            <p className="text-brand-muted">
+              לתת לבעלי מסעדות שליטה מלאה — גם בשיא העומס. EZOrders מציבה מחירים,
+              זמינות ומבצעים במרחק הקלקה אחת, בטלפון, בטאבלט או בעמדת קיוסק, כך
+              שתוכלו להגיב לביקוש בלי הדפסות מחדש ובלי המתנה לעיצוב. כרטיסי פריט
+              ברורים עם תמונות ומידע שקוף מקצרים את ההתלבטות, ופעולות בלחיצה
+              מגדילות תוספות ומזרזות את השירות.
+            </p>
+          </div>
+          <div>
+            <h2 className="mb-4 text-3xl font-bold">החזון שלנו</h2>
+            <p className="text-brand-muted">
+              תפריטים הופכים לחוויות דינמיות ומבוססות נתונים שמתאימות את עצמן
+              לרגע — לשעה ביום, למלאי ולביקוש. אנחנו בונים לעבר המלצות חכמות יותר,
+              כרטיסי פריט עשירים ואנליטיקה שמדגישה את מה שחשוב, בלי מורכבות —
+              תפריט שמרגיש חי ושומר על מותג אחיד בכל הסניפים.
+            </p>
+          </div>
+        </div>
+        <div className="mt-12 text-center">
+          <CTAButton href={SIGNUP_URL}>התחילו עם EZOrders</CTAButton>
+        </div>
+      </section>
+
+      <StatsStrip locale="he" />
+      <Testimonials locale="he" />
+      <ContactBand locale="he" />
+    </PageLayout>
+  );
 }

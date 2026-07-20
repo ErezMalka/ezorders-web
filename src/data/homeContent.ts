@@ -79,7 +79,7 @@ const en = {
   processTitlePrefix: "",
   processTitleAccent: "Friendly",
   processTitleSuffix: " Process",
-  processLead: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut elit tellus, luctus nec ullamcorper mattis, pulvinar dapibus leo.llus, luctu",
+  processLead: "Three simple steps and your restaurant is live — from uploading your menu to choosing the platforms that fit you best.",
   process: [
     {
       number: 1,

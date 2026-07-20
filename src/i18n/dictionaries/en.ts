@@ -32,8 +32,10 @@ export const en: Dictionary = {
                 { label: "Digital menus", href: "/digital-menus" },
                 { label: "Kiosk stands", href: "/kiosk-stands" },
                 { label: "Restaurant ordering app", href: "/restaurant-ordering-app" },
+                { label: "POS – Point of sale", href: "/pos" },
                       ],
       },
+      { label: "The Platform", href: "/platform" },
       { label: "About", href: "/about" },
       { label: "Price", href: "/price" },
       { label: "Contact", href: "/contact" },
@@ -46,6 +48,7 @@ export const en: Dictionary = {
           rights: "© 2025 EZOrders | All Rights Reserved",
           learnMore: [
             { label: "Home", href: "/" },
+            { label: "The Platform", href: "/platform" },
             { label: "About", href: "/about" },
             { label: "Price", href: "/price" },
             { label: "Contact", href: "/contact" },
@@ -55,6 +58,7 @@ export const en: Dictionary = {
             { label: "Digital menus", href: "/digital-menus" },
             { label: "Kiosk stands", href: "/kiosk-stands" },
             { label: "Restaurant ordering app", href: "/restaurant-ordering-app" },
+            { label: "POS – Point of sale", href: "/pos" },
                 ],
     },
 };

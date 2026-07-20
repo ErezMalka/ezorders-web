@@ -9,5 +9,5 @@ export const metadata: Metadata = {
 };
 
 export default function RestaurantOrderingAppPage() {
-  return <ProductPageLayout content={orderingAppContent} />;
+  return <ProductPageLayout content={orderingAppContent.en} />;
 }

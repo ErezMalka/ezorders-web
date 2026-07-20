@@ -19,8 +19,10 @@ export const he: Dictionary = {
                 { label: "תפריטים דיגיטליים", href: "/he/digital-menus" },
                 { label: "עמדות קיוסק", href: "/he/kiosk-stands" },
                 { label: "אפליקציית הזמנות למסעדה", href: "/he/restaurant-ordering-app" },
+                { label: "קופה (POS)", href: "/he/pos" },
                       ],
       },
+      { label: "המערכת", href: "/he/platform" },
       { label: "אודות", href: "/he/about" },
       { label: "מחירים", href: "/he/price" },
       { label: "צור קשר", href: "/he/contact" },
@@ -33,6 +35,7 @@ export const he: Dictionary = {
           rights: "© 2025 EZOrders | כל הזכויות שמורות",
           learnMore: [
             { label: "דף הבית", href: "/he" },
+            { label: "המערכת", href: "/he/platform" },
             { label: "אודות", href: "/he/about" },
             { label: "מחירים", href: "/he/price" },
             { label: "צור קשר", href: "/he/contact" },
@@ -42,6 +45,7 @@ export const he: Dictionary = {
             { label: "תפריטים דיגיטליים", href: "/he/digital-menus" },
             { label: "עמדות קיוסק", href: "/he/kiosk-stands" },
             { label: "אפליקציית הזמנות למסעדה", href: "/he/restaurant-ordering-app" },
+            { label: "קופה (POS)", href: "/he/pos" },
                 ],
     },
 };

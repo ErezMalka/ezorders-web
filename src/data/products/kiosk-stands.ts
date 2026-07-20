@@ -1,6 +1,7 @@
 import type { ProductContent } from "@/components/ProductPageLayout";
+import type { Locale } from "@/data/homeContent";
 
-export const kioskStandsContent: ProductContent = {
+const en: ProductContent = {
   tag: "Kiosk Stands Service",
   titleParts: ["The area of ", "lines", " has over."],
   heroBody:
@@ -10,12 +11,12 @@ export const kioskStandsContent: ProductContent = {
   featuresIntro:
     "A self ordering kiosk for restaurants should be more than a big touchscreen. It should guide every guest-from first tap to paid receipt-without friction.",
   features: [
-    { title: "Innovative, Eye-Catching Design", body: "Our kiosk stands combine large, edge-to-edge displays with clean lines that elevate any lobby, counter, or food court. Customize colors, logos, and menu imagery to match your brand." },
-    { title: "Smart Menus & Clear Modifiers", body: "Organize items into intuitive categories with guided steps for size, sides, and cooking preferences. Required vs. optional choices are clearly flagged so guests know exactly what to select." },
-    { title: "Smart Sales Uplift", body: "Pre-built bundles and meal combos raise average check naturally-no hard sell, just helpful suggestions at the right moment." },
-    { title: "Faster Ordering", body: "A touch-optimized interface with big buttons, clear category hierarchy, and a streamlined checkout keeps queues moving. Shortcuts for “Best Sellers” and digital wallets help guests complete orders in seconds." },
-    { title: "Less Pressure on the customer", body: "A large screen, friendly language, and clear food photography let customers order at their own pace-without feeling rushed by the line behind them." },
-    { title: "More Accurate Orders", body: "Required vs. optional modifiers, allergen icons, and clear culinary notes reduce order mistakes and costly re-fires. Orders route directly to printers with item-level detail." },
+    { title: "Innovative, Eye-Catching Design", icon: "kiosk", body: "Our kiosk stands combine large, edge-to-edge displays with clean lines that elevate any lobby, counter, or food court. Customize colors, logos, and menu imagery to match your brand." },
+    { title: "Smart Menus & Clear Modifiers", icon: "menu", body: "Organize items into intuitive categories with guided steps for size, sides, and cooking preferences. Required vs. optional choices are clearly flagged so guests know exactly what to select." },
+    { title: "Smart Sales Uplift", icon: "sales", body: "Pre-built bundles and meal combos raise average check naturally-no hard sell, just helpful suggestions at the right moment." },
+    { title: "Faster Ordering", icon: "pos", body: "A touch-optimized interface with big buttons, clear category hierarchy, and a streamlined checkout keeps queues moving. Shortcuts for “Best Sellers” and digital wallets help guests complete orders in seconds." },
+    { title: "Less Pressure on the customer", icon: "clients", body: "A large screen, friendly language, and clear food photography let customers order at their own pace-without feeling rushed by the line behind them." },
+    { title: "More Accurate Orders", icon: "roles", body: "Required vs. optional modifiers, allergen icons, and clear culinary notes reduce order mistakes and costly re-fires. Orders route directly to printers with item-level detail." },
   ],
   benefitsHeading: "How it’s benefits your business?",
   benefitsIntro:
@@ -33,3 +34,34 @@ export const kioskStandsContent: ProductContent = {
     { q: "Why is the ordering system important?" },
   ],
 };
+
+const he: ProductContent = {
+  tag: "שירות עמדות קיוסק",
+  titleParts: ["עידן ", "התורים הארוכים", " נגמר"],
+  heroBody:
+    "עמדת קיוסק מודרנית בשירות עצמי שהופכת את פקקי שעות השיא להזמנות מהירות, מדויקות ובעלות המרה גבוהה. הלקוחות נהנים מתהליך אינטואיטיבי, והצוות שלכם מקבל בחזרה זמן יקר להתמקד באירוח.",
+  heroImage: "/images/kiosk-hero.webp",
+  featuresHeading: "יכולות עמדת הקיוסק",
+  featuresIntro:
+    "עמדת קיוסק טובה היא הרבה יותר ממסך מגע גדול — היא מלווה כל סועד מהמגע הראשון ועד הקבלה, בלי חיכוך.",
+  features: [
+    { title: "עיצוב מרשים וממותג", icon: "kiosk", body: "מסכים גדולים בשילוב עיצוב נקי שמשדרג כל לובי, דלפק או אזור אוכל. התאימו צבעים, לוגו ותמונות תפריט למותג שלכם ליצירת רושם ראשוני חזק." },
+    { title: "הזמנה מהירה ומדויקת", icon: "pos", body: "ממשק מותאם למגע עם כפתורים גדולים, היררכיית קטגוריות ברורה ותשלום מהיר שומרים על תנועה בתור. סימון בחירות חובה מול אופציונליות ואייקוני אלרגנים מפחיתים טעויות בהזמנה." },
+    { title: "הגדלת מכירות חכמה", icon: "sales", body: "חבילות וקומבינציות מוכנות מראש מגדילות את הסל הממוצע באופן טבעי — בלי מכירה אגרסיבית, רק הצעה מועילה ברגע הנכון." },
+  ],
+  benefitsHeading: "איך זה תורם לעסק שלכם?",
+  benefitsIntro:
+    "קיוסק מצוין הוא לא רק חומרה — הוא דרך אמינה לשרת יותר סועדים, להעלות את הסל ולנהל משמרות רזות יותר בלי לפגוע באירוח.",
+  benefits: [
+    { title: "עלויות כוח אדם נמוכות יותר", body: "העברת ההזמנה השגרתית לעמדות הקיוסק מאפשרת לתכנן משמרות רזות יותר בחזית ולהעביר אנשי צוות להכנה ולשירות שבאמת דורשים מגע אנושי." },
+    { title: "פחות לחץ על הלקוח", body: "מסך גדול, שפה ידידותית ותמונות אוכל ברורות מאפשרים ללקוח להזמין בקצב שלו — בלי תחושת דחיפות מהתור שמאחוריו." },
+    { title: "נגישות רחבה יותר", body: "תהליך רב-לשוני מאפשר לכל סועד לבחור את שפתו ישירות בעמדה — כך שאף איש צוות לא צריך לדבר אותה, וההזמנה נעשית פשוטה לקהל רחב יותר." },
+  ],
+  faq: [],
+};
+
+export const kioskStandsContent = { en, he } as const;
+
+export function getKioskStandsContent(locale: Locale = "en") {
+  return locale === "he" ? he : en;
+}

@@ -9,5 +9,5 @@ export const metadata: Metadata = {
 };
 
 export default function KioskStandsPage() {
-  return <ProductPageLayout content={kioskStandsContent} />;
+  return <ProductPageLayout content={kioskStandsContent.en} />;
 }

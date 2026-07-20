@@ -5,6 +5,8 @@ import { PricingTable } from "./sections/PricingTable";
 import { FAQ } from "./sections/FAQ";
 import { ContactBand } from "./sections/ContactBand";
 import { SIGNUP_URL } from "@/data/content";
+import { getHomeContent, type Locale } from "@/data/homeContent";
+import { ModuleIcon, type IconName } from "@/components/Icons";
 
 export type ProductContent = {
   tag: string;
@@ -13,16 +15,26 @@ export type ProductContent = {
   heroImage?: string;
   featuresHeading: string;
   featuresIntro: string;
-  features: { title: string; body: string }[];
+  features: { title: string; body: string; icon?: IconName }[];
   benefitsHeading: string;
   benefitsIntro: string;
   benefits: { title: string; body: string }[];
   faq: { q: string; a?: string }[];
 };
 
-export function ProductPageLayout({ content }: { content: ProductContent }) {
+export function ProductPageLayout({
+  content,
+  locale = "en",
+}: {
+  content: ProductContent;
+  locale?: Locale;
+}) {
+  const home = getHomeContent(locale);
+  const solutionsHref = locale === "he" ? "/he/solutions" : "/solutions";
+  const allServicesLabel = locale === "he" ? "כל השירותים" : "All Services";
+
   return (
-    <PageLayout>
+    <PageLayout locale={locale}>
       {/* HERO */}
       <section className="relative overflow-hidden pb-16 pt-36">
         <div className="mx-auto grid max-w-container items-center gap-10 px-6 md:grid-cols-2">
@@ -38,10 +50,10 @@ export function ProductPageLayout({ content }: { content: ProductContent }) {
             <p className="mt-6 max-w-md text-lg text-brand-muted">
               {content.heroBody}
             </p>
-            <div className="mt-8 flex items-center gap-8">
-              <CTAButton href={SIGNUP_URL}>Try Free for 14 Days</CTAButton>
-              <CTAButton href="/solutions" variant="link">
-                All Services
+            <div className="mt-8 flex flex-wrap items-center gap-8">
+              <CTAButton href={SIGNUP_URL}>{home.ctaTrial}</CTAButton>
+              <CTAButton href={solutionsHref} variant="link">
+                {allServicesLabel}
               </CTAButton>
             </div>
           </div>
@@ -68,7 +80,12 @@ export function ProductPageLayout({ content }: { content: ProductContent }) {
         <p className="mt-4 max-w-2xl text-brand-muted">{content.featuresIntro}</p>
         <div className="mt-12 grid gap-10 md:grid-cols-2">
           {content.features.map((f) => (
-            <FeatureCard key={f.title} title={f.title} body={f.body} />
+            <FeatureCard
+              key={f.title}
+              title={f.title}
+              body={f.body}
+              icon={f.icon ? <ModuleIcon name={f.icon} className="h-8 w-8" /> : undefined}
+            />
           ))}
         </div>
       </section>
@@ -94,13 +111,13 @@ export function ProductPageLayout({ content }: { content: ProductContent }) {
       </section>
 
       {/* PRICING */}
-      <PricingTable />
+      <PricingTable locale={locale} />
 
       {/* FAQ */}
-      <FAQ items={content.faq} />
+      {content.faq.length > 0 && <FAQ items={content.faq} />}
 
       {/* CONTACT */}
-      <ContactBand />
+      <ContactBand locale={locale} />
     </PageLayout>
   );
 }

@@ -18,7 +18,8 @@ const technologies = [
   { label: "Memberships Clubs", href: "/solutions" },
   { label: "Kiosk Stands", href: "/kiosk-stands" },
   { label: "Applications", href: "/restaurant-ordering-app" },
-  { label: "Order Management System", href: "/solutions" },
+  { label: "POS – Point of sale", href: "/pos" },
+  { label: "Order Management System", href: "/platform" },
 ];
 
 export default function SolutionsPage() {
