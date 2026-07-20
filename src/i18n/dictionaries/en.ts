@@ -1,6 +1,6 @@
 export type Dictionary = {
     meta: { home: { title: string; description: string } };
-    header: { cta: string };
+    header: { cta: string; ctaHref: string };
     nav: { label: string; href: string; items?: { label: string; href: string }[] }[];
     footer: {
       learnMoreTitle: string;
@@ -21,7 +21,7 @@ export const en: Dictionary = {
                             "EZorders turns offline to online — digital menus, online ordering, kiosk stands and apps for modern restaurants.",
           },
     },
-    header: { cta: "Try Free for 14 Days" },
+    header: { cta: "Book a Demo", ctaHref: "/contact" },
     nav: [
       { label: "Home", href: "/" },
       {

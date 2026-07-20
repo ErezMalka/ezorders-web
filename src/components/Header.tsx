@@ -2,7 +2,6 @@
 
 import { createElement, useState } from "react";
 import Link from "next/link";
-import { SIGNUP_URL } from "@/data/content";
 import { getDictionary } from "@/i18n/getDictionary";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import { CTAButton } from "./CTAButton";
@@ -93,7 +92,7 @@ export function Header({ dictionary }: { dictionary?: Dictionary }) {
                                 createElement(LanguageSwitcher, {
                                               className: "mt-2 border-t border-gray-100 pt-3",
                                 }),
-                                createElement(CTAButton, { href: SIGNUP_URL, className: "mt-2" }, ctaLabel)
+                                createElement(CTAButton, { href: dict.header.ctaHref, className: "mt-2" }, ctaLabel)
                               )
                   );
 
@@ -112,7 +111,7 @@ export function Header({ dictionary }: { dictionary?: Dictionary }) {
                                 "div",
                         { className: "hidden md:flex items-center gap-6" },
                                 createElement(LanguageSwitcher, null),
-                                createElement(CTAButton, { href: SIGNUP_URL }, ctaLabel)
+                                createElement(CTAButton, { href: dict.header.ctaHref }, ctaLabel)
                               ),
                     createElement(
                                 "button",

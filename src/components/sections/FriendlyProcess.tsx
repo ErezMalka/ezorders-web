@@ -1,6 +1,5 @@
 import { ProcessStep } from "@/components/ProcessStep";
 import { CTAButton } from "@/components/CTAButton";
-import { SIGNUP_URL } from "@/data/content";
 import { getHomeContent, type Locale } from "@/data/homeContent";
 
 export function FriendlyProcess({ locale = "en" }: { locale?: Locale }) {
@@ -25,7 +24,7 @@ export function FriendlyProcess({ locale = "en" }: { locale?: Locale }) {
         </div>
 
         <div className="mt-14">
-          <CTAButton href={SIGNUP_URL}>{t.ctaTrial}</CTAButton>
+          <CTAButton href={locale === "he" ? "/he/contact" : "/contact"}>{t.ctaTrial}</CTAButton>
         </div>
       </div>
     </section>

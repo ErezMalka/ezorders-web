@@ -1,15 +1,11 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { createElement } from "react";
 import { PageLayout } from "@/components/PageLayout";
-import { CTAButton } from "@/components/CTAButton";
-import { Testimonials } from "@/components/sections/Testimonials";
-import { ContactBand } from "@/components/sections/ContactBand";
-import { SIGNUP_URL } from "@/data/content";
 
 export const metadata: Metadata = {
   title: "פתרונות - ezorders",
   description:
-    "הפתרונות של EZOrders למסעדות: אתר הזמנות למסעדה, תפריטים דיגיטליים, עמדות קיוסק, אפליקציית הזמנות ומערכת ניהול הזמנות — הכל מסונכרן ומתעדכן בזמן אמת.",
+    "הפתרונות של EZOrders למסעדות: אתר הזמנות למסעדה, תפריטים דיגיטליים, עמדות קיוסק ואפליקציית הזמנות — הכל מסונכרן ומתעדכן בזמן אמת.",
   alternates: {
     languages: {
       en: "/solutions",
@@ -19,92 +15,103 @@ export const metadata: Metadata = {
   },
 };
 
-const technologies = [
-  { label: "תפריטים דיגיטליים", href: "/he/digital-menus" },
-  { label: "אתרי הזמנות", href: "/he/restaurant-ordering-website" },
-  { label: "מועדוני לקוחות", href: "/he/platform" },
-  { label: "עמדות קיוסק", href: "/he/kiosk-stands" },
-  { label: "אפליקציות", href: "/he/restaurant-ordering-app" },
-  { label: "קופה (POS)", href: "/he/pos" },
-  { label: "מערכת ניהול הזמנות", href: "/he/platform" },
-];
+const solutions = [
+  {
+    title: "אתר הזמנות למסעדה",
+    href: "/he/restaurant-ordering-website",
+    text: "אתר הזמנות מותאם למובייל שמאפשר ללקוחות לעיין בתפריט ולהזמין בכמה הקלקות — בלי אפליקציה ובלי חיכוך.",
+  },
+  {
+    title: "תפריטים דיגיטליים",
+    href: "/he/digital-menus",
+    text: "תפריטים דיגיטליים שמתעדכנים בשניות, עם תמונות, תגיות ואלרגנים — מגדילים את הסל הממוצע ומפחיתים שאלות בשירות.",
+  },
+  {
+    title: "עמדות קיוסק",
+    href: "/he/kiosk-stands",
+    text: "עמדות הזמנה עצמית שמקצרות תורים, מפנות את הצוות ומעלות את גובה ההזמנה הממוצעת.",
+  },
+  {
+    title: "אפליקציית הזמנות למסעדה",
+    href: "/he/restaurant-ordering-app",
+    text: "אפליקציה ממותגת ללקוחות החוזרים שלכם, עם הזמנות מהירות, נאמנות ועדכונים בזמן אמת.",
+  },
+  {
+    title: "מערכת קופה למסעדות (POS)",
+    href: "/he/pos",
+    text: "קופה חכמה שמרכזת את כל ערוצי המכירה, סולקת בכל אמצעי תשלום ומפיקה דוחות בזמן אמת — השליטה המלאה על העסק ממסך אחד.",
+  },
+  {
+    title: "הזמנה בסריקת QR מהשולחן",
+    href: "/he/qr-ordering",
+    text: "הסועדים סורקים קוד על השולחן, מזמינים ומשלמים מהטלפון — בלי אפליקציה ובלי המתנה. הסל הממוצע עולה והצוות מתפנה לאירוח.",
+  },
+  {
+    title: "מסך מטבח דיגיטלי (KDS)",
+    href: "/he/kitchen-display",
+    text: "כל ההזמנות מכל הערוצים על מסך אחד במטבח, עם טיימרים, סטטוסים ולוח מוכנות ללקוחות — נגמר עידן הבונים המודפסים.",
+  },
+  {
+    title: "המערכת",
+    href: "/he/platform",
+    text: "מערכת אחת לניהול כל המסעדה — קופה, הזמנות, תפריט דיגיטלי, מועדון לקוחות, שליחים, עובדים וניהול רב-סניפי, עם דוחות ואנליטיקה בזמן אמת.",
+  },
+  ];
 
 export default function HeSolutionsPage() {
-  return (
-    <PageLayout locale="he">
-      {/* HERO */}
-      <section className="relative overflow-hidden pb-16 pt-36">
-        <div className="mx-auto grid max-w-container items-center gap-10 px-6 md:grid-cols-2">
-          <div>
-            <span className="mb-6 inline-block rounded-pill bg-brand-tint px-5 py-2 text-sm font-medium text-brand-pink">
-              פתרונות
-            </span>
-            <h1 className="text-5xl font-bold leading-tight md:text-6xl">
-              <span className="text-brand-indigo">דיגיטציה</span> למסעדה שלכם, עם
-              אינספור אפשרויות
-            </h1>
-            <p className="mt-6 max-w-md text-lg text-brand-muted">
-              הגיע הזמן לצלול לטכנולוגיה החדשה שתאפשר לכם ליהנות מהעולם הדיגיטלי
-              ומכל היתרונות שלו.
-            </p>
-            <div className="mt-8 flex flex-wrap items-center gap-8">
-              <CTAButton href={SIGNUP_URL}>התנסות חינם ל-14 יום</CTAButton>
-              <CTAButton href="#technologies" variant="link">
-                הטכנולוגיות שלנו
-              </CTAButton>
-            </div>
-          </div>
-          <div className="flex justify-center">
-            <div className="flex h-[420px] w-[420px] items-center justify-center rounded-full bg-brand-indigo">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/images/solutions-chef.png"
-                alt="שף מחזיק טלפון"
-                className="max-h-[400px] w-auto"
-              />
-            </div>
-          </div>
-        </div>
-      </section>
+  const cards = solutions.map((s) =>
+    createElement(
+      "div",
+      {
+        key: s.title,
+        style: {
+          border: "1px solid #eee",
+          borderRadius: "1rem",
+          padding: "1.5rem",
+          marginBottom: "1.25rem",
+        },
+      },
+      createElement(
+        "h2",
+        { style: { fontSize: "1.4rem", fontWeight: 700, marginBottom: "0.5rem" } },
+        createElement("a", { href: s.href, style: { color: "inherit", textDecoration: "none" } }, s.title)
+        ),
+      createElement(
+        "p",
+        { style: { color: "#555", lineHeight: 1.8 } },
+        s.text
+        )
+      )
+                              );
 
-      {/* OUR SERVICES / TECHNOLOGIES */}
-      <section id="technologies" className="mx-auto max-w-container px-6 py-20">
-        <p className="mb-2 text-sm font-medium text-brand-pink">הטכנולוגיות שלנו</p>
-        <h2 className="text-4xl font-bold md:text-5xl">השירותים שלנו</h2>
-        <p className="mt-4 max-w-2xl text-brand-muted">
-          ב-EZOrders אנחנו הופכים אופליין לאונליין. פתחו את עתיד תפעול המסעדה עם
-          מערכת ההזמנות המתקדמת שלנו — תפריטים דיגיטליים אינטואיטיביים, פלטפורמות
-          אונליין ידידותיות ועמדות קיוסק חדשניות.
-        </p>
-
-        <div className="mt-10 grid gap-10 md:grid-cols-2">
-          <div className="rounded-card bg-brand-grey p-8">
-            <h3 className="mb-3 text-2xl font-semibold text-brand-indigo">
-              מערכת ניהול מלאה
-            </h3>
-            <p className="text-brand-muted">
-              מאחורי כל הפתרונות הפונים ללקוח עומדת פלטפורמת ניהול אחת — קופה,
-              הזמנות, תפריט, מועדון לקוחות, שליחים, עובדים, דוחות וניהול רב-סניפי.
-              הכל מחובר ומתעדכן בזמן אמת, כך שיש לכם שליטה מלאה על התפריט, המחירים
-              והחוויה — מסניף בודד ועד רשת שלמה.
-            </p>
-          </div>
-          <div className="grid content-start gap-3">
-            {technologies.map((t) => (
-              <Link
-                key={t.label}
-                href={t.href}
-                className="rounded-card border border-gray-200 px-6 py-4 font-medium transition hover:border-brand-indigo hover:text-brand-indigo"
-              >
-                {t.label}
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <Testimonials locale="he" />
-      <ContactBand locale="he" />
-    </PageLayout>
+const content = createElement(
+  "section",
+  {
+    style: {
+      padding: "8rem 1.5rem 4rem",
+      maxWidth: "48rem",
+      margin: "0 auto",
+    },
+  },
+  createElement(
+    "h1",
+    { style: { fontSize: "2.5rem", fontWeight: 700, marginBottom: "1rem" } },
+    "הפתרונות שלנו"
+    ),
+  createElement(
+    "p",
+    { style: { color: "#555", lineHeight: 1.8, marginBottom: "2.5rem" } },
+    "EZOrders מציעה חבילה שלמה של כלים דיגיטליים למסעדות — כולם מסונכרנים ומתעדכנים בזמן אמת, כדי לתת לכם שליטה מלאה על התפריט, המחירים והחוויה."
+    ),
+  createElement("img", {
+    src: "/images/ai/ezorders-hero-restaurant-scene.webp",
+    alt: "מסעדה דיגיטלית עם מערכת EZOrders — עמדת קיוסק, קופה, מסכי תפריט ולקוחות מזמינים מהטלפון",
+    style: { width: "100%", height: "auto", borderRadius: "1rem", marginBottom: "2.5rem" },
+    loading: "lazy",
+  }
+    ),
+  cards
   );
+
+return createElement(PageLayout, { locale: "he" }, content);
 }

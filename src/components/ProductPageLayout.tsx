@@ -4,7 +4,6 @@ import { FeatureCard } from "./FeatureCard";
 import { PricingTable } from "./sections/PricingTable";
 import { FAQ } from "./sections/FAQ";
 import { ContactBand } from "./sections/ContactBand";
-import { SIGNUP_URL } from "@/data/content";
 import { getHomeContent, type Locale } from "@/data/homeContent";
 import { ModuleIcon, type IconName } from "@/components/Icons";
 
@@ -31,6 +30,7 @@ export function ProductPageLayout({
 }) {
   const home = getHomeContent(locale);
   const solutionsHref = locale === "he" ? "/he/solutions" : "/solutions";
+  const contactHref = locale === "he" ? "/he/contact" : "/contact";
   const allServicesLabel = locale === "he" ? "כל השירותים" : "All Services";
 
   return (
@@ -51,7 +51,7 @@ export function ProductPageLayout({
               {content.heroBody}
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-8">
-              <CTAButton href={SIGNUP_URL}>{home.ctaTrial}</CTAButton>
+              <CTAButton href={contactHref}>{home.ctaTrial}</CTAButton>
               <CTAButton href={solutionsHref} variant="link">
                 {allServicesLabel}
               </CTAButton>

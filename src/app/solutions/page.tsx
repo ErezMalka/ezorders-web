@@ -4,7 +4,6 @@ import { PageLayout } from "@/components/PageLayout";
 import { CTAButton } from "@/components/CTAButton";
 import { Testimonials } from "@/components/sections/Testimonials";
 import { ContactBand } from "@/components/sections/ContactBand";
-import { SIGNUP_URL } from "@/data/content";
 
 export const metadata: Metadata = {
   title: "Solutions - ezorders",
@@ -41,7 +40,7 @@ export default function SolutionsPage() {
               enjoy the digital world and it’s benefits.
             </p>
             <div className="mt-8 flex items-center gap-8">
-              <CTAButton href={SIGNUP_URL}>Try Free for 14 Days</CTAButton>
+              <CTAButton href="/contact">Book a Demo Now</CTAButton>
               <CTAButton href="#technologies" variant="link">
                 Our Technologies
               </CTAButton>

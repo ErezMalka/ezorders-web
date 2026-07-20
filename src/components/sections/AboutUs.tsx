@@ -1,5 +1,4 @@
 import { CTAButton } from "@/components/CTAButton";
-import { SIGNUP_URL } from "@/data/content";
 import { getHomeContent, type Locale } from "@/data/homeContent";
 
 export function AboutUs({ locale = "en" }: { locale?: Locale }) {
@@ -16,7 +15,7 @@ export function AboutUs({ locale = "en" }: { locale?: Locale }) {
               <p key={i}>{p}</p>
             ))}
           </div>
-          <CTAButton href={SIGNUP_URL} className="mt-8">
+          <CTAButton href={locale === "he" ? "/he/contact" : "/contact"} className="mt-8">
             {t.ctaTrial}
           </CTAButton>
         </div>

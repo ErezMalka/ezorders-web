@@ -8,7 +8,7 @@ export const he: Dictionary = {
                             "EZorders הופכת אופליין לאונליין — תפריטים דיגיטליים, הזמנות אונליין, עמדות קיוסק ואפליקציות למסעדות מודרניות.",
           },
     },
-    header: { cta: "התנסות חינם ל-14 יום" },
+    header: { cta: "קבעו דמו עכשיו", ctaHref: "/he/contact" },
     nav: [
       { label: "דף הבית", href: "/he" },
       {
