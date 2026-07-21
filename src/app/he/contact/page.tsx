@@ -9,9 +9,9 @@ export const metadata: Metadata = {
     "רוצים לשמוע עוד על EZOrders? צרו איתנו קשר ונשמח להראות לכם איך תפריטים דיגיטליים והזמנות אונליין יכולים לעזור למסעדה שלכם.",
   alternates: {
     languages: {
-      en: "/contact",
+      en: "/en/contact",
       he: "/he/contact",
-      "x-default": "/contact",
+      "x-default": "/he/contact",
     },
   },
 };

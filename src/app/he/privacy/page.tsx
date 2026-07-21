@@ -9,9 +9,9 @@ export const metadata: Metadata = {
     "כיצד EZOrders אוספת, משתמשת ומגנה על המידע שאתם משתפים דרך האתר שלנו.",
   alternates: {
     languages: {
-      en: "/privacy",
+      en: "/en/privacy",
       he: "/he/privacy",
-      "x-default": "/privacy",
+      "x-default": "/he/privacy",
     },
   },
 };

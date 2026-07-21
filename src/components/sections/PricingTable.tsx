@@ -88,7 +88,7 @@ export function PricingTable({ locale = "en" }: { locale?: Locale }) {
               ))}
             </ul>
             <CTAButton
-              href="/contact"
+              href={locale === "he" ? "/he/contact" : "/en/contact"}
               className={clsx(plan.popular && "bg-white !text-brand-indigo")}
             >
               {t.choosePlan}

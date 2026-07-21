@@ -9,9 +9,9 @@ export const metadata: Metadata = {
   description: t.meta.description,
   alternates: {
     languages: {
-      en: "/pos",
+      en: "/en/pos",
       he: "/he/pos",
-      "x-default": "/pos",
+      "x-default": "/he/pos",
     },
   },
 };

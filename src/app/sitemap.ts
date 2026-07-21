@@ -2,54 +2,66 @@ import type { MetadataRoute } from "next";
 
 const BASE = "https://ezorders.com";
 
-/** Path (without locale prefix), whether it has a Hebrew variant, and priority. */
-const routes: { path: string; he: boolean; priority: number }[] = [
-  { path: "/", he: true, priority: 1 },
-  { path: "/solutions", he: true, priority: 0.9 },
-  { path: "/platform", he: true, priority: 0.9 },
-  { path: "/pos", he: true, priority: 0.8 },
-  { path: "/digital-menus", he: true, priority: 0.8 },
-  { path: "/restaurant-ordering-website", he: true, priority: 0.8 },
-  { path: "/kiosk-stands", he: true, priority: 0.8 },
-  { path: "/restaurant-ordering-app", he: true, priority: 0.8 },
-  { path: "/price", he: true, priority: 0.7 },
-  { path: "/about", he: true, priority: 0.6 },
-  { path: "/contact", he: true, priority: 0.6 },
-  { path: "/connected", he: false, priority: 0.4 },
-  { path: "/privacy", he: true, priority: 0.3 },
+/**
+ * Hebrew is the default locale, so x-default points at the Hebrew URL.
+ * Paths are locale-agnostic; each shared path is emitted twice (/he and /en).
+ */
+const sharedRoutes: { path: string; priority: number }[] = [
+  { path: "", priority: 1 },
+  { path: "/solutions", priority: 0.9 },
+  { path: "/platform", priority: 0.9 },
+  { path: "/pos", priority: 0.8 },
+  { path: "/digital-menus", priority: 0.8 },
+  { path: "/restaurant-ordering-website", priority: 0.8 },
+  { path: "/kiosk-stands", priority: 0.8 },
+  { path: "/restaurant-ordering-app", priority: 0.8 },
+  { path: "/price", priority: 0.7 },
+  { path: "/about", priority: 0.6 },
+  { path: "/contact", priority: 0.6 },
+  { path: "/privacy", priority: 0.3 },
+];
+
+/** Pages that exist only in Hebrew. */
+const hebrewOnlyRoutes: { path: string; priority: number }[] = [
+  { path: "/kitchen-display", priority: 0.8 },
+  { path: "/qr-ordering", priority: 0.8 },
+];
+
+/** Pages that exist only in English, outside the locale prefixes. */
+const rootOnlyRoutes: { path: string; priority: number }[] = [
+  { path: "/connected", priority: 0.4 },
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = new Date();
 
-  return routes.flatMap((route) => {
-    const enUrl = `${BASE}${route.path === "/" ? "" : route.path}`;
-    const heUrl = `${BASE}/he${route.path === "/" ? "" : route.path}`;
+  const shared = sharedRoutes.flatMap((route) => {
+    const heUrl = `${BASE}/he${route.path}`;
+    const enUrl = `${BASE}/en${route.path}`;
+    const languages = { en: enUrl, he: heUrl, "x-default": heUrl };
 
-    const languages = route.he
-      ? { en: enUrl, he: heUrl, "x-default": enUrl }
-      : { en: enUrl, "x-default": enUrl };
-
-    const entries: MetadataRoute.Sitemap = [
-      {
-        url: enUrl,
-        lastModified,
-        changeFrequency: "monthly",
-        priority: route.priority,
-        alternates: { languages },
-      },
-    ];
-
-    if (route.he) {
-      entries.push({
-        url: heUrl,
-        lastModified,
-        changeFrequency: "monthly",
-        priority: route.priority,
-        alternates: { languages },
-      });
-    }
-
-    return entries;
+    return [heUrl, enUrl].map((url) => ({
+      url,
+      lastModified,
+      changeFrequency: "monthly" as const,
+      priority: route.priority,
+      alternates: { languages },
+    }));
   });
+
+  const hebrewOnly = hebrewOnlyRoutes.map((route) => ({
+    url: `${BASE}/he${route.path}`,
+    lastModified,
+    changeFrequency: "monthly" as const,
+    priority: route.priority,
+  }));
+
+  const rootOnly = rootOnlyRoutes.map((route) => ({
+    url: `${BASE}${route.path}`,
+    lastModified,
+    changeFrequency: "monthly" as const,
+    priority: route.priority,
+  }));
+
+  return [...shared, ...hebrewOnly, ...rootOnly];
 }

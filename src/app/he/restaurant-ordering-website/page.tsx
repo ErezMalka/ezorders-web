@@ -5,7 +5,7 @@ import { PageLayout } from "@/components/PageLayout";
 export const metadata: Metadata = {
   title: "אתר הזמנות למסעדה - ezorders",
   description: "אתר הזמנות אונליין למסעדה שלכם — חוויית הזמנה חלקה, תשלום מאובטח, אפסייל חכם ומערכת ניהול לקוחות שמגדילה מכירות.",
-  alternates: { languages: { en: "/restaurant-ordering-website", he: "/he/restaurant-ordering-website", "x-default": "/restaurant-ordering-website" } },
+  alternates: { languages: { en: "/en/restaurant-ordering-website", he: "/he/restaurant-ordering-website", "x-default": "/he/restaurant-ordering-website" } },
 };
 
 const sectionStyle = { padding: "8rem 1.5rem 4rem", maxWidth: "56rem", margin: "0 auto" } as const;

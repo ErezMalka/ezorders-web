@@ -9,9 +9,9 @@ export const metadata: Metadata = {
   description: t.meta.description,
   alternates: {
     languages: {
-      en: "/platform",
+      en: "/en/platform",
       he: "/he/platform",
-      "x-default": "/platform",
+      "x-default": "/he/platform",
     },
   },
 };

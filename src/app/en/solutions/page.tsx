@@ -12,13 +12,13 @@ export const metadata: Metadata = {
 };
 
 const technologies = [
-  { label: "Digital Menus", href: "/digital-menus" },
-  { label: "Websites", href: "/restaurant-ordering-website" },
-  { label: "Memberships Clubs", href: "/solutions" },
-  { label: "Kiosk Stands", href: "/kiosk-stands" },
-  { label: "Applications", href: "/restaurant-ordering-app" },
-  { label: "POS – Point of sale", href: "/pos" },
-  { label: "Order Management System", href: "/platform" },
+  { label: "Digital Menus", href: "/en/digital-menus" },
+  { label: "Websites", href: "/en/restaurant-ordering-website" },
+  { label: "Memberships Clubs", href: "/en/solutions" },
+  { label: "Kiosk Stands", href: "/en/kiosk-stands" },
+  { label: "Applications", href: "/en/restaurant-ordering-app" },
+  { label: "POS – Point of sale", href: "/en/pos" },
+  { label: "Order Management System", href: "/en/platform" },
 ];
 
 export default function SolutionsPage() {
@@ -40,7 +40,7 @@ export default function SolutionsPage() {
               enjoy the digital world and it’s benefits.
             </p>
             <div className="mt-8 flex items-center gap-8">
-              <CTAButton href="/contact">Book a Demo Now</CTAButton>
+              <CTAButton href="/en/contact">Book a Demo Now</CTAButton>
               <CTAButton href="#technologies" variant="link">
                 Our Technologies
               </CTAButton>

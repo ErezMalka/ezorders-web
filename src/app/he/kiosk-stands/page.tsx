@@ -5,7 +5,7 @@ import { PageLayout } from "@/components/PageLayout";
 export const metadata: Metadata = {
   title: "עמדות קיוסק - ezorders",
   description: "עמדת קיוסק למסעדה בשירות עצמי שהופכת עומסי שעות שיא להזמנות מהירות, מדויקות ובעלות סל גבוה — ומפנה זמן לצוות.",
-  alternates: { languages: { en: "/kiosk-stands", he: "/he/kiosk-stands", "x-default": "/kiosk-stands" } },
+  alternates: { languages: { en: "/en/kiosk-stands", he: "/he/kiosk-stands", "x-default": "/he/kiosk-stands" } },
 };
 
 const sectionStyle = { padding: "8rem 1.5rem 4rem", maxWidth: "56rem", margin: "0 auto" } as const;

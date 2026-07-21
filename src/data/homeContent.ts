@@ -27,25 +27,25 @@ const en = {
     {
       title: "Digital Menus",
       body: "Introducing our revolutionary Digital Menus! Say goodbye to traditional paper menus and embrace the future of dining. Browse vivid food images, personalized options, and more.",
-      href: "/digital-menus",
+      href: "/en/digital-menus",
       icon: "/icons/digital-menus.svg"
     },
     {
       title: "website",
       body: "On customer view you only users can use this version, they can explore and order foods from there.",
-      href: "/restaurant-ordering-website",
+      href: "/en/restaurant-ordering-website",
       icon: "/icons/website.svg"
     },
     {
       title: "Kiosk Stands",
       body: "On this version only rides can use this. They can pick up orders from restaurants and deliver to customers",
-      href: "/kiosk-stands",
+      href: "/en/kiosk-stands",
       icon: "/icons/kiosk-stands.svg"
     },
     {
       title: "Applications",
       body: "On this version only rides can use this. They can pick up orders from restaurants and deliver to customers",
-      href: "/restaurant-ordering-app",
+      href: "/en/restaurant-ordering-app",
       icon: "/icons/applications.svg"
     }
   ],
