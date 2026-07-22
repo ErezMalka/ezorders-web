@@ -18,7 +18,7 @@ const en: ProductContent = {
     { title: "Application control", icon: "dashboard", body: "Manage everything from one simple dashboard built for busy operators." },
     { title: "Analytics", icon: "analytics", body: "See what sells, what stalls and where to focus, straight from the menu." },
   ],
-  benefitsHeading: "How it’s benefits your business?",
+  benefitsHeading: "How it benefits your business",
   benefitsIntro:
     "A digital menu for restaurants reduces friction at every step: guests explore visually, choose confidently, and order faster.",
   benefits: [

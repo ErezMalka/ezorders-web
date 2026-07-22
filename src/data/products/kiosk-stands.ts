@@ -3,7 +3,7 @@ import type { Locale } from "@/data/homeContent";
 
 const en: ProductContent = {
   tag: "Kiosk Stands Service",
-  titleParts: ["The area of ", "lines", " has over."],
+  titleParts: ["The era of ", "long lines", " is over."],
   heroBody:
     "EZorders delivers a modern self-service restaurant kiosk that turns rush-hour bottlenecks into fast, accurate, high-conversion orders – giving customers an intuitive flow and your team time back.",
   heroImage: "/images/kiosk-hero.webp",
@@ -18,7 +18,7 @@ const en: ProductContent = {
     { title: "Less Pressure on the customer", icon: "clients", body: "A large screen, friendly language, and clear food photography let customers order at their own pace-without feeling rushed by the line behind them." },
     { title: "More Accurate Orders", icon: "roles", body: "Required vs. optional modifiers, allergen icons, and clear culinary notes reduce order mistakes and costly re-fires. Orders route directly to printers with item-level detail." },
   ],
-  benefitsHeading: "How it’s benefits your business?",
+  benefitsHeading: "How it benefits your business",
   benefitsIntro:
     "A great kiosk is more than hardware-it’s a dependable way to serve more guests, raise average check, and run leaner shifts without hurting hospitality.",
   benefits: [
