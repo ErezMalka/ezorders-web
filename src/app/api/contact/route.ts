@@ -5,6 +5,40 @@ export const runtime = "nodejs";
 
 const MAX_BODY_BYTES = 10 * 1024;
 
+// --- Basic rate limiting (best-effort, in-memory per instance) ---
+// A contact form is submitted rarely, so a small allowance is plenty. This is
+// a lightweight guard against bursts/bots — on serverless it only sees traffic
+// hitting the same warm instance, so it is a first line of defence, not a hard
+// quota. For strict global limits, back this with a shared store (e.g. KV).
+const RATE_LIMIT_MAX = 5; // submissions allowed per window, per IP
+const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000; // 10 minutes
+const rateBuckets = new Map<string, { count: number; resetAt: number }>();
+
+function getClientIp(request: Request): string {
+  const forwarded = request.headers.get("x-forwarded-for");
+  if (forwarded) return forwarded.split(",")[0].trim();
+  return request.headers.get("x-real-ip") || "unknown";
+}
+
+// Returns true when the request is allowed, false when the limit is exceeded.
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now();
+
+  // Opportunistic cleanup of expired buckets to keep the map bounded.
+  for (const [key, bucket] of rateBuckets) {
+    if (bucket.resetAt <= now) rateBuckets.delete(key);
+  }
+
+  const existing = rateBuckets.get(ip);
+  if (!existing || existing.resetAt <= now) {
+    rateBuckets.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return true;
+  }
+  if (existing.count >= RATE_LIMIT_MAX) return false;
+  existing.count += 1;
+  return true;
+}
+
 type UtmFields = Record<string, string | null>;
 
 type ContactPayload = {
@@ -28,6 +62,15 @@ function asString(value: unknown): string {
 }
 
 export async function POST(request: Request) {
+  const ip = getClientIp(request);
+  if (!checkRateLimit(ip)) {
+    console.error("[contact] Rate limit exceeded for " + ip);
+    return NextResponse.json(
+      { ok: false, error: "Too many requests" },
+      { status: 429, headers: { "Retry-After": String(RATE_LIMIT_WINDOW_MS / 1000) } }
+    );
+  }
+
   const raw = await request.text();
   if (raw.length > MAX_BODY_BYTES) {
     return NextResponse.json({ ok: false, error: "Payload too large" }, { status: 413 });
