@@ -114,71 +114,9 @@ return;
 
 setStatus("sending");
 
-const LEAD_EMAIL = "contact@ezorders.com";
-const leadFields: Record<string, string> = {
-_subject: "\u05e4\u05e0\u05d9\u05d9\u05d4 \u05d7\u05d3\u05e9\u05d4 \u05de\u05d0\u05ea\u05e8 EzOrders \u2014 " + name,
-_template: "table",
-_replyto: email,
-_captcha: "false",
-"\u05e9\u05dd \u05de\u05dc\u05d0": name,
-"\u05d0\u05d9\u05de\u05d9\u05d9\u05dc": email,
-"\u05d8\u05dc\u05e4\u05d5\u05df": phone || "-",
-"\u05e9\u05dd \u05d4\u05e2\u05e1\u05e7": business || "-",
-"\u05d4\u05d5\u05d3\u05e2\u05d4": message,
-"\u05e9\u05e4\u05d4": locale,
-"\u05e2\u05de\u05d5\u05d3": typeof window !== "undefined" ? window.location.pathname : "-",
-};
-
-// Channel 1: direct browser AJAX to FormSubmit (the intended usage).
+// Send the lead through our API route, which emails it via Resend.
+// Success is shown ONLY when the request returns HTTP 200 and { ok: true }.
 let delivered = false;
-if (!companyUrl) {
-try {
-const fsRes = await fetch("https://formsubmit.co/ajax/" + LEAD_EMAIL, {
-method: "POST",
-headers: { Accept: "application/json", "Content-Type": "application/json" },
-body: JSON.stringify(leadFields),
-});
-if (fsRes.ok) delivered = true;
-else console.error("[contact] FormSubmit ajax status", fsRes.status);
-} catch (err) {
-console.error("[contact] FormSubmit ajax failed", err);
-}
-
-// Channel 2: hidden-iframe classic POST. Works even before the address is
-// activated (it triggers the activation email) and is immune to CORS.
-if (!delivered && typeof document !== "undefined") {
-try {
-let frame = document.getElementById("fs_frame") as HTMLIFrameElement | null;
-if (!frame) {
-frame = document.createElement("iframe");
-frame.id = "fs_frame";
-frame.name = "fs_frame";
-frame.style.display = "none";
-document.body.appendChild(frame);
-}
-const f = document.createElement("form");
-f.method = "POST";
-f.action = "https://formsubmit.co/" + LEAD_EMAIL;
-f.target = "fs_frame";
-f.style.display = "none";
-for (const [k, v] of Object.entries(leadFields)) {
-const i = document.createElement("input");
-i.type = "hidden";
-i.name = k;
-i.value = v;
-f.appendChild(i);
-}
-document.body.appendChild(f);
-f.submit();
-setTimeout(() => f.remove(), 4000);
-delivered = true;
-} catch (err) {
-console.error("[contact] FormSubmit iframe failed", err);
-}
-}
-}
-
-// Channel 3 (background): server API \u2014 CRM webhook + server-side email backup.
 try {
 const res = await fetch("/api/contact", {
 method: "POST",
@@ -195,12 +133,21 @@ pagePath: typeof window !== "undefined" ? window.location.pathname : null,
 utm: getUtm(),
 }),
 });
-if (res.ok) delivered = true;
+let json: { ok?: boolean } | null = null;
+try {
+json = await res.json();
+} catch {
+json = null;
+}
+delivered = res.ok && json?.ok === true;
+if (!delivered) {
+console.error("[contact] server api returned", res.status, json);
+}
 } catch (err) {
 console.error("[contact] server api failed", err);
 }
 
-if (delivered || companyUrl) {
+if (delivered) {
 setStatus("success");
 setName("");
 setEmail("");
