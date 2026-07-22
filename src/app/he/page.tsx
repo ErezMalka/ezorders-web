@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { PageLayout } from "@/components/PageLayout";
 import { Hero } from "@/components/sections/Hero";
-import { TrustedUsers } from "@/components/sections/TrustedUsers";
 import { Services } from "@/components/sections/Services";
 import { Capabilities } from "@/components/sections/Capabilities";
 import { Benefits } from "@/components/sections/Benefits";
@@ -27,7 +26,6 @@ export default function HeHomePage() {
   return (
     <PageLayout locale="he">
       <Hero locale="he" />
-      <TrustedUsers locale="he" />
       <Services locale="he" />
       <Capabilities locale="he" variant="home" />
       <Benefits locale="he" />
