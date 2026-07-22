@@ -10,12 +10,12 @@ const PRICING_CONFIG = {
 
   coreProducts: [
     { id: "pos", label: "קופה (POS)", note: "המחיר פר קופה", setup: 490, monthly: 350, maxQty: 20, icon: "pos" },
-    { id: "website", label: "אתר אינטרנט", note: "המחיר פר סניף", setup: 490, monthly: 450, maxQty: 10, icon: "globe" },
+    { id: "website", label: "אתר אינטרנט", note: "המחיר פר סניף", setup: 490, monthly: 450, maxQty: 1, icon: "globe" },
     { id: "kiosk", label: "קיוסק", note: "המחיר פר עמדה", setup: 490, monthly: 350, maxQty: 10, icon: "kiosk" },
   ],
 
   addonsIncluded: [
-    { id: "loyalty", label: "מועדון לקוחות", note: "לכל סניף", setup: 0, monthly: 350, maxQty: 20, icon: "users" },
+    { id: "loyalty", label: "מועדון לקוחות", note: "פר סניף", setup: 0, monthly: 350, maxQty: 1, icon: "users" },
     { id: "ezwallet", label: "EzWallet", note: "", setup: 0, monthly: 150, maxQty: 1, icon: "wallet" },
     { id: "feedback", label: "מודול פידבק", note: "", setup: 0, monthly: 150, maxQty: 1, icon: "chat" },
   ],
@@ -121,6 +121,8 @@ function Icon({ name, className }: { name: string; className?: string }) {
     doc: <path d="M6 2h9l4 4v16H6zM14 2v5h5M9 12h6M9 16h6" />,
     down: <path d="M6 9l6 6 6-6" />,
     up: <path d="M6 15l6-6 6 6" />,
+    minus: <path d="M5 12h14" />,
+    plus: <path d="M12 5v14M5 12h14" />,
     percent: <path d="M19 5L5 19M7.5 9a1.5 1.5 0 100-3 1.5 1.5 0 000 3zM16.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />,
   };
   return (
@@ -189,7 +191,7 @@ function ProductRow({ id, label, note, txNote, setup, monthly, maxQty, icon, sta
           </div>
         </div>
 
-        <div className="flex items-center justify-between gap-3 sm:justify-end">
+        <div className="flex items-center justify-between gap-2 border-t border-slate-100 pt-2.5 sm:justify-end sm:gap-3 sm:border-0 sm:pt-0">
         {maxQty > 1 ? (
           <div className="flex flex-shrink-0 items-center gap-1">
             <button
@@ -197,15 +199,15 @@ function ProductRow({ id, label, note, txNote, setup, monthly, maxQty, icon, sta
               onClick={() => onChange(id, { qty: Math.max(1, state.qty - 1) })}
               disabled={!state.enabled || state.qty <= 1}
               aria-label="הפחת כמות"
-              className={`h-9 w-9 rounded-md transition-colors sm:h-7 sm:w-7 ${
+              className={`h-8 w-8 rounded-md transition-colors sm:h-7 sm:w-7 ${
                 state.enabled && state.qty > 1
                   ? "bg-white text-brand-pink hover:bg-brand-pink hover:text-white"
                   : "cursor-not-allowed bg-slate-100 text-slate-300"
               }`}
             >
-              <Icon name="down" className="mx-auto h-3.5 w-3.5" />
+              <Icon name="minus" className="mx-auto h-3.5 w-3.5" />
             </button>
-            <span className={`w-8 text-center text-sm font-bold ${state.enabled ? "text-brand-dark" : "text-slate-400"}`}>
+            <span className={`w-6 text-center text-sm font-bold sm:w-8 ${state.enabled ? "text-brand-dark" : "text-slate-400"}`}>
               {state.qty}
             </span>
             <button
@@ -213,27 +215,27 @@ function ProductRow({ id, label, note, txNote, setup, monthly, maxQty, icon, sta
               onClick={() => onChange(id, { qty: Math.min(maxQty, state.qty + 1) })}
               disabled={!state.enabled || state.qty >= maxQty}
               aria-label="הוסף כמות"
-              className={`h-9 w-9 rounded-md transition-colors sm:h-7 sm:w-7 ${
+              className={`h-8 w-8 rounded-md transition-colors sm:h-7 sm:w-7 ${
                 state.enabled && state.qty < maxQty
                   ? "bg-white text-brand-pink hover:bg-brand-pink hover:text-white"
                   : "cursor-not-allowed bg-slate-100 text-slate-300"
               }`}
             >
-              <Icon name="up" className="mx-auto h-3.5 w-3.5" />
+              <Icon name="plus" className="mx-auto h-3.5 w-3.5" />
             </button>
           </div>
         ) : (
-          <div className="hidden w-24 flex-shrink-0 sm:block" />
+          <div className="flex-1 sm:flex-none sm:w-24 sm:flex-shrink-0" />
         )}
 
-        <div className="w-20 flex-shrink-0 text-center">
+        <div className="w-16 flex-shrink-0 text-center sm:w-20">
           <p className="text-xs text-brand-muted">הקמה</p>
           <p className={`text-sm font-semibold ${state.enabled ? "text-brand-dark" : "text-slate-400"}`}>
             {setup === 0 ? <span className="text-xs font-bold text-emerald-500">חינם</span> : fmt(setup)}
           </p>
         </div>
 
-        <div className="w-28 flex-shrink-0 text-center">
+        <div className="w-24 flex-shrink-0 text-center sm:w-28">
           <p className="text-xs text-brand-muted">חודשי</p>
           <p className={`text-sm font-bold ${state.enabled ? "text-brand-pink" : "text-slate-400"}`}>
             {state.enabled && maxQty > 1 && state.qty > 1 ? (
