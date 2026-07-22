@@ -51,10 +51,37 @@ type ContactPayload = {
   pagePath?: unknown;
   utm?: unknown;
   company_url?: unknown;
+  turnstileToken?: unknown;
 };
 
 function isValidEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+// --- Cloudflare Turnstile (optional CAPTCHA) ---
+// Dormant unless TURNSTILE_SECRET_KEY is configured. When set, every submission
+// must carry a valid token, verified server-side against Cloudflare. When not
+// set, this is a no-op and the form behaves exactly as before.
+async function verifyTurnstile(token: string, ip: string): Promise<boolean> {
+  const secret = process.env.TURNSTILE_SECRET_KEY;
+  if (!secret) return true; // not configured → skip verification
+  if (!token) return false;
+  try {
+    const body = new URLSearchParams();
+    body.append("secret", secret);
+    body.append("response", token);
+    if (ip && ip !== "unknown") body.append("remoteip", ip);
+    const res = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: body.toString(),
+    });
+    const result = (await res.json()) as { success?: boolean };
+    return Boolean(result?.success);
+  } catch (err) {
+    console.error("[contact] Turnstile verification failed", err);
+    return false;
+  }
 }
 
 function asString(value: unknown): string {
@@ -110,6 +137,14 @@ export async function POST(request: Request) {
   if (!isValidEmail(email)) {
     console.error("[contact] Validation failed: invalid email");
     return NextResponse.json({ ok: false, error: "Invalid email" }, { status: 400 });
+  }
+
+  // --- CAPTCHA (only enforced when Turnstile is configured) ---
+  const turnstileToken = asString(data.turnstileToken);
+  const human = await verifyTurnstile(turnstileToken, ip);
+  if (!human) {
+    console.error("[contact] Turnstile check rejected submission from " + ip);
+    return NextResponse.json({ ok: false, error: "Captcha failed" }, { status: 403 });
   }
 
   // --- Environment ---

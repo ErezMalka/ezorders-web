@@ -1,8 +1,31 @@
 "use client";
 
-import { createElement, useState } from "react";
+import { createElement, useEffect, useRef, useState } from "react";
 
 type Locale = "en" | "he";
+
+// Cloudflare Turnstile is loaded lazily and only when a site key is configured.
+type TurnstileApi = {
+render: (
+el: HTMLElement,
+opts: {
+sitekey: string;
+callback: (token: string) => void;
+"expired-callback"?: () => void;
+"error-callback"?: () => void;
+theme?: "auto" | "light" | "dark";
+},
+) => string;
+reset: (id?: string) => void;
+};
+declare global {
+interface Window {
+turnstile?: TurnstileApi;
+}
+}
+
+// Build-time inlined; when unset, all Turnstile code paths are skipped.
+const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
 type Labels = {
 title: string;
@@ -20,6 +43,7 @@ errorGeneric: string;
 errorRequired: string;
 errorEmail: string;
 errorAgree: string;
+errorCaptcha: string;
 };
 
 const LABELS: Record<Locale, Labels> = {
@@ -39,6 +63,7 @@ errorGeneric: "Something went wrong. Please try again or email us directly.",
 errorRequired: "Please fill in your name, email and message.",
 errorEmail: "Please enter a valid email address.",
 errorAgree: "Please approve the privacy policy to continue.",
+errorCaptcha: "Please complete the verification and try again.",
 },
 he: {
 title: "\u05d1\u05d5\u05d0\u05d5 \u05e0\u05d3\u05d1\u05e8",
@@ -56,6 +81,7 @@ errorGeneric: "\u05de\u05e9\u05d4\u05d5 \u05d4\u05e9\u05ea\u05d1\u05e9. \u05e0\u
 errorRequired: "\u05d0\u05e0\u05d0 \u05de\u05dc\u05d0\u05d5 \u05e9\u05dd, \u05d0\u05d9\u05de\u05d9\u05d9\u05dc \u05d5\u05d4\u05d5\u05d3\u05e2\u05d4.",
 errorEmail: "\u05d0\u05e0\u05d0 \u05d4\u05d6\u05d9\u05e0\u05d5 \u05db\u05ea\u05d5\u05d1\u05ea \u05d0\u05d9\u05de\u05d9\u05d9\u05dc \u05ea\u05e7\u05d9\u05e0\u05d4.",
 errorAgree: "\u05d0\u05e0\u05d0 \u05d0\u05e9\u05e8\u05d5 \u05d0\u05ea \u05de\u05d3\u05d9\u05e0\u05d9\u05d5\u05ea \u05d4\u05e4\u05e8\u05d8\u05d9\u05d5\u05ea \u05db\u05d3\u05d9 \u05dc\u05d4\u05de\u05e9\u05d9\u05da.",
+errorCaptcha: "\u05d0\u05e0\u05d0 \u05d4\u05e9\u05dc\u05d9\u05de\u05d5 \u05d0\u05ea \u05d0\u05d9\u05de\u05d5\u05ea \u05d4\u05d0\u05d1\u05d8\u05d7\u05d4 \u05d5\u05e0\u05e1\u05d5 \u05e9\u05d5\u05d1.",
 },
 };
 
@@ -89,6 +115,43 @@ const [companyUrl, setCompanyUrl] = useState("");
 const [agree, setAgree] = useState(false);
 const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
 const [errorMsg, setErrorMsg] = useState("");
+const [captchaToken, setCaptchaToken] = useState("");
+
+const captchaRef = useRef<HTMLDivElement | null>(null);
+const widgetIdRef = useRef<string | null>(null);
+
+// Load and render the Turnstile widget once, only when a site key is set.
+useEffect(() => {
+if (!TURNSTILE_SITE_KEY || typeof window === "undefined") return;
+
+const SCRIPT_SRC = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+
+const renderWidget = () => {
+if (!captchaRef.current || widgetIdRef.current || !window.turnstile) return;
+widgetIdRef.current = window.turnstile.render(captchaRef.current, {
+sitekey: TURNSTILE_SITE_KEY,
+callback: (token: string) => setCaptchaToken(token),
+"expired-callback": () => setCaptchaToken(""),
+"error-callback": () => setCaptchaToken(""),
+theme: "auto",
+});
+};
+
+if (window.turnstile) {
+renderWidget();
+return;
+}
+let script = document.querySelector<HTMLScriptElement>(`script[src="${SCRIPT_SRC}"]`);
+if (!script) {
+script = document.createElement("script");
+script.src = SCRIPT_SRC;
+script.async = true;
+script.defer = true;
+document.head.appendChild(script);
+}
+script.addEventListener("load", renderWidget);
+return () => script?.removeEventListener("load", renderWidget);
+}, []);
 
 const isValidEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
@@ -111,6 +174,11 @@ setStatus("error");
 setErrorMsg(t.errorAgree);
 return;
 }
+if (TURNSTILE_SITE_KEY && !captchaToken) {
+setStatus("error");
+setErrorMsg(t.errorCaptcha);
+return;
+}
 
 setStatus("sending");
 
@@ -129,6 +197,7 @@ businessName: business,
 message,
 locale,
 company_url: companyUrl,
+turnstileToken: captchaToken,
 pagePath: typeof window !== "undefined" ? window.location.pathname : null,
 utm: getUtm(),
 }),
@@ -145,6 +214,12 @@ console.error("[contact] server api returned", res.status, json);
 }
 } catch (err) {
 console.error("[contact] server api failed", err);
+}
+
+// Turnstile tokens are single-use — reset so a fresh one is issued next time.
+if (TURNSTILE_SITE_KEY && window.turnstile && widgetIdRef.current) {
+window.turnstile.reset(widgetIdRef.current);
+setCaptchaToken("");
 }
 
 if (delivered) {
@@ -254,6 +329,10 @@ t.privacy
 )
 );
 
+const captchaWidget = TURNSTILE_SITE_KEY
+? createElement("div", { ref: captchaRef, className: "mt-4" })
+: null;
+
 const errorBanner =
 status === "error" && errorMsg
 ? createElement(
@@ -281,6 +360,7 @@ createElement("h3", { className: "mb-6 text-center text-2xl font-semibold" }, t.
 fields,
 honeypot,
 consent,
+captchaWidget,
 errorBanner,
 submitBtn
 );
