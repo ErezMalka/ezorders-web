@@ -9,9 +9,9 @@ const PRICING_CONFIG = {
   initialSetup: { id: "initial", label: "הקמת מערכת ראשונית", setup: 1950 },
 
   coreProducts: [
-    { id: "pos", label: "קופה (POS)", setup: 490, monthly: 350, maxQty: 20, icon: "pos" },
-    { id: "website", label: "אתר אינטרנט", setup: 490, monthly: 450, maxQty: 10, icon: "globe" },
-    { id: "kiosk", label: "קיוסק", setup: 490, monthly: 350, maxQty: 10, icon: "kiosk" },
+    { id: "pos", label: "קופה (POS)", note: "המחיר פר קופה", setup: 490, monthly: 350, maxQty: 20, icon: "pos" },
+    { id: "website", label: "אתר אינטרנט", note: "המחיר פר סניף", setup: 490, monthly: 450, maxQty: 10, icon: "globe" },
+    { id: "kiosk", label: "קיוסק", note: "המחיר פר עמדה", setup: 490, monthly: 350, maxQty: 10, icon: "kiosk" },
   ],
 
   addonsIncluded: [
@@ -161,21 +161,21 @@ function ProductRow({ id, label, note, txNote, setup, monthly, maxQty, icon, sta
   return (
     <div className="space-y-1">
       <div
-        className={`flex flex-wrap items-center gap-3 rounded-2xl border px-4 py-3 transition-all duration-200 ${
+        className={`flex flex-col gap-3 rounded-2xl border px-4 py-3 transition-all duration-200 sm:flex-row sm:flex-wrap sm:items-center ${
           state.enabled
             ? "border-brand-pink/40 bg-brand-tint shadow-sm"
             : "border-slate-200 bg-white opacity-70 hover:opacity-100"
         }`}
       >
-        <input
-          type="checkbox"
-          checked={state.enabled}
-          onChange={(e) => onChange(id, { enabled: e.target.checked })}
-          className="h-5 w-5 flex-shrink-0 cursor-pointer rounded accent-brand-pink"
-          aria-label={label}
-        />
+        <div className="flex min-w-0 items-center gap-3 sm:flex-1">
+          <input
+            type="checkbox"
+            checked={state.enabled}
+            onChange={(e) => onChange(id, { enabled: e.target.checked })}
+            className="h-5 w-5 flex-shrink-0 cursor-pointer rounded accent-brand-pink"
+            aria-label={label}
+          />
 
-        <div className="flex min-w-0 flex-1 items-center gap-2">
           <div
             className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl ${
               state.enabled ? "bg-white text-brand-pink" : "bg-slate-100 text-slate-400"
@@ -189,6 +189,7 @@ function ProductRow({ id, label, note, txNote, setup, monthly, maxQty, icon, sta
           </div>
         </div>
 
+        <div className="flex items-center justify-between gap-3 sm:justify-end">
         {maxQty > 1 ? (
           <div className="flex flex-shrink-0 items-center gap-1">
             <button
@@ -196,7 +197,7 @@ function ProductRow({ id, label, note, txNote, setup, monthly, maxQty, icon, sta
               onClick={() => onChange(id, { qty: Math.max(1, state.qty - 1) })}
               disabled={!state.enabled || state.qty <= 1}
               aria-label="הפחת כמות"
-              className={`h-7 w-7 rounded-md transition-colors ${
+              className={`h-9 w-9 rounded-md transition-colors sm:h-7 sm:w-7 ${
                 state.enabled && state.qty > 1
                   ? "bg-white text-brand-pink hover:bg-brand-pink hover:text-white"
                   : "cursor-not-allowed bg-slate-100 text-slate-300"
@@ -212,7 +213,7 @@ function ProductRow({ id, label, note, txNote, setup, monthly, maxQty, icon, sta
               onClick={() => onChange(id, { qty: Math.min(maxQty, state.qty + 1) })}
               disabled={!state.enabled || state.qty >= maxQty}
               aria-label="הוסף כמות"
-              className={`h-7 w-7 rounded-md transition-colors ${
+              className={`h-9 w-9 rounded-md transition-colors sm:h-7 sm:w-7 ${
                 state.enabled && state.qty < maxQty
                   ? "bg-white text-brand-pink hover:bg-brand-pink hover:text-white"
                   : "cursor-not-allowed bg-slate-100 text-slate-300"
@@ -246,6 +247,7 @@ function ProductRow({ id, label, note, txNote, setup, monthly, maxQty, icon, sta
               fmt(monthly)
             )}
           </p>
+        </div>
         </div>
       </div>
 
@@ -409,6 +411,8 @@ export function PricingCalculator() {
     }
     lines.push(`סה״כ חודשי: ${fmt(finalMonthlyTotal)}`);
     if (discountAmt > 0) lines.push(`חיסכון חודשי: ${fmt(discountAmt)}`);
+    lines.push("");
+    lines.push("* המחיר מתייחס לסניף בודד — ברשת, כל סניף מחויב בנפרד.");
     return lines.join("\n");
   };
 
@@ -434,6 +438,9 @@ export function PricingCalculator() {
         <h1 className="text-4xl font-bold leading-tight text-brand-dark md:text-5xl">בנו את החבילה שלכם</h1>
         <p className="mx-auto mt-4 max-w-2xl text-lg text-brand-muted">
           סמנו את המוצרים שמתאימים למסעדה שלכם וראו את המחיר בזמן אמת — ככל שמוסיפים יותר, ההנחה החודשית גדלה, עד 40%.
+        </p>
+        <p className="mx-auto mt-3 max-w-2xl rounded-xl bg-brand-tint px-4 py-2 text-sm font-medium text-brand-pink">
+          החישוב מתייחס לסניף בודד — ברשת עם מספר סניפים, כל סניף מחויב ומחושב בנפרד.
         </p>
       </div>
 

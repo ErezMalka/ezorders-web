@@ -8,10 +8,11 @@ import { CTAButton } from "./CTAButton";
 import { Logo } from "./Logo";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 
-export function Header({ dictionary }: { dictionary?: Dictionary }) {
+export function Header({ dictionary, locale = "en" }: { dictionary?: Dictionary; locale?: "en" | "he" }) {
       const [open, setOpen] = useState(false);
 
   const dict = dictionary ?? getDictionary("en");
+  const isHe = locale === "he";
       const navItems = dict.nav;
       const ctaLabel = dict.header.cta;
 
@@ -33,7 +34,7 @@ export function Header({ dictionary }: { dictionary?: Dictionary }) {
                                                                  "div",
                                                    {
                                                                        className:
-                                                                                             "invisible absolute left-0 top-full w-64 rounded-card bg-white p-2 opacity-0 shadow-lg transition group-hover:visible group-hover:opacity-100",
+                                                                                             "invisible absolute start-0 top-full w-64 rounded-card bg-white p-2 opacity-0 shadow-lg transition group-hover:visible group-hover:opacity-100",
                                                    },
                                                                  entry.items.map((i) =>
                                                                                      createElement(
@@ -80,7 +81,7 @@ export function Header({ dictionary }: { dictionary?: Dictionary }) {
                                                                                           {
                                                                                                                     key: i.href,
                                                                                                                     href: i.href,
-                                                                                                                    className: "block py-1 pl-4 text-sm text-brand-muted",
+                                                                                                                    className: "block py-1 ps-4 text-sm text-brand-muted",
                                                                                                                     onClick: () => setOpen(false),
                                                                                               },
                                                                                                               i.label
@@ -116,7 +117,7 @@ export function Header({ dictionary }: { dictionary?: Dictionary }) {
                     createElement(
                                 "button",
                         {
-                                      className: "text-2xl md:hidden",
+                                      className: isHe ? "order-first text-2xl md:order-none md:hidden" : "text-2xl md:hidden",
                                       onClick: () => setOpen(!open),
                                       "aria-label": "Toggle menu",
                         },

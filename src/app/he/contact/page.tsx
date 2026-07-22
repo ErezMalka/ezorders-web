@@ -22,7 +22,7 @@ export default function HeContactPage() {
     null,
     createElement(
       "h1",
-      { style: { fontSize: "2.5rem", fontWeight: 700, marginBottom: "1rem" } },
+      { style: { fontSize: "1.875rem", fontWeight: 700, marginBottom: "0.75rem" } },
       "צור קשר"
       ),
     createElement(
@@ -60,10 +60,10 @@ const formCard = createElement(
 
 const content = createElement(
   "section",
-  { className: "pb-20 pt-36" },
+  { className: "pb-20 pt-28" },
   createElement(
     "div",
-    { className: "mx-auto grid max-w-container items-center gap-12 px-6 md:grid-cols-2" },
+    { className: "mx-auto grid max-w-container items-start gap-10 px-6 md:grid-cols-2" },
     intro,
     formCard
     )

@@ -16,7 +16,7 @@ export function PageLayout({
 return createElement(
     Fragment,
     null,
-    createElement(Header, { dictionary }),
+    createElement(Header, { dictionary, locale }),
     createElement("main", null, children),
     createElement(Footer, { dictionary })
     );

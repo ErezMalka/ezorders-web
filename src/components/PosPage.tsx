@@ -1,6 +1,5 @@
 import { PageLayout } from "@/components/PageLayout";
 import { CTAButton } from "@/components/CTAButton";
-import { PricingTable } from "@/components/sections/PricingTable";
 import { ContactBand } from "@/components/sections/ContactBand";
 import { ModuleIcon } from "@/components/Icons";
 import { SIGNUP_URL } from "@/data/content";
@@ -104,7 +103,25 @@ export function PosPage({ locale = "en" }: { locale?: Locale }) {
         </div>
       </section>
 
-      <PricingTable locale={locale} />
+      {/* PRICING — refer to the up-to-date pricing calculator */}
+      <section className="mx-auto max-w-container px-6 py-20 text-center">
+        <p className="mb-3 inline-block rounded-pill bg-brand-tint px-5 py-1 text-sm font-medium text-brand-pink">
+          {locale === "he" ? "מחירון" : "Pricing"}
+        </p>
+        <h2 className="text-3xl font-bold md:text-4xl">
+          {locale === "he" ? "כמה זה עולה?" : "How much does it cost?"}
+        </h2>
+        <p className="mx-auto mt-4 max-w-xl text-brand-muted">
+          {locale === "he"
+            ? "המחירון המלא והמעודכן, כולל מחשבון אינטראקטיבי לבניית החבילה שלכם, נמצא בעמוד המחירים."
+            : "Our full, up-to-date pricing — including an interactive package builder — lives on the pricing page."}
+        </p>
+        <div className="mt-8">
+          <CTAButton href={locale === "he" ? "/he/price" : "/en/price"}>
+            {locale === "he" ? "למחירון המלא" : "See full pricing"}
+          </CTAButton>
+        </div>
+      </section>
       <ContactBand locale={locale} />
     </PageLayout>
   );

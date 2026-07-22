@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 export const runtime = "nodejs";
 
 const MAX_BODY_BYTES = 10 * 1024;
-const LEAD_EMAIL = "contact@ezorders.com";
+const LEAD_EMAIL = process.env.CONTACT_TO_EMAIL || "contact@ezorders.com";
 const FORMSUBMIT_ENDPOINT = "https://formsubmit.co/ajax/" + LEAD_EMAIL;
 
 type UtmFields = Record<string, string | null>;
@@ -105,6 +105,55 @@ export async function POST(request: Request) {
   }
 
   let emailOk = false;
+
+  // --- Preferred channel: Resend (reliable, no activation flow). Active only
+  // when RESEND_API_KEY is configured in the environment (e.g. on Vercel).
+  const resendKey = process.env.RESEND_API_KEY;
+  if (resendKey) {
+    const fromAddress = process.env.CONTACT_FROM_EMAIL || "EzOrders Website <onboarding@resend.dev>";
+    const textLines = [
+      "שם מלא: " + name,
+      "אימייל: " + email,
+      "טלפון: " + (phone || "-"),
+      "שם העסק: " + (businessName || "-"),
+      "",
+      "הודעה:",
+      message,
+      "",
+      "שפה: " + locale,
+      "עמוד: " + (pagePath || "-"),
+      "נשלח בתאריך: " + submittedAt,
+    ];
+    if (utmSummary) textLines.push("UTM: " + utmSummary);
+    try {
+      const res = await fetchWithTimeout(
+        "https://api.resend.com/emails",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + resendKey,
+          },
+          body: JSON.stringify({
+            from: fromAddress,
+            to: [LEAD_EMAIL],
+            reply_to: email,
+            subject: "פנייה חדשה מאתר EzOrders — " + name,
+            text: textLines.join("\n"),
+          }),
+        },
+        10000
+      );
+      emailOk = res.ok;
+      if (!res.ok) {
+        console.error("[contact] Resend returned status " + res.status);
+      }
+    } catch (err) {
+      console.error("[contact] Resend request failed", err);
+    }
+  }
+
+  if (!emailOk) {
   try {
     const res = await fetchWithTimeout(
       FORMSUBMIT_ENDPOINT,
@@ -121,6 +170,7 @@ export async function POST(request: Request) {
     }
   } catch (err) {
     console.error("[contact] FormSubmit AJAX request failed", err);
+  }
   }
 
   // Fallback: regular (non-AJAX) FormSubmit endpoint. This path works even

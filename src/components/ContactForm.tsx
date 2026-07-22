@@ -60,7 +60,7 @@ errorAgree: "\u05d0\u05e0\u05d0 \u05d0\u05e9\u05e8\u05d5 \u05d0\u05ea \u05de\u05
 };
 
 const inputClass =
-"w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-brand-indigo";
+"w-full rounded-lg border border-gray-300 px-4 py-3 text-base outline-none transition-colors focus:border-brand-indigo focus:ring-2 focus:ring-brand-indigo/20";
 
 function getUtm() {
 if (typeof window === "undefined") return null;
@@ -235,21 +235,29 @@ value: name,
 onChange: (e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value),
 placeholder: t.name,
 "aria-label": t.name,
+autoComplete: "name",
 className: inputClass,
 }),
 createElement("input", {
 type: "email",
+inputMode: "email",
 value: email,
 onChange: (e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value),
 placeholder: t.email,
 "aria-label": t.email,
+autoComplete: "email",
 className: inputClass,
 }),
 createElement("input", {
+type: "tel",
+inputMode: "numeric",
+pattern: "[0-9+\\-\\s]*",
 value: phone,
-onChange: (e: React.ChangeEvent<HTMLInputElement>) => setPhone(e.target.value),
+onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+setPhone(e.target.value.replace(/[^0-9+\-\s]/g, "")),
 placeholder: t.phone,
 "aria-label": t.phone,
+autoComplete: "tel",
 className: inputClass,
 }),
 createElement("input", {
@@ -257,6 +265,7 @@ value: business,
 onChange: (e: React.ChangeEvent<HTMLInputElement>) => setBusiness(e.target.value),
 placeholder: t.business,
 "aria-label": t.business,
+autoComplete: "organization",
 className: inputClass,
 }),
 createElement("textarea", {
@@ -287,6 +296,7 @@ createElement("input", {
 type: "checkbox",
 checked: agree,
 onChange: (e: React.ChangeEvent<HTMLInputElement>) => setAgree(e.target.checked),
+className: "h-5 w-5 flex-shrink-0 accent-brand-pink",
 }),
 t.agree,
 " ",
@@ -312,7 +322,7 @@ const submitBtn = createElement(
 type: "submit",
 disabled: status === "sending",
 className:
-"mt-5 rounded-pill bg-brand-pink px-9 py-3 font-medium text-white transition hover:bg-brand-pinkDark disabled:opacity-60",
+"mt-5 w-full rounded-pill bg-brand-pink px-9 py-3 font-medium text-white transition hover:bg-brand-pinkDark disabled:opacity-60 sm:w-auto",
 },
 status === "sending" ? t.sending : t.submit
 );
