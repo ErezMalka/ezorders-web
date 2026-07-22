@@ -79,19 +79,7 @@ export async function POST(request: Request) {
       hasFrom: Boolean(fromAddress),
       hasTo: Boolean(toAddress),
     });
-    return NextResponse.json(
-      {
-        ok: false,
-        error: "Email not configured",
-        // Diagnostic (booleans only, no secret values) — remove after verifying.
-        seen: {
-          hasApiKey: Boolean(resendKey),
-          hasFrom: Boolean(fromAddress),
-          hasTo: Boolean(toAddress),
-        },
-      },
-      { status: 500 }
-    );
+    return NextResponse.json({ ok: false, error: "Email not configured" }, { status: 500 });
   }
 
   const submittedAt = new Date().toISOString();
