@@ -21,6 +21,7 @@ reset: (id?: string) => void;
 declare global {
 interface Window {
 turnstile?: TurnstileApi;
+dataLayer?: Record<string, unknown>[];
 }
 }
 
@@ -223,6 +224,17 @@ setCaptchaToken("");
 }
 
 if (delivered) {
+// Fire one semantic conversion event for GTM. Google Ads / Meta Pixel / GA4
+// all trigger off this single event. Safe no-op when GTM/dataLayer is absent.
+if (typeof window !== "undefined") {
+window.dataLayer = window.dataLayer || [];
+window.dataLayer.push({
+event: "lead_submit",
+form: "contact",
+locale,
+pagePath: window.location.pathname,
+});
+}
 setStatus("success");
 setName("");
 setEmail("");
