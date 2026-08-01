@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { getAllArticles } from "@/lib/content/articles";
 
 const BASE = "https://ezorders.com";
 
@@ -18,6 +19,7 @@ const sharedRoutes: { path: string; priority: number }[] = [
   { path: "/price", priority: 0.7 },
   { path: "/about", priority: 0.6 },
   { path: "/contact", priority: 0.6 },
+  { path: "/blog", priority: 0.7 },
   { path: "/privacy", priority: 0.3 },
 ];
 
@@ -63,5 +65,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: route.priority,
   }));
 
-  return [...shared, ...hebrewOnly, ...rootOnly];
+  /**
+   * Published articles. Drafts are already excluded by getAllArticles(), so a
+   * draft can never reach the sitemap. `lastModified` uses the article's own
+   * updatedAt rather than build time, so a rebuild does not falsely signal that
+   * every article changed.
+   */
+  const articles = getAllArticles().map((article) => ({
+    url: article.canonicalUrl,
+    lastModified: new Date(article.updatedAt),
+    changeFrequency: "monthly" as const,
+    priority: 0.6,
+  }));
+
+  return [...shared, ...hebrewOnly, ...rootOnly, ...articles];
 }
