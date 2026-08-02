@@ -11,7 +11,7 @@ excerpt: "מבט מעשי על מה שעמדות שירות עצמי באמת מ
 seoTitle: "עמדות שירות עצמי ושעות העומס"
 seoDescription: "מבט מעשי על מה שעמדות שירות עצמי באמת משנות בשעות העומס במסעדות מזון מהיר, ומה כדאי למדוד לפני ואחרי ההתקנה."
 author: "EZOrders"
-category: "Restaurant Technology"
+category: "טכנולוגיה למסעדות"
 tags: []
 publishedAt: "2026-08-02"
 updatedAt: "2026-08-02"
@@ -19,11 +19,11 @@ canonicalUrl: "https://ezorders.com/he/blog/self-order-kiosks-peak-hours"
 readingTimeMinutes: 6
 wordCount: 1102
 cta:
-  label: "Book a Demo"
+  label: "קבעו דמו עכשיו"
   href: "/he/contact"
 featuredImage: null
 expectedImagePath: "/images/blog/self-order-kiosks-peak-hours/cover.webp"
-imageAlt: "A customer ordering at a self-order kiosk in a modern fast-food restaurant"
+imageAlt: "לקוח מזמין בעמדת שירות עצמי במסעדת מזון מהיר מודרנית"
 visual:
   systemVersion: "1.0.1"
   template: "kiosk-self-order"

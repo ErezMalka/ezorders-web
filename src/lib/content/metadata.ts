@@ -99,6 +99,11 @@ export function articleMetadata(locale: Locale, slug: string): Metadata {
       url: article.canonicalUrl,
       siteName: "EZOrders",
       locale: OG_LOCALE[locale],
+      // Only locales this article is actually published in. Declaring an
+      // alternate that does not exist sends crawlers and social scrapers to a 404.
+      alternateLocale: Object.keys(getTranslationGroup(article.translationKey))
+        .filter((l) => l !== locale)
+        .map((l) => OG_LOCALE[l as Locale]),
       publishedTime: article.publishedAt,
       modifiedTime: article.updatedAt,
       authors: [article.author],
