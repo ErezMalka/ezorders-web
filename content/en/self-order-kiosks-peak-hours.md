@@ -59,7 +59,7 @@ Most kiosk conversations start in the wrong place. They start with the hardware 
 
 What determines that is a single operational question: **what happens to your bottleneck at 12:40 on a Thursday?**
 
-This is a practical look at what actually changes on the floor when self-order kiosks go in, what does not change, and what to measure in your own operation before and after.
+This is a practical look at what actually changes on the floor when [self-order kiosks](/en/kiosk-stands) go in, what does not change, and what to measure in your own operation before and after.
 
 ## Order-taking stops being a queue
 
@@ -105,7 +105,7 @@ If you are evaluating kiosks and your kitchen still runs on paper, treat the kit
 
 Here is where a lot of kiosk projects quietly go wrong.
 
-A kiosk that does not share a source of truth with your point of sale, your kitchen, and your reporting does not remove work — it relocates it. Menu changes have to be made twice. Prices drift between channels. End-of-day figures have to be reconciled across systems that each believe they are correct. Someone in the back office absorbs that cost every single day, and it rarely appears in the business case.
+A kiosk that does not share a source of truth with your [point of sale](/en/pos), your kitchen, and your reporting does not remove work — it relocates it. Menu changes have to be made twice. Prices drift between channels. End-of-day figures have to be reconciled across systems that each believe they are correct. Someone in the back office absorbs that cost every single day, and it rarely appears in the business case.
 
 The practical test is simple. Ask, of any kiosk you are considering:
 
@@ -116,7 +116,7 @@ The practical test is simple. Ask, of any kiosk you are considering:
 
 A connected system answers those questions with *once*, *yes*, *yes*, and *nobody, because they cannot disagree*. A collection of separate tools answers them with a process — and processes at that level of detail are exactly what erodes on a busy Thursday.
 
-This is the argument for treating ordering, the floor, and payments as one operating system rather than four purchases. Fragmentation does not usually announce itself as a failure. It shows up as small, permanent, daily overhead.
+This is the argument for treating ordering, the floor, and payments as [one operating system](/en/platform) rather than four purchases. Fragmentation does not usually announce itself as a failure. It shows up as small, permanent, daily overhead.
 
 ## What to measure, in your own restaurant
 
