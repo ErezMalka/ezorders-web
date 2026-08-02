@@ -13,8 +13,8 @@ seoDescription: "מבט מעשי על מה שעמדות שירות עצמי בא
 author: "EZOrders"
 category: "טכנולוגיה למסעדות"
 tags: []
-publishedAt: "2026-08-02"
-updatedAt: "2026-08-02"
+publishedAt: "2026-08-01"
+updatedAt: "2026-08-01"
 canonicalUrl: "https://ezorders.com/he/blog/self-order-kiosks-peak-hours"
 readingTimeMinutes: 6
 wordCount: 1102
