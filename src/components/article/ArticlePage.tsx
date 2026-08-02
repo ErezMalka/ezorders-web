@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { PageLayout } from "@/components/PageLayout";
 import { CTAButton } from "@/components/CTAButton";
 import { ContactBand } from "@/components/sections/ContactBand";
-import { getArticle } from "@/lib/content/articles";
+import { getArticle, getTranslation, isTranslationStale } from "@/lib/content/articles";
 import { renderMarkdown } from "@/lib/content/markdown";
 import { articleJsonLd, breadcrumbJsonLd, jsonLdScript } from "@/lib/content/jsonld";
 import { localeDirection, type Locale } from "@/i18n/config";
@@ -24,6 +24,11 @@ export function ArticlePage({ locale, slug }: { locale: Locale; slug: string }) 
   const dir = localeDirection[locale];
   const html = renderMarkdown(article.body);
 
+  // The same article in the other locale, when it is actually published.
+  const otherLocale: Locale = locale === "he" ? "en" : "he";
+  const translation = getTranslation(article, otherLocale);
+  const stale = isTranslationStale(article) === true;
+
   return (
     <PageLayout locale={locale}>
       <script
@@ -39,11 +44,30 @@ export function ArticlePage({ locale, slug }: { locale: Locale; slug: string }) 
         {/* HEADER */}
         <header className="bg-brand-grey pb-12 pt-36">
           <div className="mx-auto max-w-3xl px-6">
-            <nav aria-label="Breadcrumb" className="mb-6 text-sm text-brand-muted">
-              <Link href={`/${locale}/blog`} className="transition hover:text-brand-pink">
-                {t.blog}
-              </Link>
-            </nav>
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+              <nav aria-label="Breadcrumb" className="text-sm text-brand-muted">
+                <Link href={`/${locale}/blog`} className="transition hover:text-brand-pink">
+                  {t.blog}
+                </Link>
+              </nav>
+              {translation && (
+                <Link
+                  href={`/${otherLocale}/blog/${translation.slug}`}
+                  hrefLang={otherLocale}
+                  lang={otherLocale}
+                  dir={localeDirection[otherLocale]}
+                  className="rounded-pill border border-black/10 px-4 py-1.5 text-sm font-medium text-brand-indigo transition hover:border-brand-pink hover:text-brand-pink"
+                >
+                  {t.readInOther}
+                </Link>
+              )}
+            </div>
+
+            {stale && (
+              <p className="mb-5 rounded-card bg-brand-tint px-4 py-3 text-sm text-brand-muted">
+                {t.translationStale}
+              </p>
+            )}
 
             <div className="mb-5 flex flex-wrap items-center gap-2 text-xs text-brand-muted">
               <span className="rounded-pill bg-brand-tint px-3 py-1 font-medium text-brand-pink">

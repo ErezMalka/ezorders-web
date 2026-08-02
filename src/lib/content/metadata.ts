@@ -6,7 +6,8 @@
  */
 
 import type { Metadata } from "next";
-import { getArticle } from "./articles";
+import { getArticle, getTranslationGroup } from "./articles";
+import type { Article } from "./schema";
 import { locales, type Locale } from "@/i18n/config";
 
 const SITE = "https://ezorders.com";
@@ -77,9 +78,9 @@ export function articleMetadata(locale: Locale, slug: string): Metadata {
     keywords: article.tags.length ? article.tags : undefined,
     alternates: {
       canonical: article.canonicalUrl,
-      // Only self-reference: an article exists per locale, and claiming a
-      // translation that does not exist is worse than omitting the alternate.
-      languages: { [locale]: article.canonicalUrl },
+      // Only locales in which this article ACTUALLY exists. Claiming a
+      // translation that is not published is worse than omitting the alternate.
+      languages: articleLanguageAlternates(article),
     },
     // A draft that is visible on a preview must never be indexed.
     robots: article.draft ? { index: false, follow: false } : undefined,
@@ -103,6 +104,20 @@ export function articleMetadata(locale: Locale, slug: string): Metadata {
       ...twImages,
     },
   };
+}
+
+/**
+ * hreflang map for one article: every locale the article is actually published
+ * in, plus x-default. Hebrew is the site's default locale, so x-default points
+ * at the Hebrew URL when a Hebrew version exists, and at the article's own URL
+ * otherwise.
+ */
+function articleLanguageAlternates(article: Article): Record<string, string> {
+  const group = getTranslationGroup(article.translationKey);
+  const out: Record<string, string> = {};
+  for (const [loc, a] of Object.entries(group)) out[loc] = a.canonicalUrl;
+  out["x-default"] = group.he?.canonicalUrl ?? article.canonicalUrl;
+  return out;
 }
 
 function languageAlternates(build: (l: Locale) => string): Record<string, string> {

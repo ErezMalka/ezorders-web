@@ -34,6 +34,8 @@ const REQUIRED_KEYS = [
 
 const problems = [];
 let checked = 0;
+/** Collected across locales so translation pairs can be cross-checked at the end. */
+const allArticles = [];
 
 function problem(file, msg) {
   problems.push(`${file}: ${msg}`);
@@ -135,6 +137,72 @@ for (const locale of LOCALES) {
     ];
     for (const [re, what] of secrets) {
       if (re.test(raw)) problem(rel, `contains what looks like ${what} — this repository is PUBLIC`);
+    }
+
+    // Record for the cross-locale translation checks below.
+    allArticles.push({
+      rel,
+      locale,
+      slug,
+      translationKey: unquote(keys.get("translationKey")) || slug,
+      translationOf: unquote(keys.get("translationOf")),
+      sourceUpdatedAt: unquote(keys.get("sourceUpdatedAt")),
+      updatedAt: unquote(keys.get("updatedAt")) || unquote(keys.get("publishedAt")),
+    });
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Cross-locale translation integrity
+// ---------------------------------------------------------------------------
+//
+// A partially translated site is a NORMAL state and is not an error. A
+// CONTRADICTORY one is: a translation pointing at a source that does not exist,
+// two articles in one locale claiming the same key, or a translation whose
+// source has moved on since it was made.
+
+const byKey = new Map();
+for (const a of allArticles) {
+  if (!a.translationKey) continue;
+  const list = byKey.get(a.translationKey) ?? [];
+  list.push(a);
+  byKey.set(a.translationKey, list);
+}
+
+for (const [key, group] of byKey) {
+  const seenLocales = new Set();
+  for (const a of group) {
+    if (seenLocales.has(a.locale)) {
+      problem(a.rel, `translationKey "${key}" is used more than once in locale "${a.locale}"`);
+    }
+    seenLocales.add(a.locale);
+  }
+
+  for (const a of group) {
+    if (!a.translationOf || a.translationOf === "null") continue;
+
+    if (a.translationOf === a.locale) {
+      problem(a.rel, "`translationOf` cannot equal the article's own locale");
+      continue;
+    }
+    if (!a.sourceUpdatedAt || a.sourceUpdatedAt === "null") {
+      problem(a.rel, "`sourceUpdatedAt` is required when `translationOf` is set (needed for stale detection)");
+      continue;
+    }
+
+    const source = group.find((s) => s.locale === a.translationOf);
+    if (!source) {
+      problem(
+        a.rel,
+        `declares translationOf "${a.translationOf}" but no ${a.translationOf} article shares translationKey "${key}"`
+      );
+      continue;
+    }
+    if (source.updatedAt && source.updatedAt > a.sourceUpdatedAt) {
+      problem(
+        a.rel,
+        `STALE translation: made from ${source.locale} @ ${a.sourceUpdatedAt}, but ${source.rel} was updated ${source.updatedAt}`
+      );
     }
   }
 }

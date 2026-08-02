@@ -23,6 +23,9 @@ export type BlogStrings = {
   empty: string;
   draftBadge: string;
   imagePending: string;
+  /** Offer to read this same article in the other language. */
+  readInOther: string;
+  translationStale: string;
 };
 
 const en: BlogStrings = {
@@ -41,6 +44,8 @@ const en: BlogStrings = {
   empty: "No articles published yet.",
   draftBadge: "Draft",
   imagePending: "Cover image pending",
+  readInOther: "קרא בעברית",
+  translationStale: "This translation may be out of date.",
 };
 
 const he: BlogStrings = {
@@ -59,6 +64,8 @@ const he: BlogStrings = {
   empty: "טרם פורסמו מאמרים.",
   draftBadge: "טיוטה",
   imagePending: "תמונת נושא בהכנה",
+  readInOther: "Read in English",
+  translationStale: "ייתכן שהתרגום אינו מעודכן.",
 };
 
 export function getBlogStrings(locale: Locale): BlogStrings {

@@ -1,8 +1,11 @@
 ---
-schemaVersion: "1.0.0"
+schemaVersion: "1.1.0"
 title: "What Self-Order Kiosks Actually Change During Peak Hours"
 slug: "self-order-kiosks-peak-hours"
 locale: "en"
+translationKey: "self-order-kiosks-peak-hours"
+translationOf: null
+sourceUpdatedAt: null
 draft: false
 excerpt: "A practical look at what self-order kiosks actually change during peak hours in quick-service restaurants, and what to measure before and after."
 seoTitle: "Self-Order Kiosks and Peak-Hour Service"

@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { getAllArticles } from "@/lib/content/articles";
+import { getAllArticles, getTranslationGroup } from "@/lib/content/articles";
 
 const BASE = "https://ezorders.com";
 
@@ -71,12 +71,35 @@ export default function sitemap(): MetadataRoute.Sitemap {
    * updatedAt rather than build time, so a rebuild does not falsely signal that
    * every article changed.
    */
-  const articles = getAllArticles().map((article) => ({
-    url: article.canonicalUrl,
-    lastModified: new Date(article.updatedAt),
-    changeFrequency: "monthly" as const,
-    priority: 0.6,
-  }));
+  const articles = getAllArticles().map((article) => {
+    // Emit hreflang alternates only for locales the article is actually
+    // published in. A translated pair cross-references; a single-locale article
+    // gets no alternates rather than a claim that a translation exists.
+    const group = getTranslationGroup(article.translationKey);
+    const localeUrls = Object.entries(group) as [string, { canonicalUrl: string }][];
+
+    const entry: {
+      url: string;
+      lastModified: Date;
+      changeFrequency: "monthly";
+      priority: number;
+      alternates?: { languages: Record<string, string> };
+    } = {
+      url: article.canonicalUrl,
+      lastModified: new Date(article.updatedAt),
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+    };
+
+    if (localeUrls.length > 1) {
+      const languages: Record<string, string> = {};
+      for (const [loc, a] of localeUrls) languages[loc] = a.canonicalUrl;
+      languages["x-default"] = group.he?.canonicalUrl ?? article.canonicalUrl;
+      entry.alternates = { languages };
+    }
+
+    return entry;
+  });
 
   return [...shared, ...hebrewOnly, ...rootOnly, ...articles];
 }

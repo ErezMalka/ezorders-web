@@ -37,6 +37,20 @@ export type Article = {
   /** Stable identity on the site. Lowercase kebab-case. */
   slug: string;
   locale: Locale;
+  /**
+   * Shared identifier linking the same article across locales. Defaults to the
+   * slug (slugs are kept identical across locales, since a Hebrew slug cannot
+   * satisfy the ASCII kebab-case rule and Hebrew URLs encode badly).
+   */
+  translationKey: string;
+  /**
+   * For a translated article: the locale it was translated FROM, and the
+   * `updatedAt` of that source at translation time. Together these make a stale
+   * translation detectable instead of silently wrong — if the source has been
+   * updated since, the translation is out of date and says so.
+   */
+  translationOf: Locale | null;
+  sourceUpdatedAt: string | null;
   title: string;
   excerpt: string;
   seoTitle: string;
@@ -170,11 +184,39 @@ export function validateArticle(
   const sources = normalizeSources(data.sources, problems);
   const tags = Array.isArray(data.tags) ? data.tags.map(str).filter(Boolean) : [];
 
+  // Translation linkage.
+  const translationKey = str(data.translationKey) || slug;
+  if (translationKey && !SLUG_RE.test(translationKey))
+    problems.push(`\`translationKey\` must be lowercase kebab-case (got "${translationKey}")`);
+
+  const translationOfRaw = str(data.translationOf);
+  let translationOf: Locale | null = null;
+  if (translationOfRaw) {
+    if (!(locales as readonly string[]).includes(translationOfRaw)) {
+      problems.push(`\`translationOf\` must be one of ${locales.join(" | ")} (got "${translationOfRaw}")`);
+    } else if (translationOfRaw === locale) {
+      problems.push("`translationOf` cannot equal the article's own locale");
+    } else {
+      translationOf = translationOfRaw as Locale;
+    }
+  }
+
+  const sourceUpdatedAt = str(data.sourceUpdatedAt) || null;
+  if (sourceUpdatedAt && !DATE_RE.test(sourceUpdatedAt))
+    problems.push("`sourceUpdatedAt` must be YYYY-MM-DD");
+  // A translation without its source's date cannot be checked for staleness,
+  // which defeats the point of declaring it a translation at all.
+  if (translationOf && !sourceUpdatedAt)
+    problems.push("`sourceUpdatedAt` is required when `translationOf` is set (needed for stale detection)");
+
   if (problems.length) throw new ArticleValidationError(file, problems);
 
   return {
     slug,
     locale,
+    translationKey,
+    translationOf,
+    sourceUpdatedAt,
     title,
     excerpt,
     seoTitle,
