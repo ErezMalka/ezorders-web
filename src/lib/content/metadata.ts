@@ -60,6 +60,16 @@ export function articleMetadata(locale: Locale, slug: string): Metadata {
 
   const image = article.featuredImage ? `${SITE}${article.featuredImage}` : undefined;
 
+  // When a real cover exists we name it explicitly. When it does not, the
+  // `images` key must be ABSENT rather than `undefined`: a present-but-undefined
+  // key suppresses Next's file-convention merge, which would leave the article
+  // with no og:image at all instead of falling back to the generated card in
+  // opengraph-image.tsx.
+  const ogImages = image
+    ? { images: [{ url: image, width: 1600, height: 900, alt: article.imageAlt }] }
+    : {};
+  const twImages = image ? { images: [image] } : {};
+
   return {
     title: `${article.seoTitle} - ezorders`,
     description: article.seoDescription,
@@ -84,15 +94,13 @@ export function articleMetadata(locale: Locale, slug: string): Metadata {
       modifiedTime: article.updatedAt,
       authors: [article.author],
       tags: article.tags,
-      images: image
-        ? [{ url: image, width: 1600, height: 900, alt: article.imageAlt }]
-        : undefined,
+      ...ogImages,
     },
     twitter: {
       card: "summary_large_image",
       title: article.seoTitle,
       description: article.seoDescription,
-      images: image ? [image] : undefined,
+      ...twImages,
     },
   };
 }
