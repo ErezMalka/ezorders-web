@@ -37,6 +37,107 @@ let checked = 0;
 /** Collected across locales so translation pairs can be cross-checked at the end. */
 const allArticles = [];
 
+/**
+ * Content Quality Gate — structural checks, mirrored from the authoritative
+ * implementation in ezorders-growth-os/src/export/quality-gate.js.
+ *
+ * Language-agnostic by design: no rule may depend on English word lists or
+ * Latin script, or it silently stops protecting Hebrew content.
+ *
+ * Fenced code blocks are flagged rather than dropped, so a section whose only
+ * content is a code block is not mistaken for an empty one.
+ */
+function qualityProblems(body, locale) {
+  const found = [];
+  const raw = body.split("\n");
+  const lines = [];
+  let inFence = false;
+  for (let i = 0; i < raw.length; i++) {
+    if (/^\s*(```|~~~)/.test(raw[i])) {
+      inFence = !inFence;
+      lines.push({ n: i + 1, text: raw[i], fenced: true });
+      continue;
+    }
+    lines.push({ n: i + 1, text: raw[i], fenced: inFence });
+  }
+  const prose = lines.filter((l) => !l.fenced);
+
+  const hs = prose
+    .map((l) => {
+      const m = l.text.match(/^(#{1,6})\s+(.*)$/);
+      return m ? { n: l.n, level: m[1].length, text: m[2].trim() } : null;
+    })
+    .filter(Boolean);
+
+  for (const h of hs) {
+    if (h.level === 1) found.push(`[no-h1-in-body] line ${h.n}: body contains an H1 ("${h.text}")`);
+  }
+
+  let prev = 1;
+  for (const h of hs) {
+    if (h.level > prev + 1) {
+      found.push(`[heading-level-skip] line ${h.n}: jumps from H${prev} to H${h.level} ("${h.text}")`);
+    }
+    prev = h.level;
+  }
+
+  const first = prose.find((l) => l.text.trim() !== "");
+  if (first && /^#{1,6}\s/.test(first.text)) {
+    found.push(`[no-intro] line ${first.n}: body starts with a heading`);
+  }
+
+  for (let i = 0; i < hs.length - 1; i++) {
+    const between = lines.filter((l) => l.n > hs[i].n && l.n < hs[i + 1].n && l.text.trim() !== "");
+    if (between.length === 0) found.push(`[empty-section] line ${hs[i].n}: "${hs[i].text}" has no content`);
+  }
+
+  const words = body.split(/\s+/).filter(Boolean).length;
+  const h2s = hs.filter((h) => h.level === 2);
+  if (words >= 600 && h2s.length < 2) {
+    found.push(`[insufficient-structure] ${words} words with only ${h2s.length} H2 heading(s)`);
+  }
+
+  const seen = new Set();
+  for (const h of hs) {
+    const key = h.text.toLowerCase();
+    if (seen.has(key)) found.push(`[duplicate-heading] line ${h.n}: "${h.text}" appears more than once`);
+    seen.add(key);
+  }
+
+  for (const l of prose) {
+    if (/\b(lorem ipsum|TODO|TBD|FIXME|XXX|PLACEHOLDER)\b/i.test(l.text)) {
+      found.push(`[placeholder-text] line ${l.n}: unfinished placeholder text`);
+    }
+    if (/!\[[^\]]*\]\([^)]*\)/.test(l.text)) {
+      found.push(`[body-image-unsupported] line ${l.n}: body images are not supported`);
+    }
+
+    const linkRe = /\[([^\]]*)\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g;
+    let m;
+    while ((m = linkRe.exec(l.text)) !== null) {
+      const text = m[1].trim();
+      const href = m[2].trim();
+      if (!text) {
+        found.push(`[empty-link-text] line ${l.n}: link to ${href} has no text`);
+        continue;
+      }
+      if (/^(click here|here|read more|this|link|more)$/i.test(text)) {
+        found.push(`[non-descriptive-link] line ${l.n}: link text "${text}"`);
+      }
+      if (/^https?:\/\//i.test(text)) {
+        found.push(`[bare-url-link-text] line ${l.n}: raw URL used as link text`);
+      }
+      if (href.startsWith("/") && !href.startsWith(`/${locale}/`)) {
+        found.push(`[internal-link-locale] line ${l.n}: "${href}" is not prefixed with /${locale}/`);
+      } else if (!href.startsWith("/") && !/^https?:\/\//i.test(href) && !href.startsWith("#")) {
+        found.push(`[invalid-link-href] line ${l.n}: "${href}"`);
+      }
+    }
+  }
+
+  return found;
+}
+
 function problem(file, msg) {
   problems.push(`${file}: ${msg}`);
 }
@@ -119,6 +220,15 @@ for (const locale of LOCALES) {
 
     if (!body) problem(rel, "body is empty");
     if (/<\s*[a-zA-Z][^>]*>/.test(body)) problem(rel, "body must not contain raw HTML tags");
+
+    // --- Content Quality Gate (receiving side) ---------------------------
+    //
+    // The authoritative gate lives in ezorders-growth-os
+    // (src/export/quality-gate.js) and refuses to EXPORT a failing article.
+    // These are the same structural rules re-checked here, because an article
+    // file can also be hand-edited directly in this repository, which never
+    // passes through the exporter. Both sides must hold for content to ship.
+    for (const p of qualityProblems(body, locale)) problem(rel, p);
 
     // Source urls, wherever they appear in the frontmatter block.
     for (const m of head.matchAll(/^\s*url:\s*(.+)$/gm)) {
