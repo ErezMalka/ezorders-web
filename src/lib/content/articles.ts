@@ -32,8 +32,33 @@ function showDrafts(): boolean {
   );
 }
 
+/**
+ * Parsed-article cache, keyed by locale.
+ *
+ * Without this, every call re-reads and re-parses the whole content directory —
+ * and getTranslationGroup() calls getArticles() once per locale, for every
+ * article, from the metadata builder, the page, and the sitemap. That is
+ * quadratic disk I/O at build time and grows with the content set.
+ *
+ * Only enabled outside development, so `next dev` keeps picking up edits to
+ * content files immediately. Content is immutable during a production build, so
+ * caching there is safe.
+ */
+const cache = new Map<Locale, Article[]>();
+const cacheEnabled = process.env.NODE_ENV === "production";
+
 /** Load and validate every article for a locale, newest first. */
 export function getArticles(locale: Locale): Article[] {
+  if (cacheEnabled) {
+    const hit = cache.get(locale);
+    if (hit) return hit;
+  }
+  const result = loadArticles(locale);
+  if (cacheEnabled) cache.set(locale, result);
+  return result;
+}
+
+function loadArticles(locale: Locale): Article[] {
   const dir = join(CONTENT_ROOT, locale);
   if (!existsSync(dir)) return [];
 

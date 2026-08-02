@@ -4,7 +4,7 @@ import { getAllArticles, getTranslationGroup } from "@/lib/content/articles";
 const BASE = "https://ezorders.com";
 
 /**
- * Hebrew is the default locale, so x-default points at the Hebrew URL.
+ * English is the default locale (i18n/config.ts), so x-default points at /en.
  * Paths are locale-agnostic; each shared path is emitted twice (/he and /en).
  */
 const sharedRoutes: { path: string; priority: number }[] = [
@@ -40,7 +40,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const shared = sharedRoutes.flatMap((route) => {
     const heUrl = `${BASE}/he${route.path}`;
     const enUrl = `${BASE}/en${route.path}`;
-    const languages = { en: enUrl, he: heUrl, "x-default": heUrl };
+    const languages = { en: enUrl, he: heUrl, "x-default": enUrl };
 
     return [heUrl, enUrl].map((url) => ({
       url,
@@ -94,7 +94,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     if (localeUrls.length > 1) {
       const languages: Record<string, string> = {};
       for (const [loc, a] of localeUrls) languages[loc] = a.canonicalUrl;
-      languages["x-default"] = group.he?.canonicalUrl ?? article.canonicalUrl;
+      languages["x-default"] = group.en?.canonicalUrl ?? article.canonicalUrl;
       entry.alternates = { languages };
     }
 

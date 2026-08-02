@@ -8,7 +8,7 @@
 import type { Metadata } from "next";
 import { getArticle, getTranslationGroup } from "./articles";
 import type { Article } from "./schema";
-import { locales, type Locale } from "@/i18n/config";
+import { locales, defaultLocale, type Locale } from "@/i18n/config";
 
 const SITE = "https://ezorders.com";
 
@@ -38,6 +38,9 @@ export function blogIndexMetadata(locale: Locale): Metadata {
     alternates: {
       canonical: url,
       languages: languageAlternates((l) => `${SITE}/${l}/blog`),
+      // Feed autodiscovery — without this, readers and aggregators cannot find
+      // the feed from the blog page.
+      types: { "application/rss+xml": [{ url: `${url}/feed.xml`, title: meta.title }] },
     },
     openGraph: {
       type: "website",
@@ -81,6 +84,11 @@ export function articleMetadata(locale: Locale, slug: string): Metadata {
       // Only locales in which this article ACTUALLY exists. Claiming a
       // translation that is not published is worse than omitting the alternate.
       languages: articleLanguageAlternates(article),
+      types: {
+        "application/rss+xml": [
+          { url: `${SITE}/${locale}/blog/feed.xml`, title: `EZOrders Blog (${locale})` },
+        ],
+      },
     },
     // A draft that is visible on a preview must never be indexed.
     robots: article.draft ? { index: false, follow: false } : undefined,
@@ -108,22 +116,25 @@ export function articleMetadata(locale: Locale, slug: string): Metadata {
 
 /**
  * hreflang map for one article: every locale the article is actually published
- * in, plus x-default. Hebrew is the site's default locale, so x-default points
- * at the Hebrew URL when a Hebrew version exists, and at the article's own URL
- * otherwise.
+ * in, plus x-default.
+ *
+ * x-default points at the ENGLISH URL when an English version exists, matching
+ * `defaultLocale` in i18n/config.ts. It is the entry point search engines offer
+ * when they cannot match a user's language, so it should be the widest-reach
+ * version. Falls back to the article's own URL when there is no English one.
  */
 function articleLanguageAlternates(article: Article): Record<string, string> {
   const group = getTranslationGroup(article.translationKey);
   const out: Record<string, string> = {};
   for (const [loc, a] of Object.entries(group)) out[loc] = a.canonicalUrl;
-  out["x-default"] = group.he?.canonicalUrl ?? article.canonicalUrl;
+  out["x-default"] = group.en?.canonicalUrl ?? article.canonicalUrl;
   return out;
 }
 
 function languageAlternates(build: (l: Locale) => string): Record<string, string> {
   const out: Record<string, string> = {};
   for (const l of locales) out[l] = build(l);
-  // Hebrew is the site's default locale, so x-default points at the Hebrew URL.
-  out["x-default"] = build("he");
+  // English is the site's default locale (i18n/config.ts `defaultLocale`).
+  out["x-default"] = build(defaultLocale);
   return out;
 }
