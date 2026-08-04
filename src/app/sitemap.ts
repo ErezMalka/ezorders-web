@@ -1,9 +1,10 @@
 import type { MetadataRoute } from "next";
+import { getAllArticles, getTranslationGroup } from "@/lib/content/articles";
 
 const BASE = "https://ezorders.com";
 
 /**
- * Hebrew is the default locale, so x-default points at the Hebrew URL.
+ * English is the default locale (i18n/config.ts), so x-default points at /en.
  * Paths are locale-agnostic; each shared path is emitted twice (/he and /en).
  */
 const sharedRoutes: { path: string; priority: number }[] = [
@@ -18,6 +19,7 @@ const sharedRoutes: { path: string; priority: number }[] = [
   { path: "/price", priority: 0.7 },
   { path: "/about", priority: 0.6 },
   { path: "/contact", priority: 0.6 },
+  { path: "/blog", priority: 0.7 },
   { path: "/privacy", priority: 0.3 },
 ];
 
@@ -38,7 +40,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const shared = sharedRoutes.flatMap((route) => {
     const heUrl = `${BASE}/he${route.path}`;
     const enUrl = `${BASE}/en${route.path}`;
-    const languages = { en: enUrl, he: heUrl, "x-default": heUrl };
+    const languages = { en: enUrl, he: heUrl, "x-default": enUrl };
 
     return [heUrl, enUrl].map((url) => ({
       url,
@@ -63,5 +65,41 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: route.priority,
   }));
 
-  return [...shared, ...hebrewOnly, ...rootOnly];
+  /**
+   * Published articles. Drafts are already excluded by getAllArticles(), so a
+   * draft can never reach the sitemap. `lastModified` uses the article's own
+   * updatedAt rather than build time, so a rebuild does not falsely signal that
+   * every article changed.
+   */
+  const articles = getAllArticles().map((article) => {
+    // Emit hreflang alternates only for locales the article is actually
+    // published in. A translated pair cross-references; a single-locale article
+    // gets no alternates rather than a claim that a translation exists.
+    const group = getTranslationGroup(article.translationKey);
+    const localeUrls = Object.entries(group) as [string, { canonicalUrl: string }][];
+
+    const entry: {
+      url: string;
+      lastModified: Date;
+      changeFrequency: "monthly";
+      priority: number;
+      alternates?: { languages: Record<string, string> };
+    } = {
+      url: article.canonicalUrl,
+      lastModified: new Date(article.updatedAt),
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+    };
+
+    if (localeUrls.length > 1) {
+      const languages: Record<string, string> = {};
+      for (const [loc, a] of localeUrls) languages[loc] = a.canonicalUrl;
+      languages["x-default"] = group.en?.canonicalUrl ?? article.canonicalUrl;
+      entry.alternates = { languages };
+    }
+
+    return entry;
+  });
+
+  return [...shared, ...hebrewOnly, ...rootOnly, ...articles];
 }
