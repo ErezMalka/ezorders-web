@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import Script from "next/script";
+import { headers } from "next/headers";
+import { localeFromPathname, localeDirection } from "@/i18n/config";
+import LocaleHtmlSync from "./LocaleHtmlSync";
 import "./globals.css";
 
 // Google Tag Manager container id, e.g. "GTM-XXXXXXX".
@@ -64,14 +67,24 @@ const organizationSchema = {
   sameAs: [] as string[],
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // The document language/direction is derived on the SERVER from the request
+  // path (set by middleware as `x-pathname`), so /he pages render lang="he"
+  // dir="rtl" in the initial HTML — for crawlers and no-JS — not just after
+  // hydration. LocaleHtmlSync then keeps it correct across client-side locale
+  // navigation, when the root layout itself does not re-render.
+  const pathname = (await headers()).get("x-pathname") ?? "";
+  const locale = localeFromPathname(pathname);
+  const dir = localeDirection[locale];
+
   return (
-    <html lang="en" dir="ltr" className={poppins.variable}>
+    <html lang={locale} dir={dir} className={poppins.variable}>
       <body>
+        <LocaleHtmlSync />
         {GTM_ID && (
           <>
             <Script id="gtm-base" strategy="afterInteractive">
