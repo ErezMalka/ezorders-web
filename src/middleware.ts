@@ -39,17 +39,22 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(url, 308);
   }
 
-  // Expose the pathname to the root layout so it can render the correct
-  // <html lang dir> per locale on the server. Passed as a request header —
-  // it does not change the response, only what the layout can read.
-  const requestHeaders = new Headers(request.headers);
-  requestHeaders.set("x-pathname", pathname);
-  return NextResponse.next({ request: { headers: requestHeaders } });
+  return NextResponse.next();
 }
 
 export const config = {
-  // Run on all page routes so the root layout always sees `x-pathname`, but skip
-  // API routes, Next internals, and any file with an extension (assets, feeds,
-  // sitemap.xml, robots.txt, opengraph images) — those are not under the layout.
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|.*\\.).*)"],
+  matcher: [
+    "/",
+    "/about",
+    "/contact",
+    "/digital-menus",
+    "/kiosk-stands",
+    "/platform",
+    "/pos",
+    "/price",
+    "/privacy",
+    "/restaurant-ordering-app",
+    "/restaurant-ordering-website",
+    "/solutions",
+  ],
 };
