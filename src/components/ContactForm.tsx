@@ -22,7 +22,15 @@ declare global {
 interface Window {
 turnstile?: TurnstileApi;
 dataLayer?: Record<string, unknown>[];
+fbq?: (...args: unknown[]) => void;
 }
+}
+
+// Generates a unique id shared between the browser Pixel event and the
+// server-side Conversions API event so Meta deduplicates the two.
+function newEventId(): string {
+if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
+return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
 // Build-time inlined; when unset, all Turnstile code paths are skipped.
@@ -183,6 +191,10 @@ return;
 
 setStatus("sending");
 
+// Shared id so the browser Pixel event and the server Conversions API event
+// are deduplicated by Meta into a single Lead conversion.
+const eventId = newEventId();
+
 // Send the lead through our API route, which emails it via Resend.
 // Success is shown ONLY when the request returns HTTP 200 and { ok: true }.
 let delivered = false;
@@ -199,6 +211,7 @@ message,
 locale,
 company_url: companyUrl,
 turnstileToken: captchaToken,
+eventId,
 pagePath: typeof window !== "undefined" ? window.location.pathname : null,
 utm: getUtm(),
 }),
@@ -227,13 +240,21 @@ if (delivered) {
 // Fire one semantic conversion event for GTM. Google Ads / Meta Pixel / GA4
 // all trigger off this single event. Safe no-op when GTM/dataLayer is absent.
 if (typeof window !== "undefined") {
+// GTM event for Google Ads + GA4 conversions (Meta is handled directly below).
 window.dataLayer = window.dataLayer || [];
 window.dataLayer.push({
 event: "lead_submit",
 form: "contact",
 locale,
 pagePath: window.location.pathname,
+eventId,
 });
+// Meta Pixel Lead event (browser side). Same eventId as the server-side
+// Conversions API call in /api/contact so Meta counts it once. No-op when
+// the pixel is not configured.
+if (typeof window.fbq === "function") {
+window.fbq("track", "Lead", { content_name: "contact", locale }, { eventID: eventId });
+}
 }
 setStatus("success");
 setName("");

@@ -52,7 +52,40 @@ type ContactPayload = {
   utm?: unknown;
   company_url?: unknown;
   turnstileToken?: unknown;
+  eventId?: unknown;
 };
+
+// --- Meta Conversions API (server-side, via Supabase relay) ---
+// Dormant unless CAPI_FORWARD_SECRET is configured. When set, each successful
+// lead is forwarded to our Supabase `meta-capi` function, which holds the Meta
+// token, hashes PII, and sends the server-side Lead event — deduplicated against
+// the browser Pixel event via a shared event_id. The Meta token never touches
+// this website; only a low-value forwarding secret does.
+const META_CAPI_RELAY_URL =
+  process.env.META_CAPI_RELAY_URL ||
+  "https://xequjtoslbhxggmtvjwo.supabase.co/functions/v1/meta-capi";
+
+async function sendMetaCapi(params: {
+  email: string;
+  phone: string;
+  eventId: string;
+  eventSourceUrl: string | null;
+  clientIp: string;
+  userAgent: string | null;
+}): Promise<void> {
+  const secret = process.env.CAPI_FORWARD_SECRET;
+  if (!secret) return; // not configured → no-op
+
+  try {
+    await fetch(META_CAPI_RELAY_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-forward-secret": secret },
+      body: JSON.stringify(params),
+    });
+  } catch (err) {
+    console.error("[contact] Meta CAPI relay failed", err);
+  }
+}
 
 function isValidEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
@@ -124,6 +157,7 @@ export async function POST(request: Request) {
   const locale = data.locale === "he" ? "he" : data.locale === "en" ? "en" : null;
   const pagePath = typeof data.pagePath === "string" ? data.pagePath : null;
   const utm = data.utm && typeof data.utm === "object" ? (data.utm as UtmFields) : null;
+  const eventId = asString(data.eventId);
 
   // --- Validation ---
   if (!name || !email || !message) {
@@ -196,6 +230,21 @@ export async function POST(request: Request) {
   if (error) {
     console.error("[contact] Resend error", error);
     return NextResponse.json({ ok: false, error: "send_failed" }, { status: 502 });
+  }
+
+  // Report the conversion to Meta server-side (deduplicated with the browser
+  // Pixel via eventId). No-op unless META_PIXEL_ID + META_CAPI_TOKEN are set.
+  if (eventId) {
+    await sendMetaCapi({
+      email,
+      phone,
+      eventId,
+      eventSourceUrl:
+        request.headers.get("referer") ||
+        (pagePath ? "https://ezorders.com" + pagePath : "https://ezorders.com"),
+      clientIp: ip,
+      userAgent: request.headers.get("user-agent"),
+    });
   }
 
   return NextResponse.json({ ok: true, id: sent?.id }, { status: 200 });
