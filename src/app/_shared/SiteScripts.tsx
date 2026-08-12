@@ -12,9 +12,28 @@ const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID;
 // GTM stays responsible for Google Ads + GA4 only. Safe no-op when unset.
 const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID;
 
+// Google Ads gtag (conversion tracking). Loaded directly in code so lead
+// conversions fire reliably without depending on a GTM container being
+// configured. Enables conversion linking automatically (captures gclid).
+// Safe no-op when NEXT_PUBLIC_GOOGLE_ADS_ID is unset. IMPORTANT: if this is
+// active, do NOT also configure the same conversion in GTM (avoids double count).
+const GOOGLE_ADS_ID = process.env.NEXT_PUBLIC_GOOGLE_ADS_ID;
+
 export default function SiteScripts() {
   return (
     <>
+      {GOOGLE_ADS_ID && (
+        <>
+          <Script
+            id="gads-gtag-src"
+            strategy="afterInteractive"
+            src={`https://www.googletagmanager.com/gtag/js?id=${GOOGLE_ADS_ID}`}
+          />
+          <Script id="gads-gtag-init" strategy="afterInteractive">
+            {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${GOOGLE_ADS_ID}');`}
+          </Script>
+        </>
+      )}
       {GTM_ID && (
         <>
           <Script id="gtm-base" strategy="afterInteractive">
