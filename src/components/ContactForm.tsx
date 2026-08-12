@@ -23,7 +23,6 @@ interface Window {
 turnstile?: TurnstileApi;
 dataLayer?: Record<string, unknown>[];
 fbq?: (...args: unknown[]) => void;
-gtag?: (...args: unknown[]) => void;
 }
 }
 
@@ -250,12 +249,6 @@ locale,
 pagePath: window.location.pathname,
 eventId,
 });
-// Google Ads conversion (browser side). gtag auto-attributes to the gclid via
-// conversion linking. No-op when NEXT_PUBLIC_GOOGLE_ADS_CONVERSION is unset.
-const gadsSendTo = process.env.NEXT_PUBLIC_GOOGLE_ADS_CONVERSION;
-if (gadsSendTo && typeof window.gtag === "function") {
-window.gtag("event", "conversion", { send_to: gadsSendTo });
-}
 // Meta Pixel Lead event (browser side). Same eventId as the server-side
 // Conversions API call in /api/contact so Meta counts it once. No-op when
 // the pixel is not configured.
