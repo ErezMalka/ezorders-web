@@ -111,6 +111,16 @@ if (v) found = true;
 return found ? out : null;
 }
 
+// The Google click id, for lead attribution. Prefers the URL (?gclid=…) and
+// falls back to the _gcl_aw cookie set by Google's conversion linker.
+function getGclid(): string {
+if (typeof window === "undefined") return "";
+const fromUrl = new URLSearchParams(window.location.search).get("gclid");
+if (fromUrl) return fromUrl;
+const m = document.cookie.match(/(?:^|;\s*)_gcl_aw=GCL\.\d+\.([^;]+)/);
+return m ? m[1] : "";
+}
+
 export function ContactForm({ locale = "en" }: { locale?: Locale }) {
 const t = LABELS[locale];
 const privacyHref = locale === "he" ? "/he/privacy" : "/privacy";
@@ -214,6 +224,7 @@ turnstileToken: captchaToken,
 eventId,
 pagePath: typeof window !== "undefined" ? window.location.pathname : null,
 utm: getUtm(),
+gclid: getGclid(),
 }),
 });
 let json: { ok?: boolean } | null = null;

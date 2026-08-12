@@ -53,6 +53,7 @@ type ContactPayload = {
   company_url?: unknown;
   turnstileToken?: unknown;
   eventId?: unknown;
+  gclid?: unknown;
 };
 
 // --- Meta Conversions API (server-side, via Supabase relay) ---
@@ -84,6 +85,28 @@ async function sendMetaCapi(params: {
     });
   } catch (err) {
     console.error("[contact] Meta CAPI relay failed", err);
+  }
+}
+
+// --- AdsHub lead pipe (Supabase) ---
+// Forwards every lead into the central AdsHub `leads` table so it triggers the
+// real-time WhatsApp/email alert + Speed-to-Lead auto-reply. Uses the same
+// forwarding secret as the Meta relay. No-op unless CAPI_FORWARD_SECRET is set.
+const WEB_LEAD_URL =
+  process.env.WEB_LEAD_URL ||
+  "https://xequjtoslbhxggmtvjwo.supabase.co/functions/v1/web-lead";
+
+async function sendWebLead(params: Record<string, unknown>): Promise<void> {
+  const secret = process.env.CAPI_FORWARD_SECRET;
+  if (!secret) return; // not configured → no-op
+  try {
+    await fetch(WEB_LEAD_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-forward-secret": secret },
+      body: JSON.stringify(params),
+    });
+  } catch (err) {
+    console.error("[contact] AdsHub lead pipe failed", err);
   }
 }
 
@@ -231,6 +254,25 @@ export async function POST(request: Request) {
     console.error("[contact] Resend error", error);
     return NextResponse.json({ ok: false, error: "send_failed" }, { status: 502 });
   }
+
+  // Forward the lead into AdsHub (real-time WhatsApp/email alert + Speed-to-Lead).
+  const gclid = asString(data.gclid);
+  await sendWebLead({
+    name,
+    email,
+    phone,
+    businessName,
+    message,
+    brand: "ezorders",
+    gclid,
+    is_google: Boolean(gclid),
+    eventId,
+    referrer: request.headers.get("referer"),
+    pagePath,
+    utm,
+    userAgent: request.headers.get("user-agent"),
+    submitted_at: submittedAt,
+  });
 
   // Report the conversion to Meta server-side (deduplicated with the browser
   // Pixel via eventId). No-op unless META_PIXEL_ID + META_CAPI_TOKEN are set.
