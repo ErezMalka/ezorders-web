@@ -1,5 +1,7 @@
 import { BASE_SETUP_LABEL, GROUP_LABELS, fmt, type ItemGroup } from "@/lib/pricing";
 
+import { LOGO_DATA_URI, LOGO_HEIGHT, LOGO_WIDTH } from "./brand";
+
 /**
  * The quote document, as a standalone HTML string.
  *
@@ -216,9 +218,7 @@ export function renderQuoteDocument(data: QuoteDocumentData): string {
 
   header { display: flex; justify-content: space-between; align-items: flex-start;
            border-bottom: 3px solid #F05D86; padding-bottom: 16px; margin-bottom: 22px; }
-  .brand { font-size: 26px; font-weight: 800; color: #191D2A; letter-spacing: -.6px; }
-  .brand span { color: #F05D86; }
-  .brand .tag { display: block; font-size: 11px; color: #6b7280; font-weight: 500; letter-spacing: 0; margin-top: 4px; }
+  .brand img { display: block; width: 150px; height: auto; }
   .meta { text-align: left; font-size: 11.5px; color: #4b5563; line-height: 1.9; }
   .meta b { color: #111827; }
 
@@ -284,8 +284,8 @@ export function renderQuoteDocument(data: QuoteDocumentData): string {
 <body>
 <div class="page">
   <header>
-    <div class="brand">EZ<span>ORDERS</span>
-      <span class="tag">פתרונות הזמנה ותשלום למסעדות</span>
+    <div class="brand">
+      <img src="${LOGO_DATA_URI}" width="${LOGO_WIDTH}" height="${LOGO_HEIGHT}" alt="EZOrders">
     </div>
     <div class="meta">
       <div>הצעת מחיר <b>${escapeHtml(data.quoteNumber)}</b></div>
