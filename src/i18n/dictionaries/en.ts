@@ -8,6 +8,8 @@ export type Dictionary = {
       contactTitle: string;
       tel: string;
       rights: string;
+      /** The staff door back into /he/agent. Hebrew-only, so both locales point there. */
+      agentPortal: { label: string; href: string };
       learnMore: { label: string; href: string }[];
       solutions: { label: string; href: string }[];
     };
@@ -46,6 +48,7 @@ export const en: Dictionary = {
           contactTitle: "Contact Us",
           tel: "Tel: *4958",
           rights: "© 2025 EZOrders | All Rights Reserved",
+          agentPortal: { label: "Agent portal", href: "/he/agent" },
           learnMore: [
             { label: "Home", href: "/en" },
             { label: "The Platform", href: "/en/platform" },

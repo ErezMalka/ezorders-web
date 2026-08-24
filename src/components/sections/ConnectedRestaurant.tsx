@@ -54,6 +54,12 @@ const GROUP_COLOR: Record<NodeDef["group"], string> = {
 const NODE_W = 132;
 const NODE_H = 64;
 
+// The order the diagram highlights nodes in while nobody is interacting with it.
+// Module scope, not component scope: it never varies, and as a local it was a
+// fresh array on every render that the idle-timer effect then had to pretend not
+// to depend on.
+const AUTO_CYCLE: NodeId[] = ["kiosk", "pos", "reports", "loyalty", "kitchen"];
+
 function buildLinkSet(active: NodeId | null): Set<string> {
   const set = new Set<string>();
   if (!active) return set;
@@ -71,7 +77,6 @@ export function ConnectedRestaurant() {
   const [interacted, setInteracted] = useState(false);
   const [reduceMotion, setReduceMotion] = useState(false);
   const idleTimer = useRef<ReturnType<typeof setInterval> | null>(null);
-  const autoCycle: NodeId[] = ["kiosk", "pos", "reports", "loyalty", "kitchen"];
 
 useEffect(() => {
   const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -84,14 +89,14 @@ useEffect(() => {
 useEffect(() => {
   if (interacted || reduceMotion) return;
   idleTimer.current = setInterval(() => {
-    setAutoIdx((i) => (i + 1) % autoCycle.length);
+    setAutoIdx((i) => (i + 1) % AUTO_CYCLE.length);
   }, 2200);
   return () => {
     if (idleTimer.current) clearInterval(idleTimer.current);
   };
 }, [interacted, reduceMotion]);
 
-const effectiveActive: NodeId | null = active ?? (interacted ? null : autoCycle[autoIdx]);
+const effectiveActive: NodeId | null = active ?? (interacted ? null : AUTO_CYCLE[autoIdx]);
   const linkSet = buildLinkSet(effectiveActive);
   const connectedNodes = new Set<string>(
     effectiveActive ? [effectiveActive, ...(NODES.find((n) => n.id === effectiveActive)?.connects ?? [])] : []

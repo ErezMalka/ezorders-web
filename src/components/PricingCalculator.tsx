@@ -2,79 +2,16 @@
 
 import { useCallback, useState } from "react";
 
-// ============================================================
-//  PRICING CONFIG — all monetary values live here
-// ============================================================
-const PRICING_CONFIG = {
-  initialSetup: { id: "initial", label: "הקמת מערכת ראשונית", setup: 1950 },
-
-  coreProducts: [
-    { id: "pos", label: "קופה (POS)", note: "המחיר פר קופה", setup: 490, monthly: 350, maxQty: 20, icon: "pos" },
-    { id: "website", label: "אתר אינטרנט", note: "המחיר פר סניף", setup: 490, monthly: 450, maxQty: 1, icon: "globe" },
-    { id: "kiosk", label: "קיוסק", note: "המחיר פר עמדה", setup: 490, monthly: 350, maxQty: 10, icon: "kiosk" },
-  ],
-
-  addonsIncluded: [
-    { id: "loyalty", label: "מועדון לקוחות", note: "פר סניף", setup: 0, monthly: 350, maxQty: 1, icon: "users" },
-    { id: "ezwallet", label: "EzWallet", note: "", setup: 0, monthly: 150, maxQty: 1, icon: "wallet" },
-    { id: "feedback", label: "מודול פידבק", note: "", setup: 0, monthly: 150, maxQty: 1, icon: "chat" },
-  ],
-
-  addonsExcluded: [
-    { id: "bit", label: "תשלומי BIT", setup: 95, monthly: 25, maxQty: 1, icon: "card", txNote: "" },
-    { id: "applepay", label: "Apple Pay / Google Pay", setup: 95, monthly: 50, maxQty: 1, icon: "card", txNote: "" },
-    {
-      id: "secure3d",
-      label: "3D Secure",
-      setup: 350,
-      monthly: 79,
-      maxQty: 1,
-      icon: "shield",
-      txNote: "+ ₪0.90 לעסקה מאומתת (לא כלול בסה״כ)",
-    },
-  ],
-
-  mobileApp: { id: "app", label: "אפליקציה ממותגת", setup: 4900, monthly: 190, maxQty: 1, icon: "phone" },
-
-  auth3dsThreshold: 150,
-
-  discountTiers: [
-    { threshold: 2000, pct: 40 },
-    { threshold: 1500, pct: 30 },
-    { threshold: 1000, pct: 25 },
-    { threshold: 600, pct: 20 },
-  ],
-} as const;
-
-interface ItemState {
-  enabled: boolean;
-  qty: number;
-}
-type CalcState = Record<string, ItemState>;
-
-function fmt(n: number) {
-  return "₪" + n.toLocaleString("he-IL", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-}
-
-// STRICT greater-than — exactly 600 = no discount, exactly 1000 = 20%, etc.
-function getDiscount(eligible: number) {
-  for (const tier of PRICING_CONFIG.discountTiers) {
-    if (eligible > tier.threshold) return tier.pct;
-  }
-  return 0;
-}
-
-function buildInitial(): CalcState {
-  const state: CalcState = {};
-  const all = [
-    ...PRICING_CONFIG.coreProducts,
-    ...PRICING_CONFIG.addonsIncluded,
-    ...PRICING_CONFIG.addonsExcluded,
-    PRICING_CONFIG.mobileApp,
-  ];
-  for (const p of all) state[p.id] = { enabled: false, qty: 1 };
-  return state;
-}
+import {
+  PRICING_CONFIG,
+  buildInitialState,
+  computeQuote,
+  fmt,
+  nextTier as nextTierFor,
+  amountToNextTier,
+  type CalcState,
+  type ItemState,
+} from "@/lib/pricing";
 
 // ============================================================
 //  Inline icons (no external deps)
@@ -332,47 +269,33 @@ function SummaryRow({
 //  PricingCalculator
 // ============================================================
 export function PricingCalculator() {
-  const [calc, setCalc] = useState<CalcState>(buildInitial);
+  const [calc, setCalc] = useState<CalcState>(buildInitialState);
   const [copied, setCopied] = useState(false);
 
   const update = useCallback((id: string, patch: Partial<ItemState>) => {
     setCalc((prev) => ({ ...prev, [id]: { ...prev[id], ...patch } }));
   }, []);
 
-  const reset = () => setCalc(buildInitial());
+  const reset = () => setCalc(buildInitialState());
 
-  const setupOf = (products: readonly { id: string; setup: number }[]) =>
-    products.reduce((acc, p) => {
-      const s = calc[p.id];
-      if (!s?.enabled) return acc;
-      return acc + p.setup * s.qty;
-    }, 0);
-
-  const monthlyOf = (products: readonly { id: string; monthly: number }[]) =>
-    products.reduce((acc, p) => {
-      const s = calc[p.id];
-      if (!s?.enabled) return acc;
-      return acc + p.monthly * s.qty;
-    }, 0);
-
-  const initialSetupAmt = PRICING_CONFIG.initialSetup.setup;
-  const productSetupSubtotal = setupOf(PRICING_CONFIG.coreProducts);
-  const addonSetupSubtotal = setupOf([...PRICING_CONFIG.addonsIncluded, ...PRICING_CONFIG.addonsExcluded]);
+  // Every figure below comes from the shared engine in @/lib/pricing, so this
+  // page and the agent portal can never disagree on a price.
+  const {
+    initialSetupAmt,
+    productSetupSubtotal,
+    addonSetupSubtotal,
+    appSetup,
+    finalSetupTotal,
+    eligibleMonthlySubtotal,
+    discountPct,
+    discountAmt,
+    eligibleAfterDiscount,
+    nonDiscountableMonthly,
+    finalMonthlyTotal,
+    hasAnyEnabled,
+  } = computeQuote(calc);
 
   const appState = calc[PRICING_CONFIG.mobileApp.id];
-  const appSetup = appState?.enabled ? PRICING_CONFIG.mobileApp.setup : 0;
-  const appMonthly = appState?.enabled ? PRICING_CONFIG.mobileApp.monthly : 0;
-
-  const finalSetupTotal = initialSetupAmt + productSetupSubtotal + addonSetupSubtotal + appSetup;
-
-  const eligibleMonthlySubtotal = monthlyOf([...PRICING_CONFIG.coreProducts, ...PRICING_CONFIG.addonsIncluded]);
-  const discountPct = getDiscount(eligibleMonthlySubtotal);
-  const discountAmt = Math.round((eligibleMonthlySubtotal * discountPct) / 100);
-  const eligibleAfterDiscount = eligibleMonthlySubtotal - discountAmt;
-  const nonDiscountableMonthly = monthlyOf(PRICING_CONFIG.addonsExcluded) + appMonthly;
-  const finalMonthlyTotal = eligibleAfterDiscount + nonDiscountableMonthly;
-
-  const hasAnyEnabled = Object.values(calc).some((s) => s.enabled);
 
   const generateQuoteText = () => {
     const lines: string[] = ["=== הצעת מחיר EzOrders ===", ""];
@@ -428,7 +351,7 @@ export function PricingCalculator() {
     }
   };
 
-  const nextTier = [...PRICING_CONFIG.discountTiers].reverse().find((t) => eligibleMonthlySubtotal <= t.threshold);
+  const nextTier = nextTierFor(eligibleMonthlySubtotal);
 
   return (
     <section dir="rtl" className="mx-auto max-w-container px-6">
@@ -572,7 +495,7 @@ export function PricingCalculator() {
 
                 {nextTier && eligibleMonthlySubtotal > 0 ? (
                   <p className="mt-3 text-center text-xs text-brand-muted">
-                    עוד {fmt(nextTier.threshold + 1 - eligibleMonthlySubtotal)} בחודשי הזכאי — ותעלו להנחת {nextTier.pct}%
+                    עוד {fmt(amountToNextTier(eligibleMonthlySubtotal, nextTier))} בחודשי הזכאי — ותעלו להנחת {nextTier.pct}%
                   </p>
                 ) : null}
               </div>

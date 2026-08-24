@@ -34,7 +34,16 @@ export function Footer({ dictionary }: { dictionary?: Dictionary }) {
                           className:
                                         "border-t border-gray-100 py-6 text-center text-sm text-brand-muted",
               },
-                    f.rights
+                    createElement("span", null, f.rights),
+                    createElement("span", { className: "mx-2 text-gray-300" }, "·"),
+                    // The agents' way back in. Deliberately plain and last: it is a
+                    // staff door on a customer-facing page, so it should be findable
+                    // by the five people who need it and invisible to everyone else.
+                    createElement(
+                                Link,
+                          { href: f.agentPortal.href, className: "hover:text-brand-dark" },
+                                f.agentPortal.label
+                              )
                   )
         );
 }

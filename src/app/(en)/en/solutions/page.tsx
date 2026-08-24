@@ -52,6 +52,10 @@ export default function SolutionsPage() {
               <img
                 src="/images/solutions-chef.png"
                 alt="Chef holding phone"
+                width={556}
+                height={595}
+                loading="lazy"
+                decoding="async"
                 className="max-h-[400px] w-auto"
               />
             </div>
