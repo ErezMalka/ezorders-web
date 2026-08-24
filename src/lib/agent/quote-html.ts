@@ -1,4 +1,6 @@
-import { GROUP_LABELS, PRICING_CONFIG, fmt, type ItemGroup } from "@/lib/pricing";
+import { BASE_SETUP_LABEL, GROUP_LABELS, fmt, type ItemGroup } from "@/lib/pricing";
+
+import { LOGO_DATA_URI, LOGO_HEIGHT, LOGO_WIDTH } from "./brand";
 
 /**
  * The quote document, as a standalone HTML string.
@@ -25,6 +27,8 @@ export interface QuoteDocumentItem {
   note?: string | null;
   item_group: ItemGroup;
   quantity: number;
+  /** Per-unit one-time price. Shown for hardware, where "2 × ₪1,200" is the fact. */
+  setup_unit?: number;
   setup_total: number;
   monthly_total: number;
 }
@@ -45,7 +49,11 @@ export interface QuoteDocumentData {
 
   items: QuoteDocumentItem[];
 
+  /** The mandatory base charge, so an old document keeps the fee it was issued with. */
+  baseSetup?: number;
   setupTotal: number;
+  /** Physical goods, one-time. Charged and presented apart from setup. */
+  hardwareTotal?: number;
   monthlyEligible: number;
   discountPercent: number;
   discountAmount: number;
@@ -85,36 +93,104 @@ export function renderQuoteDocument(data: QuoteDocumentData): string {
 
   const setupVat = (setupTotal * vatPercent) / 100;
   const monthlyVat = (monthlyTotal * vatPercent) / 100;
-  const contractValue = setupTotal + monthlyTotal * termMonths;
+  const contractValue = setupTotal + (data.hardwareTotal ?? 0) + monthlyTotal * termMonths;
   const annualSaving = discountAmount * 12;
 
-  // Group the lines the way the calculator presents them, so the document reads
-  // in the same order as the conversation that produced it.
-  const groupOrder: ItemGroup[] = ["core", "addon_included", "addon_excluded", "mobile_app"];
-  const grouped = groupOrder
-    .map((group) => ({ group, items: data.items.filter((i) => i.item_group === group) }))
-    .filter((g) => g.items.length > 0);
+  const hardwareTotal = data.hardwareTotal ?? 0;
+  const hardwareVat = (hardwareTotal * vatPercent) / 100;
 
-  const rows = grouped
-    .map(
-      ({ group, items }) => `
-        <tr class="group-row"><td colspan="4">${escapeHtml(GROUP_LABELS[group])}</td></tr>
-        ${items
-          .map(
-            (item) => `
+  // The document is read by someone deciding whether to sign, and the question
+  // they are actually asking is "what does this cost me, and when". So the lines
+  // are grouped by WHEN they are paid rather than by which section of the
+  // calculator produced them: once at the start, every month, and — separately —
+  // the physical goods, which are bought rather than installed.
+  //
+  // A component with both a setup fee and a monthly fee appears in two blocks,
+  // with the relevant half of its price in each. That is deliberate: showing
+  // ₪490 and ₪350 on one row invites the reader to add them together.
+  const softwareLines = data.items.filter((i) => i.item_group !== "hardware");
+  const hardwareLines = data.items.filter((i) => i.item_group === "hardware");
+
+  const setupLines = softwareLines.filter((i) => i.setup_total > 0);
+  const monthlyLines = softwareLines.filter((i) => i.monthly_total > 0);
+
+  const lineRow = (item: QuoteDocumentItem, amount: number) => `
           <tr>
             <td>
               ${escapeHtml(item.label)}
               ${item.note ? `<div class="sub">${escapeHtml(item.note)}</div>` : ""}
+              <div class="sub">${escapeHtml(GROUP_LABELS[item.item_group])}</div>
             </td>
             <td class="c">${num(String(item.quantity))}</td>
-            <td class="c">${num(fmt(item.setup_total))}</td>
-            <td class="c">${num(fmt(item.monthly_total))}</td>
-          </tr>`
+            <td class="c">${num(fmt(amount))}</td>
+          </tr>`;
+
+  const setupBlock = `
+  <div class="block">
+    <h2>1 · הקמה והטמעה<span class="when">תשלום חד־פעמי</span></h2>
+    <table>
+      <thead><tr><th>רכיב</th><th class="q">כמות</th><th class="c">סכום</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>${escapeHtml(BASE_SETUP_LABEL)}</b></td>
+          <td class="c">${num("1")}</td>
+          <td class="c">${num(fmt(data.baseSetup ?? 0))}</td>
+        </tr>
+        ${setupLines.map((item) => lineRow(item, item.setup_total)).join("")}
+      </tbody>
+    </table>
+    <div class="sum"><span>סה״כ הקמה</span>${num(fmt(setupTotal))}</div>
+  </div>`;
+
+  const monthlyBlock = `
+  <div class="block">
+    <h2>2 · תשלום חודשי<span class="when">מדי חודש, לאורך התקופה</span></h2>
+    <table>
+      <thead><tr><th>רכיב</th><th class="q">כמות</th><th class="c">לחודש</th></tr></thead>
+      <tbody>
+        ${
+          monthlyLines.length > 0
+            ? monthlyLines.map((item) => lineRow(item, item.monthly_total)).join("")
+            : `<tr><td colspan="3" class="muted-cell">אין רכיבים בתשלום חודשי</td></tr>`
+        }
+      </tbody>
+    </table>
+    <div class="sum"><span>סה״כ חודשי לפני הנחה</span>${num(fmt(monthlyEligible + monthlyNonEligible))}</div>
+  </div>`;
+
+  // Rendered only when something physical was sold. An empty hardware block on a
+  // software-only quote is a question the reader has to answer for themselves.
+  const hardwareBlock =
+    hardwareLines.length === 0
+      ? ""
+      : `
+  <div class="block">
+    <h2>3 · מוצרים וחומרה<span class="when">תשלום חד־פעמי, ללא הנחה</span></h2>
+    <table>
+      <thead>
+        <tr><th>מוצר</th><th class="q">כמות</th><th class="c">ליחידה</th><th class="c">סכום</th></tr>
+      </thead>
+      <tbody>
+        ${hardwareLines
+          .map(
+            (item) => `
+        <tr>
+          <td>
+            ${escapeHtml(item.label)}
+            ${item.note ? `<div class="sub">${escapeHtml(item.note)}</div>` : ""}
+          </td>
+          <td class="c">${num(String(item.quantity))}</td>
+          <td class="c">${num(fmt(item.setup_unit ?? item.setup_total / Math.max(1, item.quantity)))}</td>
+          <td class="c">${num(fmt(item.setup_total))}</td>
+        </tr>`
           )
-          .join("")}`
-    )
-    .join("");
+          .join("")}
+      </tbody>
+    </table>
+    <div class="sum"><span>סה״כ מוצרים</span>${num(fmt(hardwareTotal))}</div>
+  </div>`;
+
+  const blocks = setupBlock + monthlyBlock + hardwareBlock;
 
   return `<!DOCTYPE html>
 <html lang="he" dir="rtl">
@@ -142,9 +218,7 @@ export function renderQuoteDocument(data: QuoteDocumentData): string {
 
   header { display: flex; justify-content: space-between; align-items: flex-start;
            border-bottom: 3px solid #F05D86; padding-bottom: 16px; margin-bottom: 22px; }
-  .brand { font-size: 26px; font-weight: 800; color: #191D2A; letter-spacing: -.6px; }
-  .brand span { color: #F05D86; }
-  .brand .tag { display: block; font-size: 11px; color: #6b7280; font-weight: 500; letter-spacing: 0; margin-top: 4px; }
+  .brand img { display: block; width: 150px; height: auto; }
   .meta { text-align: left; font-size: 11.5px; color: #4b5563; line-height: 1.9; }
   .meta b { color: #111827; }
 
@@ -155,6 +229,15 @@ export function renderQuoteDocument(data: QuoteDocumentData): string {
   .box h2 { margin: 0 0 7px; font-size: 10.5px; letter-spacing: .4px; color: #6b7280; font-weight: 600; }
   .box .line { font-size: 12px; color: #374151; }
   .box .line b { color: #111827; }
+
+  .block { margin-top: 20px; break-inside: avoid; }
+  .block:first-of-type { margin-top: 0; }
+  .block > h2 { margin: 0 0 7px; font-size: 12.5px; font-weight: 700; color: #191D2A;
+                display: flex; justify-content: space-between; align-items: baseline; }
+  .block > h2 .when { font-size: 10.5px; font-weight: 500; color: #6b7280; }
+  .block .sum { display: flex; justify-content: space-between; padding: 8px 11px;
+                background: #F8FAFC; border-top: 1px solid #E5E7EB;
+                font-size: 12px; font-weight: 700; color: #111827; }
 
   table { width: 100%; border-collapse: collapse; }
   thead th { background: #191D2A; color: #fff; font-size: 11px; font-weight: 600;
@@ -201,8 +284,8 @@ export function renderQuoteDocument(data: QuoteDocumentData): string {
 <body>
 <div class="page">
   <header>
-    <div class="brand">EZ<span>ORDERS</span>
-      <span class="tag">פתרונות הזמנה ותשלום למסעדות</span>
+    <div class="brand">
+      <img src="${LOGO_DATA_URI}" width="${LOGO_WIDTH}" height="${LOGO_HEIGHT}" alt="EZOrders">
     </div>
     <div class="meta">
       <div>הצעת מחיר <b>${escapeHtml(data.quoteNumber)}</b></div>
@@ -234,30 +317,19 @@ export function renderQuoteDocument(data: QuoteDocumentData): string {
     </div>
   </div>
 
-  <table>
-    <thead>
-      <tr>
-        <th>רכיב</th>
-        <th class="q">כמות</th>
-        <th class="c">הקמה</th>
-        <th class="c">חודשי</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><b>${escapeHtml(PRICING_CONFIG.initialSetup.label)}</b></td>
-        <td class="c">${num("1")}</td>
-        <td class="c">${num(fmt(PRICING_CONFIG.initialSetup.setup))}</td>
-        <td class="c muted-cell">—</td>
-      </tr>
-      ${rows}
-    </tbody>
-  </table>
+  ${blocks}
 
   <div class="totals">
     <div class="row"><span>סה״כ הקמה (חד פעמי)</span>${num(fmt(setupTotal))}</div>
-    <div class="row faint"><span>מע״מ ${vatPercent}%</span>${num(fmt(setupVat))}</div>
-    <div class="row section"><span>הקמה כולל מע״מ</span>${num(fmt(setupTotal + setupVat))}</div>
+    ${
+      hardwareTotal > 0
+        ? `<div class="row"><span>מוצרים וחומרה (חד פעמי)</span>${num(fmt(hardwareTotal))}</div>`
+        : ""
+    }
+    <div class="row faint"><span>מע״מ ${vatPercent}%</span>${num(fmt(setupVat + hardwareVat))}</div>
+    <div class="row section"><span>${
+      hardwareTotal > 0 ? "סה״כ לתשלום מיידי כולל מע״מ" : "הקמה כולל מע״מ"
+    }</span>${num(fmt(setupTotal + hardwareTotal + setupVat + hardwareVat))}</div>
 
     <div class="spacer"></div>
 

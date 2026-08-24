@@ -8,7 +8,7 @@ import {
   withResponsePanel,
 } from "@/lib/agent/quote-response-html";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
-import type { ItemGroup } from "@/lib/pricing";
+import { DEFAULT_CATALOGUE, type ItemGroup } from "@/lib/pricing";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -42,6 +42,7 @@ interface PublicQuote {
   customer_email: string | null;
   customer_tax_id: string | null;
   setup_total: string | number;
+  hardware_total: string | number;
   monthly_eligible: string | number;
   discount_percent: string | number;
   discount_amount: string | number;
@@ -61,6 +62,7 @@ interface PublicQuote {
     note: string | null;
     item_group: ItemGroup;
     quantity: string | number;
+    setup_unit: string | number;
     setup_total: string | number;
     monthly_total: string | number;
   }>;
@@ -227,10 +229,13 @@ function renderDocument(quote: PublicQuote): string {
       note: item.note,
       item_group: item.item_group,
       quantity: Number(item.quantity),
+      setup_unit: Number(item.setup_unit),
       setup_total: Number(item.setup_total),
       monthly_total: Number(item.monthly_total),
     })),
+    baseSetup: DEFAULT_CATALOGUE.baseSetup,
     setupTotal: Number(quote.setup_total),
+    hardwareTotal: Number(quote.hardware_total ?? 0),
     monthlyEligible: Number(quote.monthly_eligible),
     discountPercent: Number(quote.discount_percent),
     discountAmount: Number(quote.discount_amount),

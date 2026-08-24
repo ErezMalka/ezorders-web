@@ -100,14 +100,73 @@ export interface PricingItem {
  * every saved quote line, so a stored quote can be re-rendered exactly as it was
  * presented even if the component later moves between groups.
  */
-export type ItemGroup = "core" | "addon_included" | "addon_excluded" | "mobile_app";
+export type ItemGroup =
+  | "core"
+  | "addon_included"
+  | "addon_excluded"
+  | "mobile_app"
+  /**
+   * Physical goods: a screen, a printer, a cash drawer. One-time like setup but
+   * not setup — nobody installs a cash drawer — so it is charged and presented
+   * separately, and it never feeds the discount tier. See supabase 0008.
+   */
+  | "hardware";
 
 export const GROUP_LABELS: Record<ItemGroup, string> = {
   core: "מוצרים ראשיים",
   addon_included: "תוספות כלולות בהנחה",
   addon_excluded: "תוספות ללא הנחה",
   mobile_app: "אפליקציה",
+  hardware: "מוצרים וחומרה",
 };
+
+// ============================================================
+//  The catalogue
+// ============================================================
+/**
+ * A priceable component together with the group it sells in.
+ *
+ * PRICING_CONFIG above is the DEFAULT catalogue, not the only one. An admin can
+ * edit the real list from /he/agent/products, which lives in public.products —
+ * so every function below takes a catalogue and falls back to the file.
+ *
+ * The fallback is load-bearing rather than defensive. The marketing site is
+ * built to work with no Supabase configuration at all, and /he/price must keep
+ * rendering prices when the database is unreachable: a price list that goes
+ * blank during an outage is worse than one that is briefly out of date.
+ */
+export interface CatalogueItem extends PricingItem {
+  group: ItemGroup;
+}
+
+export interface Catalogue {
+  /** The mandatory one-time charge, before any component. */
+  baseSetup: number;
+  /** Every sellable component, in display order. */
+  items: CatalogueItem[];
+}
+
+const withGroup = (items: readonly unknown[], group: ItemGroup): CatalogueItem[] =>
+  (items as PricingItem[]).map((item) => ({ ...item, group }));
+
+/** The catalogue as shipped in this file. Used when the database has nothing to say. */
+export const DEFAULT_CATALOGUE: Catalogue = {
+  baseSetup: PRICING_CONFIG.initialSetup.setup,
+  items: [
+    ...withGroup(PRICING_CONFIG.coreProducts, "core"),
+    ...withGroup(PRICING_CONFIG.addonsIncluded, "addon_included"),
+    ...withGroup(PRICING_CONFIG.addonsExcluded, "addon_excluded"),
+    ...withGroup([PRICING_CONFIG.mobileApp], "mobile_app"),
+  ],
+};
+
+/** The components of one group, in the order the catalogue lists them. */
+export function itemsInGroup(group: ItemGroup, catalogue: Catalogue = DEFAULT_CATALOGUE): CatalogueItem[] {
+  return catalogue.items.filter((item) => item.group === group);
+}
+
+/** The label for the mandatory base charge. Not a catalogue item: it has no quantity. */
+export const BASE_SETUP_LABEL = PRICING_CONFIG.initialSetup.label;
 
 /** Discountable groups feed the tier threshold; the others never do. */
 export const DISCOUNTABLE_GROUPS: readonly ItemGroup[] = ["core", "addon_included"];
@@ -164,29 +223,20 @@ export function amountToNextTier(eligible: number, tier: { threshold: number }):
 //  State helpers
 // ============================================================
 /** Every priceable component, in display order. */
-export function allPricingItems(): PricingItem[] {
-  return [
-    ...PRICING_CONFIG.coreProducts,
-    ...PRICING_CONFIG.addonsIncluded,
-    ...PRICING_CONFIG.addonsExcluded,
-    PRICING_CONFIG.mobileApp,
-  ] as unknown as PricingItem[];
+export function allPricingItems(catalogue: Catalogue = DEFAULT_CATALOGUE): CatalogueItem[] {
+  return catalogue.items;
 }
 
 /** A fresh calculator state: nothing selected, every quantity at 1. */
-export function buildInitialState(): CalcState {
+export function buildInitialState(catalogue: Catalogue = DEFAULT_CATALOGUE): CalcState {
   const state: CalcState = {};
-  for (const p of allPricingItems()) state[p.id] = { enabled: false, qty: 1 };
+  for (const p of catalogue.items) state[p.id] = { enabled: false, qty: 1 };
   return state;
 }
 
 /** The group a component id belongs to, or undefined if the id is unknown. */
-export function groupOf(id: string): ItemGroup | undefined {
-  if (PRICING_CONFIG.coreProducts.some((p) => p.id === id)) return "core";
-  if (PRICING_CONFIG.addonsIncluded.some((p) => p.id === id)) return "addon_included";
-  if (PRICING_CONFIG.addonsExcluded.some((p) => p.id === id)) return "addon_excluded";
-  if (PRICING_CONFIG.mobileApp.id === id) return "mobile_app";
-  return undefined;
+export function groupOf(id: string, catalogue: Catalogue = DEFAULT_CATALOGUE): ItemGroup | undefined {
+  return catalogue.items.find((item) => item.id === id)?.group;
 }
 
 /**
@@ -194,12 +244,12 @@ export function groupOf(id: string): ItemGroup | undefined {
  * and quantities are pulled into 1..maxQty. Anything arriving from a request
  * body or a stored row goes through this before it is priced.
  */
-export function sanitizeState(input: unknown): CalcState {
-  const state = buildInitialState();
+export function sanitizeState(input: unknown, catalogue: Catalogue = DEFAULT_CATALOGUE): CalcState {
+  const state = buildInitialState(catalogue);
   if (!input || typeof input !== "object") return state;
   const raw = input as Record<string, unknown>;
 
-  for (const item of allPricingItems()) {
+  for (const item of catalogue.items) {
     const entry = raw[item.id];
     if (!entry || typeof entry !== "object") continue;
     const e = entry as { enabled?: unknown; qty?: unknown };
@@ -234,13 +284,14 @@ export interface SelectedLine {
  * setup is NOT a line here — it has no quantity and no monthly component, and
  * every consumer renders it separately.
  */
-export function selectedLines(calc: CalcState): SelectedLine[] {
+export function selectedLines(calc: CalcState, catalogue: Catalogue = DEFAULT_CATALOGUE): SelectedLine[] {
   const lines: SelectedLine[] = [];
 
-  const push = (item: PricingItem, group: ItemGroup) => {
+  for (const item of catalogue.items) {
     const state = calc[item.id];
-    if (!state?.enabled) return;
+    if (!state?.enabled) continue;
     const qty = state.qty;
+    const group = item.group;
     lines.push({
       componentKey: item.id,
       group,
@@ -254,12 +305,7 @@ export function selectedLines(calc: CalcState): SelectedLine[] {
       monthlyTotal: item.monthly * qty,
       discountable: isDiscountableGroup(group),
     });
-  };
-
-  for (const p of PRICING_CONFIG.coreProducts) push(p as unknown as PricingItem, "core");
-  for (const p of PRICING_CONFIG.addonsIncluded) push(p as unknown as PricingItem, "addon_included");
-  for (const p of PRICING_CONFIG.addonsExcluded) push(p as unknown as PricingItem, "addon_excluded");
-  push(PRICING_CONFIG.mobileApp as unknown as PricingItem, "mobile_app");
+  }
 
   return lines;
 }
@@ -276,8 +322,17 @@ export interface QuoteTotals {
   addonSetupSubtotal: number;
   /** Setup fee for the branded app, 0 when it is not selected. */
   appSetup: number;
-  /** Everything above — the one-time charge. */
+  /** Everything above — the one-time SERVICES charge. Hardware is not in here. */
   finalSetupTotal: number;
+
+  /**
+   * Physical goods, one-time. Kept apart from finalSetupTotal so the document
+   * can show what is being installed and what is being bought as two different
+   * things, and so a monitor never looks like an installation fee.
+   */
+  hardwareTotal: number;
+  /** finalSetupTotal + hardwareTotal: everything paid once, up front. */
+  oneTimeTotal: number;
 
   /** Monthly charge from discountable components, before the discount. */
   eligibleMonthlySubtotal: number;
@@ -303,7 +358,10 @@ export interface QuoteTotals {
  * full precision, because that is the figure the customer is shown and the one
  * that must reconcile against the monthly total on the PDF.
  */
-export function computeQuote(calc: CalcState): QuoteTotals {
+export function computeQuote(calc: CalcState, catalogue: Catalogue = DEFAULT_CATALOGUE): QuoteTotals {
+  const inGroups = (...groups: ItemGroup[]) =>
+    catalogue.items.filter((item) => groups.includes(item.group));
+
   const setupOf = (items: readonly { id: string; setup: number }[]) =>
     items.reduce((acc, p) => {
       const s = calc[p.id];
@@ -316,21 +374,23 @@ export function computeQuote(calc: CalcState): QuoteTotals {
       return s?.enabled ? acc + p.monthly * s.qty : acc;
     }, 0);
 
-  const initialSetupAmt = PRICING_CONFIG.initialSetup.setup;
-  const productSetupSubtotal = setupOf(PRICING_CONFIG.coreProducts);
-  const addonSetupSubtotal = setupOf([...PRICING_CONFIG.addonsIncluded, ...PRICING_CONFIG.addonsExcluded]);
-
-  const appEnabled = calc[PRICING_CONFIG.mobileApp.id]?.enabled === true;
-  const appSetup = appEnabled ? PRICING_CONFIG.mobileApp.setup : 0;
-  const appMonthly = appEnabled ? PRICING_CONFIG.mobileApp.monthly : 0;
+  const initialSetupAmt = catalogue.baseSetup;
+  const productSetupSubtotal = setupOf(inGroups("core"));
+  const addonSetupSubtotal = setupOf(inGroups("addon_included", "addon_excluded"));
+  const appSetup = setupOf(inGroups("mobile_app"));
+  const appMonthly = monthlyOf(inGroups("mobile_app"));
 
   const finalSetupTotal = initialSetupAmt + productSetupSubtotal + addonSetupSubtotal + appSetup;
 
-  const eligibleMonthlySubtotal = monthlyOf([...PRICING_CONFIG.coreProducts, ...PRICING_CONFIG.addonsIncluded]);
+  // Physical goods. Never discountable, never recurring: a monthly charge on an
+  // object is a rental, which is a different product and a different contract.
+  const hardwareTotal = setupOf(inGroups("hardware"));
+
+  const eligibleMonthlySubtotal = monthlyOf(inGroups("core", "addon_included"));
   const discountPct = getDiscount(eligibleMonthlySubtotal);
   const discountAmt = Math.round((eligibleMonthlySubtotal * discountPct) / 100);
   const eligibleAfterDiscount = eligibleMonthlySubtotal - discountAmt;
-  const nonDiscountableMonthly = monthlyOf(PRICING_CONFIG.addonsExcluded) + appMonthly;
+  const nonDiscountableMonthly = monthlyOf(inGroups("addon_excluded")) + appMonthly;
   const finalMonthlyTotal = eligibleAfterDiscount + nonDiscountableMonthly;
 
   return {
@@ -339,6 +399,8 @@ export function computeQuote(calc: CalcState): QuoteTotals {
     addonSetupSubtotal,
     appSetup,
     finalSetupTotal,
+    hardwareTotal,
+    oneTimeTotal: finalSetupTotal + hardwareTotal,
     eligibleMonthlySubtotal,
     discountPct,
     discountAmt,
@@ -356,6 +418,10 @@ export interface QuoteMoney extends QuoteTotals {
   vatPercent: number;
   setupVat: number;
   setupInclVat: number;
+  hardwareVat: number;
+  hardwareInclVat: number;
+  /** Setup and hardware together, with VAT — what is actually invoiced up front. */
+  oneTimeInclVat: number;
   monthlyVat: number;
   monthlyInclVat: number;
   /** Setup plus `termMonths` of the recurring charge, pre-VAT. */
@@ -367,6 +433,7 @@ export interface QuoteMoney extends QuoteTotals {
 
 export function withMoney(totals: QuoteTotals, vatPercent: number, termMonths: number): QuoteMoney {
   const setupVat = (totals.finalSetupTotal * vatPercent) / 100;
+  const hardwareVat = (totals.hardwareTotal * vatPercent) / 100;
   const monthlyVat = (totals.finalMonthlyTotal * vatPercent) / 100;
   return {
     ...totals,
@@ -374,9 +441,14 @@ export function withMoney(totals: QuoteTotals, vatPercent: number, termMonths: n
     termMonths,
     setupVat,
     setupInclVat: totals.finalSetupTotal + setupVat,
+    hardwareVat,
+    hardwareInclVat: totals.hardwareTotal + hardwareVat,
+    oneTimeInclVat: totals.oneTimeTotal + setupVat + hardwareVat,
     monthlyVat,
     monthlyInclVat: totals.finalMonthlyTotal + monthlyVat,
-    contractValue: totals.finalSetupTotal + totals.finalMonthlyTotal * termMonths,
+    // Hardware is part of what the customer commits to, so it belongs in the
+    // contract value even though it never touches the discount.
+    contractValue: totals.oneTimeTotal + totals.finalMonthlyTotal * termMonths,
     annualSaving: totals.discountAmt * 12,
   };
 }

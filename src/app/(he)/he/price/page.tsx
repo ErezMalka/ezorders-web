@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { PageLayout } from "@/components/PageLayout";
 import { PricingCalculator } from "@/components/PricingCalculator";
+import { loadPublicCatalogue } from "@/lib/agent/products";
 import { StatsStrip } from "@/components/sections/StatsStrip";
 import { Testimonials } from "@/components/sections/Testimonials";
 import { ContactBand } from "@/components/sections/ContactBand";
@@ -18,11 +19,24 @@ export const metadata: Metadata = {
   },
 };
 
-export default function HePricePage() {
+/**
+ * Rebuilt at most once a minute rather than on every request.
+ *
+ * The catalogue now lives in the database, and this is a marketing page that
+ * must stay fast and cacheable. A minute is the compromise: an admin changing a
+ * price sees it live before they have finished telling anyone, and a visitor
+ * never waits on a database round trip. loadPublicCatalogue falls back to the
+ * shipped price list if the read fails, so the page renders either way.
+ */
+export const revalidate = 60;
+
+export default async function HePricePage() {
+  const catalogue = await loadPublicCatalogue();
+
   return (
     <PageLayout locale="he">
     <div className="pt-28">
-    <PricingCalculator />
+    <PricingCalculator catalogue={catalogue} />
     </div>
     <StatsStrip locale="he" />
     <Testimonials locale="he" />
