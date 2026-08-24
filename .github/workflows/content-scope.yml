@@ -1,0 +1,57 @@
+name: Content PR scope
+
+# Guards automated content pull requests.
+#
+# A content-only PR from the Growth OS publisher must touch ONLY article and
+# article-image files. If one ever modifies application code, that is either a
+# bug in the publisher or an unreviewed change riding along inside a PR a human
+# will skim as "just an article" — both are exactly what this gate exists to stop.
+#
+# Scope: PRs whose head branch starts with `content/` — see the `if:` below.
+# Human PRs that legitimately change the article SYSTEM are not affected, including
+# `feature/article-*` branches, because only `content/` branches are gated.
+
+permissions:
+  contents: read
+  pull-requests: read
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  scope:
+    name: Allowed changed-file scope
+    runs-on: ubuntu-latest
+    # Only enforce on content-publishing branches.
+    if: startsWith(github.head_ref, 'content/')
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Assert only content and image files changed
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+
+          CHANGED=$(git diff --name-only "$BASE" "$HEAD")
+          echo "Changed files:"
+          echo "$CHANGED" | sed 's/^/  /'
+
+          # The only paths an automated content PR may touch.
+          ALLOWED='^(content/(en|he)/[a-z0-9-]+\.md|public/images/blog/[a-z0-9-]+/[a-z0-9-]+\.(webp|png|jpg))$'
+
+          VIOLATIONS=$(echo "$CHANGED" | grep -vE "$ALLOWED" || true)
+
+          if [ -n "$VIOLATIONS" ]; then
+            echo "::error::Content-only PR modifies files outside the allowed scope:"
+            echo "$VIOLATIONS" | sed 's/^/  /'
+            echo ""
+            echo "Allowed: content/<locale>/<slug>.md and public/images/blog/<slug>/*"
+            exit 1
+          fi
+
+          echo "All changed files are within the allowed content scope."
