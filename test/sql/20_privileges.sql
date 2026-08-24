@@ -159,6 +159,56 @@ select test_assert(count(*) = 0, 'anon holds no privilege on the catalogue')
 from information_schema.role_table_grants
 where table_schema = 'public' and table_name = 'products' and grantee = 'anon';
 
+-- ── supplier and category are merchandising, not pricing ────────────────────
+-- They exist so a long hardware list can be searched. Two things must stay
+-- true: they reach the agent's catalogue, and they are as unwritable by a
+-- plain agent as the price is — otherwise "an agent cannot edit the catalogue"
+-- would be true of the number and false of everything around it.
+insert into public.products (key, label, item_group, setup, monthly, supplier, category, sort_order)
+values ('t-kiosk-32', 'עמדה 32', 'hardware', 11500, 0, 'Wintec', 'עמדת קיוסק', 900)
+on conflict (key) do nothing;
+
+do $$
+declare v_agent uuid := '44444444-4444-4444-4444-444444444444';
+        v_items jsonb;
+begin
+  perform set_config('request.jwt.claim.sub', v_agent::text, false);
+  set local role authenticated;
+
+  select public.agent_price_list()->'items' into v_items;
+  perform test_assert(
+    exists (select 1 from jsonb_array_elements(v_items) i
+             where i->>'key' = 't-kiosk-32'
+               and i->>'supplier' = 'Wintec'
+               and i->>'category' = 'עמדת קיוסק'),
+    'the agent catalogue carries supplier and category');
+
+  begin
+    update public.products set supplier = 'someone else' where key = 't-kiosk-32';
+    if found then
+      reset role;
+      raise exception 'FAIL: a plain agent rewrote a supplier';
+    end if;
+    raise notice 'ok  a plain agent cannot rewrite a supplier';
+  exception when insufficient_privilege then
+    raise notice 'ok  a plain agent cannot rewrite a supplier';
+  end;
+
+  reset role;
+  perform set_config('request.jwt.claim.sub', '', false);
+end $$;
+
+-- The public list sells outcomes, not part numbers.
+select test_assert(
+  not exists (
+    select 1 from jsonb_array_elements(public.price_list()->'items') i
+     where i ? 'supplier'
+  ),
+  'the public price list carries no supplier names');
+
+select test_assert(supplier = 'Wintec', 'the supplier is unchanged after the attempt')
+  from public.products where key = 't-kiosk-32';
+
 -- ── hardware never earns a discount ─────────────────────────────────────────
 -- The volume tiers reward recurring commitment. If a screen could raise the
 -- tier, an agent could discount the monthly charge by adding hardware.

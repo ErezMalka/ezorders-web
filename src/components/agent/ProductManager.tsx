@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { GROUP_LABELS, fmt, type ItemGroup } from "@/lib/pricing";
 import type { ProductRow } from "@/lib/agent/products";
@@ -30,12 +30,84 @@ const GROUP_HINT: Record<ItemGroup, string> = {
   hardware: "תשלום חד־פעמי בלבד — לא נכנס לחישוב ההנחה",
 };
 
+// "has no supplier" as a filter value, distinct from "any supplier". A NUL or
+// other exotic sentinel would not survive a round trip through a select value.
+const NONE = "__none__";
+const STATUSES = [
+  { value: "all", label: "הכל" },
+  { value: "active", label: "במכירה" },
+  { value: "retired", label: "הוצאו ממכירה" },
+] as const;
+
+type Status = (typeof STATUSES)[number]["value"];
+
+/** "" means any, NONE means the blanks, anything else is an exact match. */
+function matches(value: string | null, selected: string): boolean {
+  if (!selected) return true;
+  if (selected === NONE) return !value;
+  return value === selected;
+}
+
+/** Distinct values of one column, sorted, with a bucket for the blanks. */
+function optionsFor(products: ProductRow[], field: "supplier" | "category") {
+  const seen = new Set<string>();
+  let blanks = 0;
+  for (const p of products) {
+    const value = p[field];
+    if (value) seen.add(value);
+    else blanks += 1;
+  }
+  return {
+    values: [...seen].sort((a, b) => a.localeCompare(b, "he")),
+    hasBlanks: blanks > 0,
+  };
+}
+
 export function ProductManager({ products }: { products: ProductRow[] }) {
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
+
+  // Filters. The catalogue was ten software items when this screen was written
+  // and could be read at a glance; hardware turns it into forty rows across a
+  // handful of manufacturers, and scrolling stops being a way to find things.
+  const [query, setQuery] = useState("");
+  const [supplier, setSupplier] = useState("");
+  const [category, setCategory] = useState("");
+  const [group, setGroup] = useState("");
+  const [status, setStatus] = useState<Status>("all");
+
+  const supplierOptions = useMemo(() => optionsFor(products, "supplier"), [products]);
+  const categoryOptions = useMemo(() => optionsFor(products, "category"), [products]);
+
+  const filtered = useMemo(() => {
+    const needle = query.trim().toLowerCase();
+    return products.filter((p) => {
+      if (status === "active" && !p.is_active) return false;
+      if (status === "retired" && p.is_active) return false;
+      if (group && p.item_group !== group) return false;
+      if (!matches(p.supplier, supplier)) return false;
+      if (!matches(p.category, category)) return false;
+      if (!needle) return true;
+      // Deliberately wide: someone hunting for a kiosk stand may remember the
+      // model number, the manufacturer, or half the Hebrew name.
+      return [p.label, p.key, p.note, p.supplier, p.category]
+        .filter(Boolean)
+        .some((field) => String(field).toLowerCase().includes(needle));
+    });
+  }, [products, query, supplier, category, group, status]);
+
+  const filtering = Boolean(query.trim() || supplier || category || group || status !== "all");
+
+  const clearFilters = () => {
+    setQuery("");
+    setSupplier("");
+    setCategory("");
+    setGroup("");
+    setStatus("all");
+  };
 
   const patch = async (id: string, body: Record<string, unknown>, note: string) => {
     setBusy(id);
@@ -93,8 +165,101 @@ export function ProductManager({ products }: { products: ProductRow[] }) {
         </button>
       )}
 
+      {products.length > 8 ? (
+        <section className="rounded-card border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            <div className="lg:col-span-2">
+              <label className="mb-1 block text-xs font-semibold text-brand-muted" htmlFor="filter-q">
+                חיפוש
+              </label>
+              <input
+                id="filter-q"
+                type="search"
+                value={query}
+                placeholder="שם, מזהה, ספק…"
+                onChange={(event) => setQuery(event.target.value)}
+                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-brand-dark"
+              />
+            </div>
+
+            <FilterSelect
+              id="filter-supplier"
+              label="ספק"
+              value={supplier}
+              onChange={setSupplier}
+              options={supplierOptions}
+              blankLabel="ללא ספק"
+            />
+            <FilterSelect
+              id="filter-category"
+              label="סוג"
+              value={category}
+              onChange={setCategory}
+              options={categoryOptions}
+              blankLabel="ללא סוג"
+            />
+
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-brand-muted" htmlFor="filter-group">
+                קבוצה
+              </label>
+              <select
+                id="filter-group"
+                value={group}
+                onChange={(event) => setGroup(event.target.value)}
+                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-brand-dark"
+              >
+                <option value="">הכל</option>
+                {GROUP_ORDER.map((g) => (
+                  <option key={g} value={g}>
+                    {GROUP_LABELS[g]}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-brand-muted">
+            <span className="tabular-nums">
+              {filtering ? `מציג ${filtered.length} מתוך ${products.length}` : `${products.length} מוצרים`}
+            </span>
+            <span className="flex items-center gap-1.5">
+              {STATUSES.map((s) => (
+                <button
+                  key={s.value}
+                  type="button"
+                  onClick={() => setStatus(s.value)}
+                  className={`rounded-pill px-2.5 py-1 font-semibold transition-colors ${
+                    status === s.value
+                      ? "bg-brand-dark text-white"
+                      : "bg-brand-grey text-brand-muted hover:bg-slate-200"
+                  }`}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </span>
+            {filtering ? (
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="font-semibold text-brand-pink underline underline-offset-2"
+              >
+                נקה סינון
+              </button>
+            ) : null}
+          </div>
+        </section>
+      ) : null}
+
+      {filtering && filtered.length === 0 ? (
+        <p className="rounded-card border border-dashed border-slate-300 px-5 py-8 text-center text-sm text-brand-muted">
+          אין מוצר שמתאים לסינון.
+        </p>
+      ) : null}
+
       {GROUP_ORDER.map((group) => {
-        const rows = products.filter((p) => p.item_group === group);
+        const rows = filtered.filter((p) => p.item_group === group);
         if (rows.length === 0) return null;
 
         return (
@@ -135,6 +300,28 @@ export function ProductManager({ products }: { products: ProductRow[] }) {
                             הוצא ממכירה
                           </span>
                         ) : null}
+                        <span className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                          <TagCell
+                            prefix="ספק"
+                            value={product.supplier}
+                            listId="supplier-values"
+                            offerWhenEmpty={group === "hardware"}
+                            busy={busy === product.id}
+                            onSave={(v) =>
+                              patch(product.id, { supplier: v }, `${product.label}: ספק עודכן`)
+                            }
+                          />
+                          <TagCell
+                            prefix="סוג"
+                            value={product.category}
+                            listId="category-values"
+                            offerWhenEmpty={group === "hardware"}
+                            busy={busy === product.id}
+                            onSave={(v) =>
+                              patch(product.id, { category: v }, `${product.label}: סוג עודכן`)
+                            }
+                          />
+                        </span>
                       </td>
                       <td className="px-4 py-3 font-mono text-xs text-brand-muted" dir="ltr">
                         {product.key}
@@ -209,11 +396,144 @@ export function ProductManager({ products }: { products: ProductRow[] }) {
         );
       })}
 
+      <datalist id="supplier-values">
+        {supplierOptions.values.map((v) => (
+          <option key={v} value={v} />
+        ))}
+      </datalist>
+      <datalist id="category-values">
+        {categoryOptions.values.map((v) => (
+          <option key={v} value={v} />
+        ))}
+      </datalist>
+
       <p className="px-1 text-xs leading-relaxed text-brand-muted">
         מוצר שהוצא ממכירה לא נמחק ולא ייעלם מהצעות ישנות. הצעה ששמורה במערכת מחזיקה את השם
         והמחיר שבהם היא נשלחה, ולכן היא תמשיך להיקרא נכון גם שנה אחרי שהמוצר ירד מהמחירון.
       </p>
     </div>
+  );
+}
+
+/** One dropdown over the distinct values of a column, plus a bucket for blanks. */
+function FilterSelect({
+  id,
+  label,
+  value,
+  onChange,
+  options,
+  blankLabel,
+}: {
+  id: string;
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  options: { values: string[]; hasBlanks: boolean };
+  blankLabel: string;
+}) {
+  return (
+    <div>
+      <label className="mb-1 block text-xs font-semibold text-brand-muted" htmlFor={id}>
+        {label}
+      </label>
+      <select
+        id={id}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-brand-dark"
+      >
+        <option value="">הכל</option>
+        {options.values.map((v) => (
+          <option key={v} value={v}>
+            {v}
+          </option>
+        ))}
+        {options.hasBlanks ? <option value={NONE}>{blankLabel}</option> : null}
+      </select>
+    </div>
+  );
+}
+
+/**
+ * A supplier or category, editable in place.
+ *
+ * Free text with the values already in use offered as suggestions. A lookup
+ * table would have bought consistency at the cost of a second admin screen and
+ * a decision about what happens to a product when its supplier is deleted —
+ * for a field one person types into a few times a year.
+ */
+function TagCell({
+  prefix,
+  value,
+  listId,
+  offerWhenEmpty,
+  busy,
+  onSave,
+}: {
+  prefix: string;
+  value: string | null;
+  listId: string;
+  /**
+   * Whether to show an empty "+ ספק" affordance on a product that has none.
+   *
+   * Only hardware gets it. A supplier is a fact about a physical object bought
+   * from a manufacturer; EzWallet has no supplier and never will, and nine rows
+   * of dashed placeholders inviting an answer that does not exist is worse than
+   * no affordance at all. A value already set always shows, whatever the group.
+   */
+  offerWhenEmpty: boolean;
+  busy: boolean;
+  onSave: (value: string) => Promise<boolean>;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(value ?? "");
+
+  if (!editing && !value && !offerWhenEmpty) return null;
+
+  if (!editing) {
+    return (
+      <button
+        type="button"
+        onClick={() => {
+          setDraft(value ?? "");
+          setEditing(true);
+        }}
+        className={`rounded-pill px-2 py-0.5 text-[11px] font-medium transition-colors ${
+          value
+            ? "bg-brand-tint text-brand-indigo hover:bg-brand-grey"
+            : "border border-dashed border-slate-300 text-slate-400 hover:border-brand-pink hover:text-brand-pink"
+        }`}
+      >
+        {value ? `${prefix}: ${value}` : `+ ${prefix}`}
+      </button>
+    );
+  }
+
+  const commit = async () => {
+    const next = draft.trim();
+    if (next === (value ?? "")) {
+      setEditing(false);
+      return;
+    }
+    const ok = await onSave(next);
+    if (ok) setEditing(false);
+  };
+
+  return (
+    <input
+      autoFocus
+      list={listId}
+      disabled={busy}
+      value={draft}
+      placeholder={prefix}
+      onChange={(event) => setDraft(event.target.value)}
+      onBlur={commit}
+      onKeyDown={(event) => {
+        if (event.key === "Enter") void commit();
+        if (event.key === "Escape") setEditing(false);
+      }}
+      className="w-32 rounded-lg border border-brand-pink px-2 py-0.5 text-[11px] text-brand-dark"
+    />
   );
 }
 
@@ -284,6 +604,8 @@ function NewProduct({ onDone, onCancel }: { onDone: (note: string) => void; onCa
     key: "",
     label: "",
     note: "",
+    supplier: "",
+    category: "",
     group: "hardware" as ItemGroup,
     setup: "",
     monthly: "",
@@ -305,6 +627,8 @@ function NewProduct({ onDone, onCancel }: { onDone: (note: string) => void; onCa
           key: form.key,
           label: form.label,
           note: form.note,
+          supplier: form.supplier,
+          category: form.category,
           group: form.group,
           setup: Number(form.setup || 0),
           monthly: isHardware ? 0 : Number(form.monthly || 0),
@@ -356,6 +680,11 @@ function NewProduct({ onDone, onCancel }: { onDone: (note: string) => void; onCa
 
         <Field label="הערה מתחת לשם" value={form.note} onChange={(v) => setForm({ ...form, note: v })}
                placeholder="המחיר פר עמדה" />
+
+        <Field label="ספק" value={form.supplier} onChange={(v) => setForm({ ...form, supplier: v })}
+               placeholder="Wintec" list="supplier-values" />
+        <Field label="סוג" value={form.category} onChange={(v) => setForm({ ...form, category: v })}
+               placeholder="עמדת קיוסק" list="category-values" />
 
         <Field
           label={isHardware ? "מחיר ליחידה *" : "הקמה (חד־פעמי)"}
@@ -422,6 +751,7 @@ function Field({
   placeholder,
   type = "text",
   dir,
+  list,
 }: {
   label: string;
   value: string;
@@ -429,6 +759,7 @@ function Field({
   placeholder?: string;
   type?: string;
   dir?: "ltr" | "rtl";
+  list?: string;
 }) {
   return (
     <div>
@@ -436,6 +767,7 @@ function Field({
       <input
         type={type}
         dir={dir}
+        list={list}
         value={value}
         placeholder={placeholder}
         onChange={(event) => onChange(event.target.value)}
