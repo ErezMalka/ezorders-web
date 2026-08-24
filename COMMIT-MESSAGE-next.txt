@@ -1,20 +1,90 @@
-Give the agents a door they can find
+Let an admin edit the price list, and sell things you can hold
 
-The portal had no way in. /he/agent existed and worked, and the only route to it
-was knowing the URL and typing it — which meant a bookmark on one machine, and a
-question to somebody else every time an agent switched laptop or a new one was
-hired.
+Two requests, one root. "Where do I add a product?" had no good answer: the price
+list was a TypeScript file, so a new item meant editing code and shipping a
+deploy — fine for whoever wrote the file, impossible for whoever sells from it.
+And physical goods had nowhere to go at all.
 
-So the footer carries a link now, last in the bottom bar after the copyright, in
-the same muted grey as everything else there. Both locales point at /he/agent,
-because the portal is Hebrew-only and an English-speaking agent still needs the
-same door.
+THE CATALOGUE MOVES TO THE DATABASE
 
-Deliberately plain. It is a staff entrance on a customer-facing page: findable by
-the handful of people who need it, and uninteresting to everyone else. The login
-behind it is Supabase Auth, and a visitor who does wander in and guesses an
-address learns nothing — a failed sign-in is the same answer whether or not the
-account exists.
+public.products holds it now, edited from /he/agent/products by an admin. Add a
+product at 10:00 and an agent can quote it at 10:01, on the marketing calculator
+too unless it is flagged agent-only.
+
+src/lib/pricing.ts still ships a complete price list, as the fallback. That is
+load-bearing rather than defensive: the marketing site is built to work with no
+Supabase configuration at all, and /he/price must keep rendering prices when the
+database is unreachable. A price list that goes blank during an outage is worse
+than one that is briefly out of date. Every read is wrapped; a failure becomes
+the shipped catalogue and the page renders.
+
+The table was seeded with exactly the values the file held, so nothing repriced.
+The 29 pricing tests pass unchanged, which is the check that matters: they pin
+the arithmetic, including that the tier comparison is strict greater-than.
+
+Prices are the one thing an agent must not be able to edit — "the client never
+sends money" rests on the catalogue being something they read and not write — so
+the write policy checks is_admin(), and the API's admin check is a courtesy that
+produces a sentence instead of a permission error.
+
+Products are retired, never deleted. Every stored quote line refers to a product
+by key; removing the row would not corrupt the line, whose label and price were
+frozen at issue time, but it would erase the only record of what that key ever
+meant.
+
+A THIRD KIND OF MONEY
+
+A quote had two: one-time setup and a recurring monthly charge. A screen, a
+printer, a cash drawer fit neither. They are one-time like setup but they are not
+setup — nobody installs a cash drawer, and a ₪1,200 monitor inside "הקמת מערכת"
+makes the setup line look like a services fee that grew teeth.
+
+They also must not touch the discount. The volume tiers reward recurring
+commitment; if hardware raised the tier, an agent could discount the monthly
+charge by adding a screen to the order. There is a test that fails if that ever
+becomes possible.
+
+So hardware is its own group, its own column on quotes and orders, and its own
+block on the document. The line's price lives in setup_unit — a hardware line is
+one whose monthly is zero — so quote_items needed no new column.
+
+THE DOCUMENT NOW READS THE WAY THE QUESTION IS ASKED
+
+Someone deciding whether to sign is asking "what does this cost, and when". The
+lines are grouped by that rather than by which section of the calculator produced
+them: 1 · setup, 2 · monthly, 3 · hardware, each with its own subtotal.
+
+A component with both fees appears in two blocks with the relevant half of its
+price in each. That is deliberate — showing ₪490 and ₪350 on one row invites the
+reader to add them together. The hardware block renders only when something
+physical was sold; an empty third block on a software-only quote is a question
+the reader has to answer for themselves.
+
+ONE REGRESSION CAUGHT BY THE BUILD
+
+Reading the catalogue through the session client made /he/price dynamic: that
+client reads cookies, and a page that reads cookies cannot be statically
+rendered. A cached marketing page had quietly become one that hits the server on
+every visit. createSupabaseAnonClient exists for this — the anon key, no cookies,
+nothing read from the request — and the page is back to pre-rendered with a
+one-minute revalidate. It holds exactly what anon holds, which after 0004 is no
+table access at all.
+
+VERIFIED
+
+test/sql/run.sh replays all eight migrations onto a scratch Postgres carrying
+Supabase's real default privileges and runs both suites: the acceptance lifecycle
+and the privilege matrix, now including that an agent can read the catalogue and
+cannot reprice it, that anon reaches it through price_list() and no table, and
+that hardware lands in its own total without moving the discount.
+
+Applied to the live project in four migrations, then verified: all five changed
+function bodies hash identically to the ones the tests ran against, anon executes
+exactly price_list, quote_by_token and quote_respond_by_token and holds no table
+privilege, ten products seeded, every table has RLS.
+
+29 pricing tests, typecheck and lint pass; next build produces every route with
+/he/price static again.
 
 Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_01EsXZS27s3mSSAwXwwhctdX

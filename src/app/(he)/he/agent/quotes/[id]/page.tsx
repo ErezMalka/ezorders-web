@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-const GROUP_ORDER: ItemGroup[] = ["core", "addon_included", "addon_excluded", "mobile_app"];
+const GROUP_ORDER: ItemGroup[] = ["core", "addon_included", "addon_excluded", "mobile_app", "hardware"];
 
 export default async function QuoteDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -35,9 +35,12 @@ export default async function QuoteDetailPage({ params }: { params: Promise<{ id
   const order = await getOrderForQuote(quote.id);
 
   const status = QUOTE_STATUS[quote.status];
+  const hardwareTotal = Number(quote.hardware_total ?? 0);
   const setupVat = (Number(quote.setup_total) * Number(quote.vat_percent)) / 100;
+  const hardwareVat = (hardwareTotal * Number(quote.vat_percent)) / 100;
   const monthlyVat = (Number(quote.monthly_total) * Number(quote.vat_percent)) / 100;
-  const contractValue = Number(quote.setup_total) + Number(quote.monthly_total) * quote.term_months;
+  const contractValue =
+    Number(quote.setup_total) + hardwareTotal + Number(quote.monthly_total) * quote.term_months;
 
   const grouped = GROUP_ORDER.map((group) => ({
     group,
@@ -129,6 +132,15 @@ export default async function QuoteDetailPage({ params }: { params: Promise<{ id
               <SummaryRow label="סה״כ הקמה" value={fmt(Number(quote.setup_total))} />
               <SummaryRow label={`מע״מ ${quote.vat_percent}%`} value={fmt(setupVat)} faint />
               <SummaryRow label="הקמה כולל מע״מ" value={fmt(Number(quote.setup_total) + setupVat)} emphasis />
+
+              {hardwareTotal > 0 ? (
+                <>
+                  <div className="my-3 h-px bg-slate-100" />
+                  <SummaryRow label="מוצרים וחומרה" value={fmt(hardwareTotal)} />
+                  <SummaryRow label={`מע״מ ${quote.vat_percent}%`} value={fmt(hardwareVat)} faint />
+                  <SummaryRow label="מוצרים כולל מע״מ" value={fmt(hardwareTotal + hardwareVat)} emphasis />
+                </>
+              ) : null}
 
               <div className="my-3 h-px bg-slate-100" />
 

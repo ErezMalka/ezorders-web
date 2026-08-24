@@ -15,6 +15,7 @@ const NAV = [
   { href: "/he/agent/new", label: "הצעה חדשה", adminOnly: false },
   { href: "/he/agent/quotes", label: "ההצעות שלי", adminOnly: false },
   { href: "/he/agent/orders", label: "הזמנות", adminOnly: false },
+  { href: "/he/agent/products", label: "מחירון", adminOnly: true },
   { href: "/he/agent/team", label: "צוות", adminOnly: true },
 ];
 

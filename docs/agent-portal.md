@@ -9,6 +9,12 @@ to go-live.
     order                   pending_setup → in_setup → live
                                           ↘ cancelled
 
+The document the customer reads is grouped by WHEN money is paid rather than by
+which part of the calculator produced it: setup once, monthly for the term, and
+hardware bought outright. A component with both a setup and a monthly fee appears
+in two blocks with the relevant half of its price in each — showing ₪490 and ₪350
+on one row invites the reader to add them together.
+
 The portal is additive: with no Supabase configuration the marketing site builds
 and behaves exactly as it did before, and `/he/agent/login` renders a
 "not configured" notice rather than a form that cannot work.
@@ -183,11 +189,39 @@ retroactive.
 via pg_cron — see 0006. Check it with `select jobname, schedule, active from
 cron.job`. Without it the pipeline figure only ever climbs.
 
-**Prices come from two places that must agree.** `src/lib/pricing.ts` is the
-source of truth for the UI and the document. Two of its numbers are mirrored in
-SQL because the database computes the totals: the tiers in
-`pricing_discount_tiers`, and the base setup fee in `pricing_settings`. Changing
-a price means changing both.
+## The catalogue
+
+**Products live in `public.products`, editable from /he/agent/products.** Admins
+only — the write policy checks `is_admin()`, because prices are the one thing an
+agent must not be able to change. Adding a product there makes it sellable in the
+quote builder and, unless `show_on_website` is off, visible on `/he/price`.
+
+**`src/lib/pricing.ts` is still shipped, as the fallback.** Everything reads the
+database first and drops to the file if the table is empty or the read fails.
+That is load-bearing rather than defensive: the marketing site is built to work
+with no Supabase configuration at all, and a price list that goes blank during an
+outage is worse than one that is briefly out of date. The table was seeded with
+exactly the values the file holds, so the two agreed on the day this shipped —
+and the file is where the fallback prices should be kept current.
+
+**The public list is read with a session-less client.** `createSupabaseAnonClient`
+exists because reading cookies would make `/he/price` dynamic, and that page is
+meant to be pre-rendered and revalidated on a timer (`revalidate = 60`). If you
+ever switch it back to the session client, the page silently stops being cached.
+
+**Products are retired, never deleted.** A stored quote refers to a product by
+key; removing the row would erase the only record of what that key meant.
+
+**Physical goods are a third kind of money.** `hardware` items are one-time like
+setup but charged and presented apart from it, never earn a discount, and carry
+no monthly price — a recurring charge on an object is a rental, which is a
+different product and a different contract. `quotes.hardware_total` and
+`orders.hardware_total` hold the figure; the line's own price lives in
+`setup_unit`, so no new column was needed on `quote_items`.
+
+**Two numbers are still mirrored in SQL** because the database computes the
+totals: the tiers in `pricing_discount_tiers`, and the base setup fee in
+`pricing_settings`. Changing either means changing it in both places.
 
 **The base setup fee used to be a function argument.** It is not any more, and
 that was a real hole rather than a tidy-up: `recalc_quote(quote, base_setup)` was

@@ -49,6 +49,7 @@ export interface QuoteListRow {
   customer_name: string;
   customer_contact: string | null;
   setup_total: number;
+  hardware_total: number;
   monthly_total: number;
   discount_percent: number;
   contract_value: number;
@@ -90,6 +91,7 @@ export interface QuoteRow {
   customer_email: string | null;
   customer_tax_id: string | null;
   setup_total: number;
+  hardware_total: number;
   monthly_eligible: number;
   discount_percent: number;
   discount_amount: number;

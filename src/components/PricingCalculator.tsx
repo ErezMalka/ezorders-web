@@ -3,9 +3,13 @@
 import { useCallback, useState } from "react";
 
 import {
+  BASE_SETUP_LABEL,
+  DEFAULT_CATALOGUE,
   PRICING_CONFIG,
   buildInitialState,
   computeQuote,
+  itemsInGroup,
+  type Catalogue,
   fmt,
   nextTier as nextTierFor,
   amountToNextTier,
@@ -268,15 +272,15 @@ function SummaryRow({
 // ============================================================
 //  PricingCalculator
 // ============================================================
-export function PricingCalculator() {
-  const [calc, setCalc] = useState<CalcState>(buildInitialState);
+export function PricingCalculator({ catalogue = DEFAULT_CATALOGUE }: { catalogue?: Catalogue }) {
+  const [calc, setCalc] = useState<CalcState>(() => buildInitialState(catalogue));
   const [copied, setCopied] = useState(false);
 
   const update = useCallback((id: string, patch: Partial<ItemState>) => {
     setCalc((prev) => ({ ...prev, [id]: { ...prev[id], ...patch } }));
   }, []);
 
-  const reset = () => setCalc(buildInitialState());
+  const reset = () => setCalc(buildInitialState(catalogue));
 
   // Every figure below comes from the shared engine in @/lib/pricing, so this
   // page and the agent portal can never disagree on a price.
@@ -292,10 +296,19 @@ export function PricingCalculator() {
     eligibleAfterDiscount,
     nonDiscountableMonthly,
     finalMonthlyTotal,
+    hardwareTotal,
     hasAnyEnabled,
-  } = computeQuote(calc);
+  } = computeQuote(calc, catalogue);
 
-  const appState = calc[PRICING_CONFIG.mobileApp.id];
+  // Read from the catalogue rather than the config, so a group an admin empties
+  // or fills is reflected here without a deploy.
+  const coreProducts = itemsInGroup("core", catalogue);
+  const addonsIncluded = itemsInGroup("addon_included", catalogue);
+  const addonsExcluded = itemsInGroup("addon_excluded", catalogue);
+  const hardware = itemsInGroup("hardware", catalogue);
+  const mobileApp = itemsInGroup("mobile_app", catalogue)[0];
+
+  const appState = mobileApp ? calc[mobileApp.id] : undefined;
 
   const generateQuoteText = () => {
     const lines: string[] = ["=== הצעת מחיר EzOrders ===", ""];
@@ -314,18 +327,20 @@ export function PricingCalculator() {
       }
       lines.push("");
     };
-    addSection("מוצרים ראשיים", PRICING_CONFIG.coreProducts);
-    addSection("תוספות כלולות בהנחה", PRICING_CONFIG.addonsIncluded);
-    addSection("תוספות לא כלולות בהנחה", PRICING_CONFIG.addonsExcluded);
-    if (appState?.enabled) {
+    addSection("מוצרים ראשיים", coreProducts);
+    addSection("תוספות כלולות בהנחה", addonsIncluded);
+    addSection("תוספות לא כלולות בהנחה", addonsExcluded);
+    addSection("מוצרים וחומרה", hardware);
+    if (mobileApp && appState?.enabled) {
       lines.push("--- אפליקציה ---");
       lines.push(
-        `${PRICING_CONFIG.mobileApp.label}: הקמה ${fmt(PRICING_CONFIG.mobileApp.setup)}, חודשי ${fmt(PRICING_CONFIG.mobileApp.monthly)}`
+        `${mobileApp.label}: הקמה ${fmt(mobileApp.setup)}, חודשי ${fmt(mobileApp.monthly)}`
       );
       lines.push("");
     }
     lines.push("=== סיכום ===");
     lines.push(`סה״כ הקמה: ${fmt(finalSetupTotal)}`);
+    if (hardwareTotal > 0) lines.push(`מוצרים וחומרה: ${fmt(hardwareTotal)}`);
     lines.push(`חודשי זכאי לפני הנחה: ${fmt(eligibleMonthlySubtotal)}`);
     if (discountPct > 0) {
       lines.push(`הנחה ${discountPct}%: -${fmt(discountAmt)}`);
@@ -380,14 +395,14 @@ export function PricingCalculator() {
                   <Icon name="settings" className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-brand-dark">{PRICING_CONFIG.initialSetup.label}</p>
+                  <p className="text-sm font-bold text-brand-dark">{BASE_SETUP_LABEL}</p>
                   <p className="text-xs text-brand-muted">חד פעמי — נכלל תמיד בכל חבילה</p>
                 </div>
               </div>
               <div className="flex items-center gap-4">
                 <div className="text-center">
                   <p className="text-xs text-brand-muted">הקמה</p>
-                  <p className="text-sm font-bold text-brand-dark">{fmt(PRICING_CONFIG.initialSetup.setup)}</p>
+                  <p className="text-sm font-bold text-brand-dark">{fmt(catalogue.baseSetup)}</p>
                 </div>
                 <span className="rounded-pill border border-slate-200 bg-brand-grey px-3 py-1 text-xs font-semibold text-brand-muted">
                   נכלל תמיד
@@ -400,7 +415,7 @@ export function PricingCalculator() {
           <div className="rounded-card border border-slate-200 bg-white p-5 shadow-sm">
             <SectionHeader title="מוצרים ראשיים" subtitle="כלולים בחישוב ההנחה החודשית" badge="כולל הנחה" />
             <div className="space-y-2.5">
-              {PRICING_CONFIG.coreProducts.map((p) => (
+              {coreProducts.map((p) => (
                 <ProductRow key={p.id} {...p} state={calc[p.id]} onChange={update} />
               ))}
             </div>
@@ -410,7 +425,7 @@ export function PricingCalculator() {
           <div className="rounded-card border border-slate-200 bg-white p-5 shadow-sm">
             <SectionHeader title="תוספות — כלולות בהנחה" subtitle="נכללות בחישוב ההנחה החודשית" badge="כולל הנחה" />
             <div className="space-y-2.5">
-              {PRICING_CONFIG.addonsIncluded.map((p) => (
+              {addonsIncluded.map((p) => (
                 <ProductRow key={p.id} {...p} state={calc[p.id]} onChange={update} />
               ))}
             </div>
@@ -420,7 +435,7 @@ export function PricingCalculator() {
           <div className="rounded-card border border-slate-200 bg-white p-5 shadow-sm">
             <SectionHeader title="תוספות — לא כלולות בהנחה" subtitle="מחויבות במחיר קבוע ללא הנחה" />
             <div className="space-y-2.5">
-              {PRICING_CONFIG.addonsExcluded.map((p) => (
+              {addonsExcluded.map((p) => (
                 <ProductRow key={p.id} {...p} state={calc[p.id]} onChange={update} />
               ))}
             </div>
@@ -429,8 +444,21 @@ export function PricingCalculator() {
           {/* Mobile app */}
           <div className="rounded-card border border-slate-200 bg-white p-5 shadow-sm">
             <SectionHeader title="אפליקציה ממותגת" subtitle="מחוץ לכל ההנחות — הקמה וחודשי במחיר מלא" />
-            <ProductRow {...PRICING_CONFIG.mobileApp} state={calc[PRICING_CONFIG.mobileApp.id]} onChange={update} />
+            {mobileApp ? <ProductRow {...mobileApp} state={calc[mobileApp.id]} onChange={update} /> : null}
           </div>
+
+          {/* Hardware. Rendered only when there is any, so a software-only price
+              list does not grow an empty heading. */}
+          {hardware.length > 0 ? (
+            <div className="rounded-card border border-slate-200 bg-white p-5 shadow-sm">
+              <SectionHeader title="מוצרים וחומרה" subtitle="תשלום חד־פעמי — לא נכנס לחישוב ההנחה" />
+              <div className="space-y-2.5">
+                {hardware.map((p) => (
+                  <ProductRow key={p.id} {...p} state={calc[p.id]} onChange={update} />
+                ))}
+              </div>
+            </div>
+          ) : null}
 
           {/* Discount tiers explainer */}
           <div className="rounded-card border border-slate-200 bg-white p-5 shadow-sm">
@@ -473,6 +501,9 @@ export function PricingCalculator() {
                   <SummaryRow label="הקמת מוצרים ותוספות" value={fmt(productSetupSubtotal + addonSetupSubtotal + appSetup)} />
                 ) : null}
                 <SummaryRow label="סה״כ הקמה (חד פעמי)" value={fmt(finalSetupTotal)} divider highlight />
+                {hardwareTotal > 0 ? (
+                  <SummaryRow label="מוצרים וחומרה (חד פעמי)" value={fmt(hardwareTotal)} highlight />
+                ) : null}
 
                 <div className="mt-4" />
                 <SummaryRow label="חודשי זכאי להנחה" value={fmt(eligibleMonthlySubtotal)} />
