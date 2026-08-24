@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { VISUALLY_HIDDEN } from "@/lib/visually-hidden";
 
 // Public Supabase anon credentials — safe to expose (anon role, RLS-guarded).
 // The ad-media bucket allows anonymous inserts of jpeg/png, so the uploaded
@@ -141,7 +142,7 @@ export function MenuMockup() {
         />
       </div>
 
-      <input type="text" value={companyUrl} onChange={(e) => setCompanyUrl(e.target.value)} name="company_url" tabIndex={-1} autoComplete="off" aria-hidden style={{ position: "absolute", left: "-9999px", width: 1, height: 1, opacity: 0 }} />
+      <input type="text" value={companyUrl} onChange={(e) => setCompanyUrl(e.target.value)} name="company_url" tabIndex={-1} autoComplete="off" aria-hidden style={VISUALLY_HIDDEN} />
 
       {status === "error" && (
         <p className="mt-4 text-sm font-medium text-red-600" role="alert">אנא מלאו שם וטלפון ונסו שוב.</p>

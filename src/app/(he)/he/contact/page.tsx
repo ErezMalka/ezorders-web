@@ -19,7 +19,10 @@ export const metadata: Metadata = {
 export default function HeContactPage() {
   const intro = createElement(
     "div",
-    null,
+    // "contact@ezorders.com" is one unbreakable token, and a grid item's
+    // default min-width:auto sizes the column to it — 283px inside a 257px
+    // column at 320px. `anywhere` lets it break, which also lowers min-content.
+    { className: "min-w-0 [overflow-wrap:anywhere]" },
     createElement(
       "h1",
       { style: { fontSize: "1.875rem", fontWeight: 700, marginBottom: "0.75rem" } },
@@ -54,7 +57,7 @@ export default function HeContactPage() {
 
 const formCard = createElement(
   "div",
-  { className: "rounded-card bg-brand-indigo p-8 md:p-12" },
+  { className: "min-w-0 rounded-card bg-brand-indigo p-5 sm:p-8 md:p-12" },
   createElement(ContactForm, { locale: "he" })
   );
 

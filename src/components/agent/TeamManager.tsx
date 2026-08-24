@@ -292,7 +292,7 @@ export function TeamManager({ team, currentAgentId }: { team: TeamMember[]; curr
                   >
                     <td className="px-4 py-3">
                       <span className="font-semibold text-brand-dark">{member.full_name}</span>
-                      {isSelf ? <span className="mr-1.5 text-xs text-brand-muted">(אתה)</span> : null}
+                      {isSelf ? <span className="ms-1.5 text-xs text-brand-muted">(אתה)</span> : null}
                       {member.must_change_password ? (
                         <span className="block text-[11px] text-amber-700">ממתין להחלפת סיסמה</span>
                       ) : null}

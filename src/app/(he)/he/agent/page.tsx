@@ -87,7 +87,7 @@ export default async function AgentDashboardPage() {
           <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
             <h2 className="text-base font-bold text-brand-dark">
               ממתין להקמה
-              <span className="mr-2 rounded-pill bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-700">
+              <span className="ms-2 rounded-pill bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-700">
                 {inSetup.length}
               </span>
             </h2>

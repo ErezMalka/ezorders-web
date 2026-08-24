@@ -62,16 +62,22 @@ export function SampleApps({ locale = "en" }: { locale?: Locale }) {
         </button>
       </div>
 
-      <div className="mt-6 flex justify-center gap-2">
+      <div className="mt-6 flex justify-center gap-1">
         {sampleApps.map((_, i) => (
+          // The dot stays 10px; the button around it carries a 24px hit area.
           <button
             key={i}
             onClick={() => setIndex(i)}
             aria-label={`Go to slide ${i + 1}`}
-            className={`h-2.5 w-2.5 rounded-full ${
-              i === index ? "bg-brand-pink" : "bg-gray-300"
-            }`}
-          />
+            aria-current={i === index ? "true" : undefined}
+            className="flex h-6 w-6 items-center justify-center"
+          >
+            <span
+              className={`block h-2.5 w-2.5 rounded-full transition-colors ${
+                i === index ? "bg-brand-pink" : "bg-gray-300"
+              }`}
+            />
+          </button>
         ))}
       </div>
     </section>

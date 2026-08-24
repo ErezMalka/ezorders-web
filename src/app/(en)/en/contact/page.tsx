@@ -13,7 +13,11 @@ export default function ContactPage() {
     <PageLayout>
       <section className="pb-20 pt-36">
         <div className="mx-auto grid max-w-container items-center gap-12 px-6 md:grid-cols-2">
-          <div>
+          {/* "contact@ezorders.com" is one unbreakable token, and a grid item's
+              default min-width:auto sizes the column to it — 283px inside a
+              257px column at 320px. `anywhere` lets it break, which also
+              lowers the column's min-content width. */}
+          <div className="min-w-0 [overflow-wrap:anywhere]">
             <span className="mb-6 inline-block rounded-pill bg-brand-tint px-6 py-2 text-sm font-medium text-brand-pink">
               Contact
             </span>
@@ -40,7 +44,7 @@ export default function ContactPage() {
               get back to you shortly to schedule a live demo.
             </p>
           </div>
-          <div className="rounded-card bg-brand-indigo p-8 md:p-12">
+          <div className="min-w-0 rounded-card bg-brand-indigo p-5 sm:p-8 md:p-12">
             <ContactForm />
           </div>
         </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { VISUALLY_HIDDEN } from "@/lib/visually-hidden";
 
 // --- Lead attribution helpers (mirror ContactForm) ---
 function getGclid(): string {
@@ -50,7 +51,7 @@ function Slider({
         <span className="text-sm font-medium text-white/90">{label}</span>
         <span className="text-lg font-bold text-white">
           {value.toLocaleString("he-IL")}
-          <span className="mr-1 text-sm font-normal text-white/70">{suffix}</span>
+          <span className="ms-1 text-sm font-normal text-white/70">{suffix}</span>
         </span>
       </div>
       <input
@@ -183,7 +184,7 @@ export function QueueCalculator() {
               <input type="tel" inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value.replace(/[^0-9+\-\s]/g, ""))} placeholder="טלפון" aria-label="טלפון" autoComplete="tel" className="w-full rounded-lg border border-gray-300 px-4 py-3 text-base outline-none transition-colors focus:border-brand-indigo focus:ring-2 focus:ring-brand-indigo/20" />
               <input value={business} onChange={(e) => setBusiness(e.target.value)} placeholder="שם המסעדה" aria-label="שם המסעדה" autoComplete="organization" className="w-full rounded-lg border border-gray-300 px-4 py-3 text-base outline-none transition-colors focus:border-brand-indigo focus:ring-2 focus:ring-brand-indigo/20" />
             </div>
-            <input type="text" value={companyUrl} onChange={(e) => setCompanyUrl(e.target.value)} name="company_url" tabIndex={-1} autoComplete="off" aria-hidden style={{ position: "absolute", left: "-9999px", width: 1, height: 1, opacity: 0 }} />
+            <input type="text" value={companyUrl} onChange={(e) => setCompanyUrl(e.target.value)} name="company_url" tabIndex={-1} autoComplete="off" aria-hidden style={VISUALLY_HIDDEN} />
             {status === "error" && (
               <p className="mt-4 text-sm font-medium text-red-600" role="alert">אנא מלאו שם וטלפון ונסו שוב.</p>
             )}

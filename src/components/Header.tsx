@@ -10,6 +10,7 @@ import { LanguageSwitcher } from "./LanguageSwitcher";
 
 export function Header({ dictionary, locale = "en" }: { dictionary?: Dictionary; locale?: "en" | "he" }) {
   const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
   const dict = dictionary ?? getDictionary("en");
   const isHe = locale === "he";
@@ -17,6 +18,15 @@ export function Header({ dictionary, locale = "en" }: { dictionary?: Dictionary;
   const ctaLabel = dict.header.cta;
 
   const close = () => setOpen(false);
+
+  // The header is pinned, so it has to paint a background once anything scrolls
+  // under it — over the hero it stays transparent, as before.
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   // Lock body scroll and allow Escape to close while the drawer is open.
   useEffect(() => {
@@ -94,7 +104,7 @@ export function Header({ dictionary, locale = "en" }: { dictionary?: Dictionary;
         onClick: close,
         "aria-label": "Close menu",
         className:
-          "flex h-9 w-9 items-center justify-center rounded-full text-2xl text-brand-muted transition-colors hover:bg-brand-grey hover:text-brand-dark",
+          "flex h-11 w-11 items-center justify-center rounded-full text-2xl text-brand-muted transition-colors hover:bg-brand-grey hover:text-brand-dark",
       },
       "✕"
     )
@@ -111,7 +121,7 @@ export function Header({ dictionary, locale = "en" }: { dictionary?: Dictionary;
           Link,
           {
             href: entry.href,
-            className: "block rounded-lg px-2 py-2.5 text-brand-dark transition-colors hover:bg-brand-tint hover:text-brand-pink",
+            className: "flex min-h-11 items-center rounded-lg px-2 text-brand-dark transition-colors hover:bg-brand-tint hover:text-brand-pink",
             onClick: close,
           },
           entry.label
@@ -127,7 +137,7 @@ export function Header({ dictionary, locale = "en" }: { dictionary?: Dictionary;
                     key: i.href,
                     href: i.href,
                     className:
-                      "block rounded-lg px-2 py-1.5 ps-5 text-sm text-brand-muted transition-colors hover:bg-brand-grey hover:text-brand-dark",
+                      "flex min-h-10 items-center rounded-lg px-2 ps-5 text-sm text-brand-muted transition-colors hover:bg-brand-grey hover:text-brand-dark",
                     onClick: close,
                   },
                   i.label
@@ -152,12 +162,19 @@ export function Header({ dictionary, locale = "en" }: { dictionary?: Dictionary;
     {
       role: "dialog",
       "aria-modal": true,
+      "aria-hidden": !open,
       className: `fixed top-0 z-[60] flex h-full w-[300px] max-w-[85%] flex-col bg-white p-6 shadow-2xl md:hidden ${
         drawerFromRight ? "right-0" : "left-0"
       }`,
       style: {
         transform: open ? "translateX(0)" : closedTransform,
-        transition: "transform 300ms ease-out",
+        // A translated-away panel is still focusable and still read by screen
+        // readers. `visibility: hidden` removes it from both, and is delayed by
+        // the slide duration so the closing animation still plays.
+        visibility: open ? "visible" : "hidden",
+        transition: open
+          ? "transform 300ms ease-out, visibility 0s"
+          : "transform 300ms ease-out, visibility 0s linear 300ms",
       },
     },
     drawerHeader,
@@ -172,7 +189,14 @@ export function Header({ dictionary, locale = "en" }: { dictionary?: Dictionary;
     null,
     createElement(
       "header",
-      { className: "absolute top-0 left-0 z-40 w-full" },
+      {
+        // Pinned on every breakpoint. It was already out of flow (`absolute`),
+        // so pages that pad for it (pt-28 / pt-36) need no change.
+        // inset-x-0 rather than left-0: direction-agnostic under dir="rtl".
+        className: `fixed inset-x-0 top-0 z-40 w-full transition-[background-color,box-shadow] duration-200 ${
+          scrolled ? "bg-white/90 shadow-sm backdrop-blur-md" : "bg-transparent"
+        }`,
+      },
       createElement(
         "div",
         { className: "mx-auto flex max-w-container items-center justify-between px-6 py-6" },
@@ -187,7 +211,11 @@ export function Header({ dictionary, locale = "en" }: { dictionary?: Dictionary;
         createElement(
           "button",
           {
-            className: isHe ? "order-first text-2xl md:order-none md:hidden" : "text-2xl md:hidden",
+            // 44x44 hit area (Apple/Google minimum); the negative inline margin
+            // keeps the glyph optically aligned with the container padding.
+            className: isHe
+              ? "order-first -ms-2.5 flex h-11 w-11 items-center justify-center text-2xl md:order-none md:hidden"
+              : "-me-2.5 flex h-11 w-11 items-center justify-center text-2xl md:hidden",
             onClick: () => setOpen(true),
             "aria-label": "Open menu",
             "aria-expanded": open,

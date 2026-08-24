@@ -1,6 +1,7 @@
 "use client";
 
 import { createElement, useEffect, useRef, useState } from "react";
+import { VISUALLY_HIDDEN } from "@/lib/visually-hidden";
 
 type Locale = "en" | "he";
 
@@ -352,17 +353,17 @@ name: "company_url",
 tabIndex: -1,
 autoComplete: "off",
 "aria-hidden": true,
-style: { position: "absolute", left: "-9999px", width: "1px", height: "1px", opacity: 0 },
+style: VISUALLY_HIDDEN,
 });
 
 const consent = createElement(
 "label",
-{ className: "mt-4 flex items-center gap-2 text-sm" },
+{ className: "mt-4 flex min-h-11 cursor-pointer items-center gap-2.5 text-sm" },
 createElement("input", {
 type: "checkbox",
 checked: agree,
 onChange: (e: React.ChangeEvent<HTMLInputElement>) => setAgree(e.target.checked),
-className: "h-5 w-5 flex-shrink-0 accent-brand-pink",
+className: "h-6 w-6 flex-shrink-0 accent-brand-pink",
 }),
 t.agree,
 " ",
@@ -399,7 +400,9 @@ status === "sending" ? t.sending : t.submit
 
 return createElement(
 "form",
-{ className: "rounded-card bg-white p-8 shadow-lg", onSubmit: handleSubmit, noValidate: true },
+// p-5 on phones: this card sits inside another p-8 card, and the two together
+// ate 128px of a 320px screen — enough to push the grid column past the page.
+{ className: "min-w-0 rounded-card bg-white p-5 shadow-lg sm:p-8", onSubmit: handleSubmit, noValidate: true },
 createElement("h3", { className: "mb-6 text-center text-2xl font-semibold" }, t.title),
 fields,
 honeypot,

@@ -10,6 +10,19 @@ html {
   scroll-behavior: smooth;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* The header is pinned, so anything an in-page link jumps to has to clear it,
+   or the heading lands underneath. 6rem covers the header at its tallest. */
+main [id],
+:target {
+  scroll-margin-block-start: 6rem;
+}
+
 body {
   color: var(--brand-dark);
   background: #ffffff;
@@ -26,6 +39,9 @@ body {
   color: var(--brand-dark);
   font-size: 1.0625rem;
   line-height: 1.75;
+  /* A long URL or email in body copy is one unbreakable token, which sets the
+     container's min-content width and pushes narrow phones sideways. */
+  overflow-wrap: anywhere;
 }
 
 .article-body > * + * {
