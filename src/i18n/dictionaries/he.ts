@@ -33,6 +33,7 @@ export const he: Dictionary = {
           contactTitle: "צרו קשר",
           tel: "טלפון: *4958",
           rights: "© 2025 EZOrders | כל הזכויות שמורות",
+          agentPortal: { label: "אזור סוכנים", href: "/he/agent" },
           learnMore: [
             { label: "דף הבית", href: "/he" },
             { label: "המערכת", href: "/he/platform" },

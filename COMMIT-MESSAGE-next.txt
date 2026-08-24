@@ -1,0 +1,20 @@
+Give the agents a door they can find
+
+The portal had no way in. /he/agent existed and worked, and the only route to it
+was knowing the URL and typing it — which meant a bookmark on one machine, and a
+question to somebody else every time an agent switched laptop or a new one was
+hired.
+
+So the footer carries a link now, last in the bottom bar after the copyright, in
+the same muted grey as everything else there. Both locales point at /he/agent,
+because the portal is Hebrew-only and an English-speaking agent still needs the
+same door.
+
+Deliberately plain. It is a staff entrance on a customer-facing page: findable by
+the handful of people who need it, and uninteresting to everyone else. The login
+behind it is Supabase Auth, and a visitor who does wander in and guesses an
+address learns nothing — a failed sign-in is the same answer whether or not the
+account exists.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01EsXZS27s3mSSAwXwwhctdX
