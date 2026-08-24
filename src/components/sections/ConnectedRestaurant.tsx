@@ -54,6 +54,10 @@ const GROUP_COLOR: Record<NodeDef["group"], string> = {
 const NODE_W = 132;
 const NODE_H = 64;
 
+// Module scope: this list never changes, and rebuilding it each render made it
+// an unstable dependency of the idle-cycle effect.
+const AUTO_CYCLE: NodeId[] = ["kiosk", "pos", "reports", "loyalty", "kitchen"];
+
 function buildLinkSet(active: NodeId | null): Set<string> {
   const set = new Set<string>();
   if (!active) return set;
@@ -71,7 +75,6 @@ export function ConnectedRestaurant() {
   const [interacted, setInteracted] = useState(false);
   const [reduceMotion, setReduceMotion] = useState(false);
   const idleTimer = useRef<ReturnType<typeof setInterval> | null>(null);
-  const autoCycle: NodeId[] = ["kiosk", "pos", "reports", "loyalty", "kitchen"];
 
 useEffect(() => {
   const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -84,14 +87,14 @@ useEffect(() => {
 useEffect(() => {
   if (interacted || reduceMotion) return;
   idleTimer.current = setInterval(() => {
-    setAutoIdx((i) => (i + 1) % autoCycle.length);
+    setAutoIdx((i) => (i + 1) % AUTO_CYCLE.length);
   }, 2200);
   return () => {
     if (idleTimer.current) clearInterval(idleTimer.current);
   };
 }, [interacted, reduceMotion]);
 
-const effectiveActive: NodeId | null = active ?? (interacted ? null : autoCycle[autoIdx]);
+const effectiveActive: NodeId | null = active ?? (interacted ? null : AUTO_CYCLE[autoIdx]);
   const linkSet = buildLinkSet(effectiveActive);
   const connectedNodes = new Set<string>(
     effectiveActive ? [effectiveActive, ...(NODES.find((n) => n.id === effectiveActive)?.connects ?? [])] : []
