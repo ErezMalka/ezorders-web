@@ -94,7 +94,7 @@ export function Header({ dictionary, locale = "en" }: { dictionary?: Dictionary;
         onClick: close,
         "aria-label": "Close menu",
         className:
-          "flex h-9 w-9 items-center justify-center rounded-full text-2xl text-brand-muted transition-colors hover:bg-brand-grey hover:text-brand-dark",
+          "flex h-11 w-11 items-center justify-center rounded-full text-2xl text-brand-muted transition-colors hover:bg-brand-grey hover:text-brand-dark",
       },
       "✕"
     )
@@ -111,7 +111,7 @@ export function Header({ dictionary, locale = "en" }: { dictionary?: Dictionary;
           Link,
           {
             href: entry.href,
-            className: "block rounded-lg px-2 py-2.5 text-brand-dark transition-colors hover:bg-brand-tint hover:text-brand-pink",
+            className: "flex min-h-11 items-center rounded-lg px-2 text-brand-dark transition-colors hover:bg-brand-tint hover:text-brand-pink",
             onClick: close,
           },
           entry.label
@@ -127,7 +127,7 @@ export function Header({ dictionary, locale = "en" }: { dictionary?: Dictionary;
                     key: i.href,
                     href: i.href,
                     className:
-                      "block rounded-lg px-2 py-1.5 ps-5 text-sm text-brand-muted transition-colors hover:bg-brand-grey hover:text-brand-dark",
+                      "flex min-h-10 items-center rounded-lg px-2 ps-5 text-sm text-brand-muted transition-colors hover:bg-brand-grey hover:text-brand-dark",
                     onClick: close,
                   },
                   i.label
@@ -152,12 +152,19 @@ export function Header({ dictionary, locale = "en" }: { dictionary?: Dictionary;
     {
       role: "dialog",
       "aria-modal": true,
+      "aria-hidden": !open,
       className: `fixed top-0 z-[60] flex h-full w-[300px] max-w-[85%] flex-col bg-white p-6 shadow-2xl md:hidden ${
         drawerFromRight ? "right-0" : "left-0"
       }`,
       style: {
         transform: open ? "translateX(0)" : closedTransform,
-        transition: "transform 300ms ease-out",
+        // A translated-away panel is still focusable and still read by screen
+        // readers. `visibility: hidden` removes it from both, and is delayed by
+        // the slide duration so the closing animation still plays.
+        visibility: open ? "visible" : "hidden",
+        transition: open
+          ? "transform 300ms ease-out, visibility 0s"
+          : "transform 300ms ease-out, visibility 0s linear 300ms",
       },
     },
     drawerHeader,
@@ -187,7 +194,11 @@ export function Header({ dictionary, locale = "en" }: { dictionary?: Dictionary;
         createElement(
           "button",
           {
-            className: isHe ? "order-first text-2xl md:order-none md:hidden" : "text-2xl md:hidden",
+            // 44x44 hit area (Apple/Google minimum); the negative inline margin
+            // keeps the glyph optically aligned with the container padding.
+            className: isHe
+              ? "order-first -ms-2.5 flex h-11 w-11 items-center justify-center text-2xl md:order-none md:hidden"
+              : "-me-2.5 flex h-11 w-11 items-center justify-center text-2xl md:hidden",
             onClick: () => setOpen(true),
             "aria-label": "Open menu",
             "aria-expanded": open,

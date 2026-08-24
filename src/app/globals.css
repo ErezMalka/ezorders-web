@@ -26,6 +26,9 @@ body {
   color: var(--brand-dark);
   font-size: 1.0625rem;
   line-height: 1.75;
+  /* A long URL or email in body copy is one unbreakable token, which sets the
+     container's min-content width and pushes narrow phones sideways. */
+  overflow-wrap: anywhere;
 }
 
 .article-body > * + * {

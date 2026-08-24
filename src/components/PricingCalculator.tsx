@@ -174,7 +174,7 @@ function ProductRow({ id, label, note, txNote, setup, monthly, maxQty, icon, sta
             type="checkbox"
             checked={state.enabled}
             onChange={(e) => onChange(id, { enabled: e.target.checked })}
-            className="h-5 w-5 flex-shrink-0 cursor-pointer rounded accent-brand-pink"
+            className="h-6 w-6 flex-shrink-0 cursor-pointer rounded accent-brand-pink"
             aria-label={label}
           />
 
@@ -191,7 +191,10 @@ function ProductRow({ id, label, note, txNote, setup, monthly, maxQty, icon, sta
           </div>
         </div>
 
-        <div className="flex items-center justify-between gap-2 border-t border-slate-100 pt-2.5 sm:justify-end sm:gap-3 sm:border-0 sm:pt-0">
+        {/* flex-wrap on mobile: the stepper and both price columns are
+            shrink-proof by design, and at 320px they summed past the row and
+            pushed the page sideways. Wrapping costs a line instead. */}
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-2.5 sm:flex-nowrap sm:justify-end sm:gap-3 sm:border-0 sm:pt-0">
         {maxQty > 1 ? (
           <div className="flex flex-shrink-0 items-center gap-1">
             <button
@@ -446,7 +449,11 @@ export function PricingCalculator() {
         </p>
       </div>
 
-      <div className="flex flex-col items-start gap-8 lg:flex-row">
+      {/* items-start only once this is a row. In the mobile column layout the
+          cross axis is the width, so items-start sized each card to its
+          max-content (347px) inside a 312px viewport and pushed the page
+          sideways. flex-1 controls the main axis, so it could not correct it. */}
+      <div className="flex flex-col items-stretch gap-8 lg:flex-row lg:items-start">
         {/* Main column */}
         <div className="min-w-0 flex-1 space-y-6">
           {/* Initial setup */}

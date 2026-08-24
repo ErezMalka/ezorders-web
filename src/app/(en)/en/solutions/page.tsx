@@ -39,7 +39,7 @@ export default function SolutionsPage() {
               It’s the time to dive in the newest technology that will let you
               enjoy the digital world and it’s benefits.
             </p>
-            <div className="mt-8 flex items-center gap-8">
+            <div className="mt-8 flex flex-wrap items-center gap-x-8 gap-y-4">
               <CTAButton href="/en/contact">Book a Demo Now</CTAButton>
               <CTAButton href="#technologies" variant="link">
                 Our Technologies
@@ -47,12 +47,12 @@ export default function SolutionsPage() {
             </div>
           </div>
           <div className="flex justify-center">
-            <div className="flex h-[420px] w-[420px] items-center justify-center rounded-full bg-brand-indigo">
+            <div className="flex aspect-square w-full max-w-[420px] items-center justify-center rounded-full bg-brand-indigo">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/images/solutions-chef.png"
                 alt="Chef holding phone"
-                className="max-h-[400px] w-auto"
+                className="max-h-[95%] w-auto max-w-[95%]"
               />
             </div>
           </div>

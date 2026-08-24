@@ -57,7 +57,7 @@ function DashboardMock({
               <p className="text-2xl font-bold text-brand-dark">{s.value}</p>
               <p className="mt-1 text-xs text-brand-muted">{s.label}</p>
               {s.delta && (
-                <span className="mt-2 inline-block rounded-pill bg-brand-tint px-2 py-0.5 text-[11px] font-semibold text-brand-pink">
+                <span className="mt-2 inline-block rounded-pill bg-brand-tint px-2 py-0.5 text-xs font-semibold text-brand-pink">
                   {s.delta}
                 </span>
               )}

@@ -155,7 +155,7 @@ export function ArticlePage({ locale, slug }: { locale: Locale; slug: string }) 
           <div className="mt-12">
             <Link
               href={`/${locale}/blog`}
-              className="inline-flex items-center gap-1 text-sm font-semibold text-brand-indigo transition hover:text-brand-pink"
+              className="inline-flex min-h-11 items-center gap-1 text-sm font-semibold text-brand-indigo transition hover:text-brand-pink"
             >
               <span aria-hidden="true">{dir === "rtl" ? "→" : "←"}</span>
               {t.backToBlog}

@@ -53,6 +53,10 @@ export function LanguageSwitcher({ className }: { className?: string }) {
         hrefLang: locale,
         onClick: () => persistLocale(locale),
         "aria-current": locale === active ? "true" : undefined,
+        // Bare "EN" / "עב" measured 19x24px — below every touch-target
+        // guideline. The padding gives each a 44px-tall hit area.
+        className:
+          "inline-flex h-11 min-w-11 items-center justify-center rounded-lg px-2 transition-colors hover:bg-brand-grey",
         style: {
           fontWeight: locale === active ? 700 : 400,
           opacity: locale === active ? 1 : 0.6,
@@ -66,7 +70,7 @@ export function LanguageSwitcher({ className }: { className?: string }) {
     "div",
     {
       className,
-      style: { display: "inline-flex", gap: "0.5rem", alignItems: "center" },
+      style: { display: "inline-flex", gap: "0.125rem", alignItems: "center" },
     },
     links
   );

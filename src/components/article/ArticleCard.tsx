@@ -65,7 +65,7 @@ export function ArticleCard({ article }: { article: Article }) {
 
         <Link
           href={href}
-          className="mt-auto inline-flex items-center gap-1 text-sm font-semibold text-brand-indigo transition hover:text-brand-pink"
+          className="mt-auto inline-flex min-h-11 items-center gap-1 self-start text-sm font-semibold text-brand-indigo transition hover:text-brand-pink"
         >
           {t.readMore}
           <span aria-hidden="true">{dir === "rtl" ? "←" : "→"}</span>
