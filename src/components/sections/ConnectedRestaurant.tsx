@@ -54,8 +54,10 @@ const GROUP_COLOR: Record<NodeDef["group"], string> = {
 const NODE_W = 132;
 const NODE_H = 64;
 
-// Module scope: this list never changes, and rebuilding it each render made it
-// an unstable dependency of the idle-cycle effect.
+// The order the diagram highlights nodes in while nobody is interacting with it.
+// Module scope, not component scope: it never varies, and as a local it was a
+// fresh array on every render that the idle-timer effect then had to pretend not
+// to depend on.
 const AUTO_CYCLE: NodeId[] = ["kiosk", "pos", "reports", "loyalty", "kitchen"];
 
 function buildLinkSet(active: NodeId | null): Set<string> {

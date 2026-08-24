@@ -95,23 +95,38 @@ test("no physical left/right Tailwind spacing utilities in shared components", (
   );
 });
 
-test("the contact honeypot stays inside the document box", () => {
-  const form = FILES.find((f) => f.rel.endsWith("src/components/ContactForm.tsx"));
-  assert.ok(form, "ContactForm.tsx not found");
+test("every honeypot field hides itself via the shared helper", () => {
+  // Three separate forms grew their own copy of this field, and all three
+  // hid it the same broken way. One shared constant, asserted here, is what
+  // stops a fourth from appearing.
+  // `name="company_url"` / `name: "company_url"` is the field being *rendered*.
+  // The API routes read the same key off the request body and are not forms.
+  const forms = FILES.filter((f) => /name\s*[:=]\s*"company_url"/.test(f.text));
+  assert.ok(forms.length >= 3, `expected at least 3 honeypot forms, found ${forms.length}`);
 
-  const honeypot = form.text.slice(
-    form.raw.indexOf("const honeypot"),
-    form.raw.indexOf("const consent"),
+  const offenders = forms
+    .filter((f) => !/VISUALLY_HIDDEN/.test(f.text))
+    .map((f) => f.rel);
+
+  assert.deepEqual(
+    offenders,
+    [],
+    "These forms hide their honeypot by hand instead of importing VISUALLY_HIDDEN " +
+      "from src/lib/visually-hidden.ts, which is where the RTL-safe rules live.",
   );
-  assert.ok(honeypot.length > 0, "honeypot field no longer found in ContactForm");
+});
+
+test("the shared visually-hidden helper is itself RTL-safe", () => {
+  const helper = FILES.find((f) => f.rel.endsWith("src/lib/visually-hidden.ts"));
+  assert.ok(helper, "src/lib/visually-hidden.ts not found");
 
   assert.ok(
-    /clipPath|clip-path/.test(honeypot),
-    "The honeypot must be hidden with clip-path, not by moving it off-canvas.",
+    /clipPath/.test(helper.text),
+    "VISUALLY_HIDDEN must hide via clip-path.",
   );
   assert.equal(
-    /(?:left|right|top|bottom)\s*:\s*["']?-/.test(honeypot),
+    /(?:left|right|top|bottom)\s*:\s*["']?-/.test(helper.text),
     false,
-    "The honeypot must not use negative offsets — that is the RTL overflow bug.",
+    "VISUALLY_HIDDEN must not use negative offsets — that is the RTL overflow bug.",
   );
 });

@@ -24,6 +24,13 @@ export function AboutUs({ locale = "en" }: { locale?: Locale }) {
           <img
             src="/images/about-chef.svg"
             alt="Chef"
+            /* Intrinsic size of the SVG viewBox. Present so the browser can
+               reserve the right box before the file arrives — without it this
+               grid row grows when the image lands and pushes the page down. */
+            width={501}
+            height={589}
+            loading="lazy"
+            decoding="async"
             className="max-h-[460px] w-auto"
           />
         </div>

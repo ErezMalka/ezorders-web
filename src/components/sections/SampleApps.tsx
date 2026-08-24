@@ -3,10 +3,13 @@
 import { useState } from "react";
 import { getHomeContent, type Locale } from "@/data/homeContent";
 
+// Intrinsic pixel size travels with each slide so the <img> can carry width and
+// height. The carousel swaps images in place, and without them the frame
+// re-lays-out on every slide change as each new file reports its own size.
 const sampleApps = [
-  { name: "App 1", image: "/images/benefits-app.png" },
-  { name: "App 2", image: "/images/app-hero.png" },
-  { name: "App 3", image: "/images/website-hero.png" },
+  { name: "App 1", image: "/images/benefits-app.png", width: 558, height: 742 },
+  { name: "App 2", image: "/images/app-hero.png", width: 427, height: 439 },
+  { name: "App 3", image: "/images/website-hero.png", width: 906, height: 1065 },
 ];
 
 export function SampleApps({ locale = "en" }: { locale?: Locale }) {
@@ -43,6 +46,9 @@ export function SampleApps({ locale = "en" }: { locale?: Locale }) {
           <img
             src={sampleApps[index].image}
             alt={sampleApps[index].name}
+            width={sampleApps[index].width}
+            height={sampleApps[index].height}
+            decoding="async"
             className="max-h-[380px] w-auto"
           />
         </div>

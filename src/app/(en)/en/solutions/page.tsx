@@ -52,6 +52,12 @@ export default function SolutionsPage() {
               <img
                 src="/images/solutions-chef.png"
                 alt="Chef holding phone"
+                width={556}
+                height={595}
+                loading="lazy"
+                decoding="async"
+                // Percentages, not max-h-[400px]: the circle is now fluid below
+                // 420px, and a fixed 400px cap overflowed it on a phone.
                 className="max-h-[95%] w-auto max-w-[95%]"
               />
             </div>

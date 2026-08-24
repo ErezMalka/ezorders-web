@@ -12,6 +12,10 @@ export function Benefits({ locale = "en" }: { locale?: Locale }) {
             <img
               src="/images/benefits-app.png"
               alt="App preview"
+              width={558}
+              height={742}
+              loading="lazy"
+              decoding="async"
               className="max-h-[400px] w-auto"
             />
           </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { createElement, useEffect, useRef, useState } from "react";
+import { VISUALLY_HIDDEN } from "@/lib/visually-hidden";
 
 type Locale = "en" | "he";
 
@@ -22,7 +23,15 @@ declare global {
 interface Window {
 turnstile?: TurnstileApi;
 dataLayer?: Record<string, unknown>[];
+fbq?: (...args: unknown[]) => void;
 }
+}
+
+// Generates a unique id shared between the browser Pixel event and the
+// server-side Conversions API event so Meta deduplicates the two.
+function newEventId(): string {
+if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
+return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
 // Build-time inlined; when unset, all Turnstile code paths are skipped.
@@ -101,6 +110,16 @@ out[k] = v;
 if (v) found = true;
 }
 return found ? out : null;
+}
+
+// The Google click id, for lead attribution. Prefers the URL (?gclid=…) and
+// falls back to the _gcl_aw cookie set by Google's conversion linker.
+function getGclid(): string {
+if (typeof window === "undefined") return "";
+const fromUrl = new URLSearchParams(window.location.search).get("gclid");
+if (fromUrl) return fromUrl;
+const m = document.cookie.match(/(?:^|;\s*)_gcl_aw=GCL\.\d+\.([^;]+)/);
+return m ? m[1] : "";
 }
 
 export function ContactForm({ locale = "en" }: { locale?: Locale }) {
@@ -183,6 +202,10 @@ return;
 
 setStatus("sending");
 
+// Shared id so the browser Pixel event and the server Conversions API event
+// are deduplicated by Meta into a single Lead conversion.
+const eventId = newEventId();
+
 // Send the lead through our API route, which emails it via Resend.
 // Success is shown ONLY when the request returns HTTP 200 and { ok: true }.
 let delivered = false;
@@ -199,8 +222,10 @@ message,
 locale,
 company_url: companyUrl,
 turnstileToken: captchaToken,
+eventId,
 pagePath: typeof window !== "undefined" ? window.location.pathname : null,
 utm: getUtm(),
+gclid: getGclid(),
 }),
 });
 let json: { ok?: boolean } | null = null;
@@ -227,13 +252,21 @@ if (delivered) {
 // Fire one semantic conversion event for GTM. Google Ads / Meta Pixel / GA4
 // all trigger off this single event. Safe no-op when GTM/dataLayer is absent.
 if (typeof window !== "undefined") {
+// GTM event for Google Ads + GA4 conversions (Meta is handled directly below).
 window.dataLayer = window.dataLayer || [];
 window.dataLayer.push({
 event: "lead_submit",
 form: "contact",
 locale,
 pagePath: window.location.pathname,
+eventId,
 });
+// Meta Pixel Lead event (browser side). Same eventId as the server-side
+// Conversions API call in /api/contact so Meta counts it once. No-op when
+// the pixel is not configured.
+if (typeof window.fbq === "function") {
+window.fbq("track", "Lead", { content_name: "contact", locale }, { eventID: eventId });
+}
 }
 setStatus("success");
 setName("");
@@ -320,20 +353,7 @@ name: "company_url",
 tabIndex: -1,
 autoComplete: "off",
 "aria-hidden": true,
-// Visually hidden without leaving the document box. The old `left: -9999px`
-// opened a 9,999px scrollable strip on every RTL page, because under dir="rtl"
-// negative-left IS the scroll direction (harmless in LTR, which is why only
-// the Hebrew pages scrolled sideways into blank space).
-style: {
-position: "absolute",
-width: "1px",
-height: "1px",
-overflow: "hidden",
-clip: "rect(0 0 0 0)",
-clipPath: "inset(50%)",
-whiteSpace: "nowrap",
-opacity: 0,
-},
+style: VISUALLY_HIDDEN,
 });
 
 const consent = createElement(
