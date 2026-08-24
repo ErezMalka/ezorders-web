@@ -30,6 +30,8 @@ interface CatalogueRow {
   note: string | null;
   txNote: string | null;
   group: ItemGroup;
+  supplier: string | null;
+  category: string | null;
   setup: string | number;
   monthly: string | number;
   maxQty: string | number;
@@ -59,6 +61,8 @@ function toCatalogue(payload: CataloguePayload | null): Catalogue | null {
     note: row.note ?? "",
     txNote: row.txNote ?? "",
     group: row.group,
+    supplier: row.supplier ?? null,
+    category: row.category ?? null,
     setup: Number(row.setup),
     monthly: Number(row.monthly),
     maxQty: Math.max(1, Math.round(Number(row.maxQty) || 1)),
@@ -117,6 +121,8 @@ export interface ProductRow {
   note: string | null;
   tx_note: string | null;
   item_group: ItemGroup;
+  supplier: string | null;
+  category: string | null;
   setup: number;
   monthly: number;
   max_qty: number;
@@ -151,6 +157,8 @@ export interface ProductInput {
   note?: string | null;
   txNote?: string | null;
   group?: ItemGroup;
+  supplier?: string | null;
+  category?: string | null;
   setup?: number;
   monthly?: number;
   maxQty?: number;
@@ -196,6 +204,12 @@ function normalize(input: ProductInput, forCreate: boolean) {
   if (input.note !== undefined) row.note = String(input.note ?? "").trim().slice(0, 200) || null;
   if (input.txNote !== undefined) row.tx_note = String(input.txNote ?? "").trim().slice(0, 200) || null;
   if (input.icon !== undefined) row.icon = String(input.icon ?? "box").trim().slice(0, 40) || "box";
+
+  // Merchandising, not pricing: item_group decides where the money lands, these
+  // two only decide what shows up when someone filters a long list. Blank means
+  // null rather than "", so "no supplier" is one value and not two.
+  if (input.supplier !== undefined) row.supplier = String(input.supplier ?? "").trim().slice(0, 80) || null;
+  if (input.category !== undefined) row.category = String(input.category ?? "").trim().slice(0, 80) || null;
 
   if (forCreate || input.setup !== undefined) row.setup = money(input.setup ?? 0, "הקמה");
   if (forCreate || input.monthly !== undefined) row.monthly = money(input.monthly ?? 0, "חודשי");

@@ -137,6 +137,10 @@ export const GROUP_LABELS: Record<ItemGroup, string> = {
  */
 export interface CatalogueItem extends PricingItem {
   group: ItemGroup;
+  /** Who makes it. Carried so a long hardware list can be filtered; never priced on. */
+  supplier?: string | null;
+  /** What kind of thing it is. Merchandising — item_group is what decides the money. */
+  category?: string | null;
 }
 
 export interface Catalogue {
