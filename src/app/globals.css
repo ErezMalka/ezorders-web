@@ -10,6 +10,19 @@ html {
   scroll-behavior: smooth;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* The header is pinned, so anything an in-page link jumps to has to clear it,
+   or the heading lands underneath. 6rem covers the header at its tallest. */
+main [id],
+:target {
+  scroll-margin-block-start: 6rem;
+}
+
 body {
   color: var(--brand-dark);
   background: #ffffff;

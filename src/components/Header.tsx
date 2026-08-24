@@ -10,6 +10,7 @@ import { LanguageSwitcher } from "./LanguageSwitcher";
 
 export function Header({ dictionary, locale = "en" }: { dictionary?: Dictionary; locale?: "en" | "he" }) {
   const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
   const dict = dictionary ?? getDictionary("en");
   const isHe = locale === "he";
@@ -17,6 +18,15 @@ export function Header({ dictionary, locale = "en" }: { dictionary?: Dictionary;
   const ctaLabel = dict.header.cta;
 
   const close = () => setOpen(false);
+
+  // The header is pinned, so it has to paint a background once anything scrolls
+  // under it — over the hero it stays transparent, as before.
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   // Lock body scroll and allow Escape to close while the drawer is open.
   useEffect(() => {
@@ -179,7 +189,14 @@ export function Header({ dictionary, locale = "en" }: { dictionary?: Dictionary;
     null,
     createElement(
       "header",
-      { className: "absolute top-0 left-0 z-40 w-full" },
+      {
+        // Pinned on every breakpoint. It was already out of flow (`absolute`),
+        // so pages that pad for it (pt-28 / pt-36) need no change.
+        // inset-x-0 rather than left-0: direction-agnostic under dir="rtl".
+        className: `fixed inset-x-0 top-0 z-40 w-full transition-[background-color,box-shadow] duration-200 ${
+          scrolled ? "bg-white/90 shadow-sm backdrop-blur-md" : "bg-transparent"
+        }`,
+      },
       createElement(
         "div",
         { className: "mx-auto flex max-w-container items-center justify-between px-6 py-6" },
