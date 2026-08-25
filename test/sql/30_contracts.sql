@@ -56,6 +56,49 @@ begin
                       'an unapproved template cannot become a contract');
 end $$;
 
+-- ── the seeded terms are the ones that were decided on ─────────────────────
+-- Cheap assertions that catch a re-seed quietly losing an amendment. Each one
+-- is a decision somebody made about a contract they will be sued under.
+select test_assert(jsonb_array_length(sections) = 7, 'the terms have seven sections')
+  from public.contract_templates where version = 1;
+
+select test_assert(
+  (select count(*) from jsonb_array_elements(sections) s,
+                        jsonb_array_elements(s->'clauses') c) = 44,
+  'and forty-four clauses')
+  from public.contract_templates where version = 1;
+
+select test_assert(
+  sections::text like '%{{termWords}}%' and sections::text like '%{{termMonths}}%',
+  'clause 1.4 carries the term placeholders rather than a hard-coded twelve')
+  from public.contract_templates where version = 1;
+
+-- 2.8 set a percentage penalty that duplicated 2.9's remaining-payments rule.
+select test_assert(
+  not exists (
+    select 1 from jsonb_array_elements(sections) s,
+                  jsonb_array_elements(s->'clauses') c
+     where c->>'text' like '%50!%%' escape '!' and c->>'text' like '%75!%%' escape '!'
+  ),
+  'the duplicate compensation formula is gone')
+  from public.contract_templates where version = 1;
+
+select test_assert(
+  sections::text not like '%48 שעות עסקים%' and sections::text not like '%3 ימי עסקים%'
+  and sections::text like '%8 שעות שירות%',
+  'one response time, counted in service hours')
+  from public.contract_templates where version = 1;
+
+select test_assert(
+  sections::text not like '%על פי בחירת בייט טכנולוגיה בע״מ%',
+  'jurisdiction is exclusive, not chosen')
+  from public.contract_templates where version = 1;
+
+select test_assert(
+  sections::text like '%לפי סעיף 6.1 לעיל%',
+  'the licence cross-reference points at the clause that grants it')
+  from public.contract_templates where version = 1;
+
 -- An admin reads it and says so.
 update public.contract_templates set is_approved = true, approved_at = now() where version = 1;
 

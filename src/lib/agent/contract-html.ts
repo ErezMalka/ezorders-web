@@ -111,9 +111,44 @@ function num(value: string): string {
   return `<span class="num" dir="ltr">${escapeHtml(value)}</span>`;
 }
 
-/** **bold** in a clause becomes bold. The source contract emphasises a few words. */
-function clauseHtml(text: string): string {
+/**
+ * Hebrew for the term, so clause 1.4 can state the same number the table does.
+ *
+ * The clause used to say "twelve months" in words while the details table above
+ * it printed whatever the deal actually was. On a 36-month deal the customer was
+ * handed a document that stated both, and the clause would have won the
+ * argument.
+ *
+ * The numeral is printed beside the words on purpose. If a term arrives that
+ * this table does not spell, the sentence still says the right number.
+ */
+const TERM_WORDS: Record<number, string> = {
+  6: "שישה",
+  12: "שנים עשר",
+  18: "שמונה עשר",
+  24: "עשרים וארבעה",
+  36: "שלושים ושישה",
+  48: "ארבעים ושמונה",
+  60: "שישים",
+};
+
+/**
+ * Fill the placeholders a clause may carry.
+ *
+ * Deliberately tiny: two tokens, substituted, no expression language. A
+ * template that can compute is a template that can be wrong in a way nobody
+ * reviewing the Hebrew would catch.
+ */
+function fillTokens(text: string, data: ContractDocumentData): string {
+  const months = data.termMonths;
   return text
+    .replace(/\{\{termWords\}\}/g, TERM_WORDS[months] ?? String(months))
+    .replace(/\{\{termMonths\}\}/g, String(months));
+}
+
+/** **bold** in a clause becomes bold. The source contract emphasises a few words. */
+function clauseHtml(text: string, data: ContractDocumentData): string {
+  return fillTokens(text, data)
     .split(/(\*\*[^*]+\*\*)/g)
     .filter(Boolean)
     .map((part) =>
@@ -202,7 +237,7 @@ export function renderContractDocument(data: ContractDocumentData): string {
         (clause) => `
     <div class="clause">
       <span class="cnum">${escapeHtml(clause.num)}</span>
-      <span class="ctext">${clauseHtml(clause.text)}</span>
+      <span class="ctext">${clauseHtml(clause.text, data)}</span>
     </div>`
       )
       .join("")}
