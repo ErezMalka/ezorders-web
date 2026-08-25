@@ -282,6 +282,40 @@ exception when insufficient_privilege then
   raise exception 'FAIL: anon cannot read the showcase';
 end $$;
 
+-- ── the showcase comes out in tab order, from one number ───────────────────
+-- The price page builds its tabs from the categories in the order they first
+-- appear, so the list has to arrive already sorted: families in the intended
+-- order, and the products inside a family cheapest first. If sort_order stops
+-- carrying both, the tabs reorder themselves and nothing else complains.
+insert into public.products (key, label, item_group, setup, monthly, category, sort_order, show_on_website)
+values ('t-hw-cheap', 'זול', 'hardware', 100, 0, 'עמדות קיוסק', 101, true),
+       ('t-hw-dear',  'יקר', 'hardware', 900, 0, 'עמדות קיוסק', 102, true),
+       ('t-hw-extra', 'אביזר', 'hardware', 50, 0, 'ציוד נוסף',   401, true)
+on conflict (key) do nothing;
+
+-- The fixture from the assertions above still carries the pre-0012 category
+-- name, because those assertions pin it. Fold it into its family here.
+update public.products set category = 'עמדות קיוסק', sort_order = 103 where key = 't-kiosk-32';
+
+select test_assert(
+  (select array_agg(distinct_cat order by ord)
+     from (
+       select i->>'category' as distinct_cat, min(ord) as ord
+         from (select value as i, row_number() over () as ord
+                 from jsonb_array_elements(public.hardware_list())) t
+        group by i->>'category'
+     ) c
+  ) = array['עמדות קיוסק', 'ציוד נוסף'],
+  'the showcase arrives grouped, families in sort_order order');
+
+select test_assert(
+  (select array_agg((i->>'key') order by ord)
+     from (select value as i, row_number() over () as ord
+             from jsonb_array_elements(public.hardware_list())) t
+    where i->>'category' = 'עמדות קיוסק'
+  ) = array['t-hw-cheap', 't-hw-dear', 't-kiosk-32'],
+  'and cheapest first inside a family');
+
 -- ── hardware never earns a discount ─────────────────────────────────────────
 -- The volume tiers reward recurring commitment. If a screen could raise the
 -- tier, an agent could discount the monthly charge by adding hardware.

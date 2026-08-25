@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { PageLayout } from "@/components/PageLayout";
+import { PriceTabs } from "@/components/PriceTabs";
 import { PricingCalculator } from "@/components/PricingCalculator";
-import { loadPublicCatalogue } from "@/lib/agent/products";
+import { loadHardwareShowcase, loadPublicCatalogue } from "@/lib/agent/products";
 import { StatsStrip } from "@/components/sections/StatsStrip";
 import { Testimonials } from "@/components/sections/Testimonials";
 import { ContactBand } from "@/components/sections/ContactBand";
@@ -31,12 +32,17 @@ export const metadata: Metadata = {
 export const revalidate = 60;
 
 export default async function HePricePage() {
-  const catalogue = await loadPublicCatalogue();
+  const [catalogue, hardware] = await Promise.all([
+    loadPublicCatalogue(),
+    loadHardwareShowcase(),
+  ]);
 
   return (
     <PageLayout locale="he">
     <div className="pt-28">
+    <PriceTabs hardware={hardware}>
     <PricingCalculator catalogue={catalogue} />
+    </PriceTabs>
     </div>
     <StatsStrip locale="he" />
     <Testimonials locale="he" />

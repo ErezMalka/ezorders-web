@@ -18,7 +18,8 @@ for f in test/sql/00_supabase_stub.sql \
          supabase/migrations/0008_product_catalogue.b.sql \
          supabase/migrations/0009_product_taxonomy.sql \
          supabase/migrations/0010_product_images.sql \
-         supabase/migrations/0011_hardware_showcase.sql; do
+         supabase/migrations/0011_hardware_showcase.sql \
+         supabase/migrations/0012_price_tabs.sql; do
   psql -q -v ON_ERROR_STOP=1 -d "$DB" -f "$f" > /dev/null
 done
 for t in test/sql/10_orders.sql test/sql/20_privileges.sql; do
