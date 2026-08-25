@@ -24,7 +24,8 @@ for f in test/sql/00_supabase_stub.sql \
          supabase/migrations/0014_contract_flow.sql \
          supabase/migrations/0015_contract_template_v1.sql \
          supabase/migrations/0016_contract_copy_email.sql \
-         supabase/migrations/0017_contract_template_v2.sql; do
+         supabase/migrations/0017_contract_template_v2.sql \
+         supabase/migrations/0018_contract_notes.sql; do
   psql -q -v ON_ERROR_STOP=1 -d "$DB" -f "$f" > /dev/null
 done
 for t in test/sql/10_orders.sql test/sql/20_privileges.sql test/sql/30_contracts.sql; do

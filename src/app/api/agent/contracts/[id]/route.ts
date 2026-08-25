@@ -1,19 +1,28 @@
 import { NextResponse } from "next/server";
 
-import { ContractError, cancelContract, sendContract } from "@/lib/agent/contracts";
+import {
+  ContractError,
+  cancelContract,
+  sendContract,
+  setContractNotes,
+} from "@/lib/agent/contracts";
 import { getAgentSession } from "@/lib/agent/session";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /**
- * Move a contract: send it, or cancel it.
+ * Move a contract: send it, cancel it, or write the agent's notes on it.
  *
- * There is no edit. A contract's terms come from a template version and its
- * facts from the quote it was drafted from; changing either after the customer
- * has the link would mean the document they are reading is not the one on
- * record. Getting it wrong is a cancel and a new draft, which leaves both in
- * the timeline.
+ * The terms and the numbers are still not editable. They come from an approved
+ * template version and from the quote the customer already saw, and changing
+ * either after the link is out would mean the document being read is not the
+ * one on record — that is a cancel and a new draft, which leaves both in the
+ * timeline.
+ *
+ * Notes are the exception, and a narrow one: they are the agent's own words,
+ * they are added rather than substituted, and the database refuses them the
+ * moment there is a signature.
  */
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await getAgentSession();
@@ -37,6 +46,27 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     }
     if (action === "cancel") {
       await cancelContract(id);
+      return NextResponse.json({ ok: true });
+    }
+    if (action === "notes") {
+      const payload = body as { notes?: unknown; itemNotes?: unknown };
+      const notes = typeof payload.notes === "string" ? payload.notes : "";
+
+      // Only string values, and only from a plain object. The database drops
+      // keys that are not lines of the quote; this drops shapes that are not
+      // notes at all, so a malformed body is a 400 and not a stored surprise.
+      const itemNotes: Record<string, string> = {};
+      const raw = payload.itemNotes;
+      if (raw !== undefined) {
+        if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
+          return NextResponse.json({ error: "בקשה לא תקינה" }, { status: 400 });
+        }
+        for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
+          if (typeof value === "string") itemNotes[key] = value;
+        }
+      }
+
+      await setContractNotes(id, notes, itemNotes);
       return NextResponse.json({ ok: true });
     }
     return NextResponse.json({ error: "פעולה לא מוכרת" }, { status: 400 });

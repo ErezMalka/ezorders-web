@@ -61,6 +61,20 @@ export interface ContractRow extends ContractListRow {
   first_viewed_at: string | null;
   last_viewed_at: string | null;
   signed_email_sent_at: string | null;
+  notes: string | null;
+  item_notes: Record<string, string>;
+  notes_updated_at: string | null;
+}
+
+/** One line of the quote this contract was drafted from, with its note. */
+export interface ContractLineRow {
+  component_key: string;
+  label: string;
+  note: string | null;
+  quantity: number;
+  setup_total: number;
+  monthly_total: number;
+  sort_order: number;
 }
 
 export class ContractError extends Error {}
@@ -76,6 +90,8 @@ const CODES: Record<string, string> = {
   not_found: "ההסכם לא נמצא",
   not_yours: "ההסכם שייך לסוכן אחר",
   already_signed: "ההסכם כבר נחתם",
+  cancelled: "ההסכם בוטל",
+  bad_item_notes: "ההערות לא נשלחו בפורמט תקין",
 };
 
 function fail(code: string | undefined): never {
@@ -116,6 +132,49 @@ export async function getContractEvents(id: string): Promise<ContractEventRow[]>
 
   if (error) throw new Error(`Could not load the timeline: ${error.message}`);
   return (data ?? []) as ContractEventRow[];
+}
+
+/**
+ * The lines the notes hang off.
+ *
+ * Read from the quote and not from the contract, because that is where they
+ * live: a contract restates a quote, it does not copy it. component_key is the
+ * key the notes are stored under, so the two lists cannot drift apart.
+ */
+export async function getContractLines(quoteId: string): Promise<ContractLineRow[]> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("quote_items")
+    .select("component_key, label, note, quantity, setup_total, monthly_total, sort_order")
+    .eq("quote_id", quoteId)
+    .order("sort_order");
+
+  if (error) throw new Error(`Could not load the contract lines: ${error.message}`);
+  return (data ?? []) as ContractLineRow[];
+}
+
+/**
+ * Save the agent's notes — per line and on the deal.
+ *
+ * Refused once there is a signature, and the database is what refuses: the
+ * notes are inside the document the hash was taken over, so editing them after
+ * signing would leave a stored fingerprint that disagrees with the stored text.
+ */
+export async function setContractNotes(
+  id: string,
+  notes: string,
+  itemNotes: Record<string, string>
+): Promise<void> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.rpc("contract_set_notes", {
+    p_id: id,
+    p_notes: notes,
+    p_item_notes: itemNotes,
+  });
+  if (error) throw new ContractError(`שמירת ההערות נכשלה: ${error.message}`);
+
+  const result = (data ?? {}) as { ok?: boolean; code?: string };
+  if (result.ok !== true) fail(result.code);
 }
 
 export interface CreatedContract {

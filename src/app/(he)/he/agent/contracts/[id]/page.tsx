@@ -4,10 +4,12 @@ import { notFound } from "next/navigation";
 
 import { AgentShell } from "@/components/agent/AgentShell";
 import { ContractActions } from "@/components/agent/ContractActions";
+import { ContractNotes } from "@/components/agent/ContractNotes";
 import {
   CONTRACT_STATUS_LABEL,
   getContract,
   getContractEvents,
+  getContractLines,
 } from "@/lib/agent/contracts";
 import { requireAgentSession } from "@/lib/agent/session";
 
@@ -44,7 +46,10 @@ export default async function AgentContractPage({
   const contract = await getContract(id);
   if (!contract) notFound();
 
-  const events = await getContractEvents(id);
+  const [events, lines] = await Promise.all([
+    getContractEvents(id),
+    getContractLines(contract.quote_id),
+  ]);
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://ezorders.com";
 
   return (
@@ -80,6 +85,21 @@ export default async function AgentContractPage({
               mono
             />
           </dl>
+        </section>
+
+        <section className="rounded-card border border-slate-200 bg-white p-5 shadow-sm">
+          <h2 className="text-base font-bold text-brand-dark">הערות</h2>
+          <p className="mb-4 mt-1 text-xs leading-relaxed text-brand-muted">
+            הערה לכל שורה, והערות כלליות לכל ההסכם. שתיהן מודפסות בתוך ההסכם שהלקוח חותם עליו
+            ונכללות בטביעת המסמך.
+          </p>
+          <ContractNotes
+            id={contract.id}
+            status={contract.status}
+            lines={lines}
+            initialNotes={contract.notes ?? ""}
+            initialItemNotes={contract.item_notes ?? {}}
+          />
         </section>
 
         {contract.status === "signed" ? (
