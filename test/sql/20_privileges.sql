@@ -183,6 +183,12 @@ begin
                and i->>'category' = 'עמדת קיוסק'),
     'the agent catalogue carries supplier and category');
 
+  select public.agent_price_list()->'items' into v_items;
+  perform test_assert(
+    not exists (select 1 from jsonb_array_elements(v_items) i
+                 where i->>'image' is not null and i->>'image' not like '/images/products/%'),
+    'every picture in the agent catalogue is a local path');
+
   begin
     update public.products set supplier = 'someone else' where key = 't-kiosk-32';
     if found then
@@ -207,6 +213,26 @@ select test_assert(
   'the public price list carries no supplier names');
 
 select test_assert(supplier = 'Wintec', 'the supplier is unchanged after the attempt')
+  from public.products where key = 't-kiosk-32';
+
+-- ── a product picture is a local path, never a foreign URL ──────────────────
+-- The files were copied out of the WordPress library rather than linked to it
+-- precisely so that renaming something over there cannot silently blank an
+-- image on a customer's quote. A convention would not survive; a constraint does.
+do $$
+begin
+  begin
+    update public.products
+       set image = 'https://bite.co.il/wp-content/uploads/2025/09/x.png'
+     where key = 't-kiosk-32';
+    raise exception 'FAIL: an external image URL was accepted';
+  exception when check_violation then
+    raise notice 'ok  an external image URL is rejected';
+  end;
+end $$;
+
+update public.products set image = '/images/products/t-kiosk-32.webp' where key = 't-kiosk-32';
+select test_assert(image = '/images/products/t-kiosk-32.webp', 'a local image path is accepted')
   from public.products where key = 't-kiosk-32';
 
 -- ── hardware never earns a discount ─────────────────────────────────────────

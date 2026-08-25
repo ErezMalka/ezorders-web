@@ -71,6 +71,7 @@ export interface QuoteItemRow {
   item_group: ItemGroup;
   label: string;
   note: string | null;
+  image: string | null;
   quantity: number;
   setup_unit: number;
   monthly_unit: number;
@@ -212,6 +213,7 @@ export async function createQuote(input: CreateQuoteInput, agentId: string): Pro
       item_group: line.group,
       label: line.label,
       note: line.note || null,
+      image: line.image,
       quantity: line.qty,
       setup_unit: line.setupUnit,
       monthly_unit: line.monthlyUnit,

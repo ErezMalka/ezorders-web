@@ -32,6 +32,7 @@ interface CatalogueRow {
   group: ItemGroup;
   supplier: string | null;
   category: string | null;
+  image: string | null;
   setup: string | number;
   monthly: string | number;
   maxQty: string | number;
@@ -63,6 +64,7 @@ function toCatalogue(payload: CataloguePayload | null): Catalogue | null {
     group: row.group,
     supplier: row.supplier ?? null,
     category: row.category ?? null,
+    image: row.image ?? null,
     setup: Number(row.setup),
     monthly: Number(row.monthly),
     maxQty: Math.max(1, Math.round(Number(row.maxQty) || 1)),
@@ -123,6 +125,7 @@ export interface ProductRow {
   item_group: ItemGroup;
   supplier: string | null;
   category: string | null;
+  image: string | null;
   setup: number;
   monthly: number;
   max_qty: number;
@@ -159,6 +162,7 @@ export interface ProductInput {
   group?: ItemGroup;
   supplier?: string | null;
   category?: string | null;
+  image?: string | null;
   setup?: number;
   monthly?: number;
   maxQty?: number;
@@ -210,6 +214,19 @@ function normalize(input: ProductInput, forCreate: boolean) {
   // null rather than "", so "no supplier" is one value and not two.
   if (input.supplier !== undefined) row.supplier = String(input.supplier ?? "").trim().slice(0, 80) || null;
   if (input.category !== undefined) row.category = String(input.category ?? "").trim().slice(0, 80) || null;
+
+  // A local path or nothing. The pictures were copied out of the WordPress
+  // library rather than linked to it, so that renaming a file over there cannot
+  // silently blank an image on a customer's quote. The database says the same
+  // thing with a check constraint; this is here so a mistake produces a
+  // sentence instead of a constraint name.
+  if (input.image !== undefined) {
+    const image = String(input.image ?? "").trim();
+    if (!image) row.image = null;
+    else if (!/^\/images\/products\/[a-z0-9._-]+$/.test(image)) {
+      throw new ProductError("תמונה חייבת להיות קובץ מקומי תחת /images/products/");
+    } else row.image = image;
+  }
 
   if (forCreate || input.setup !== undefined) row.setup = money(input.setup ?? 0, "הקמה");
   if (forCreate || input.monthly !== undefined) row.monthly = money(input.monthly ?? 0, "חודשי");

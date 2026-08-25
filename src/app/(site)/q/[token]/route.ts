@@ -61,6 +61,7 @@ interface PublicQuote {
     label: string;
     note: string | null;
     item_group: ItemGroup;
+    image: string | null;
     quantity: string | number;
     setup_unit: string | number;
     setup_total: string | number;
@@ -228,6 +229,7 @@ function renderDocument(quote: PublicQuote): string {
       label: item.label,
       note: item.note,
       item_group: item.item_group,
+      image: item.image,
       quantity: Number(item.quantity),
       setup_unit: Number(item.setup_unit),
       setup_total: Number(item.setup_total),

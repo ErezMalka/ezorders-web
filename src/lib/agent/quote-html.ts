@@ -29,6 +29,15 @@ export interface QuoteDocumentItem {
   quantity: number;
   /** Per-unit one-time price. Shown for hardware, where "2 × ₪1,200" is the fact. */
   setup_unit?: number;
+  /**
+   * Site-relative path to a photo, for hardware.
+   *
+   * Absolute-URL'd rather than inlined, unlike the logo. The logo is the
+   * document's identity — a broken one reads as a forgery, so it is worth 8KB
+   * in every render. A missing product photo is cosmetic, and inlining three
+   * of them would put 60KB into a page that is mostly a table.
+   */
+  image?: string | null;
   setup_total: number;
   monthly_total: number;
 }
@@ -63,6 +72,13 @@ export interface QuoteDocumentData {
   termMonths: number;
 
   notes?: string | null;
+
+  /**
+   * Absolute origin, so product photos resolve in a saved or forwarded copy.
+   * When absent the paths stay relative, which is correct for /q/<token> —
+   * that page is served from the site itself.
+   */
+  siteUrl?: string | null;
 }
 
 const HE_DATE = new Intl.DateTimeFormat("he-IL", { day: "2-digit", month: "2-digit", year: "numeric" });
@@ -110,6 +126,10 @@ export function renderQuoteDocument(data: QuoteDocumentData): string {
   // ₪490 and ₪350 on one row invites the reader to add them together.
   const softwareLines = data.items.filter((i) => i.item_group !== "hardware");
   const hardwareLines = data.items.filter((i) => i.item_group === "hardware");
+
+  // Relative on /q/<token>, absolute everywhere the document might be saved.
+  const origin = (data.siteUrl ?? "").replace(/\/+$/, "");
+  const imageSrc = (path: string) => (origin ? origin + path : path);
 
   const setupLines = softwareLines.filter((i) => i.setup_total > 0);
   const monthlyLines = softwareLines.filter((i) => i.monthly_total > 0);
@@ -176,8 +196,13 @@ export function renderQuoteDocument(data: QuoteDocumentData): string {
             (item) => `
         <tr>
           <td>
-            ${escapeHtml(item.label)}
-            ${item.note ? `<div class="sub">${escapeHtml(item.note)}</div>` : ""}
+            <div class="prod">
+              ${item.image ? `<img class="shot" src="${escapeHtml(imageSrc(item.image))}" alt="">` : ""}
+              <div>
+                ${escapeHtml(item.label)}
+                ${item.note ? `<div class="sub">${escapeHtml(item.note)}</div>` : ""}
+              </div>
+            </div>
           </td>
           <td class="c">${num(String(item.quantity))}</td>
           <td class="c">${num(fmt(item.setup_unit ?? item.setup_total / Math.max(1, item.quantity)))}</td>
@@ -219,6 +244,11 @@ export function renderQuoteDocument(data: QuoteDocumentData): string {
   header { display: flex; justify-content: space-between; align-items: flex-start;
            border-bottom: 3px solid #F05D86; padding-bottom: 16px; margin-bottom: 22px; }
   .brand img { display: block; width: 150px; height: auto; }
+  .prod { display: flex; align-items: flex-start; gap: 10px; }
+  /* Taller than wide: a kiosk on a stand is roughly 1:3, and a square box
+     shrinks it to a smudge. */
+  .shot { width: 46px; height: 66px; object-fit: contain; flex: 0 0 auto;
+          border: 1px solid #e5e7eb; border-radius: 6px; background: #fff; padding: 2px; }
   .meta { text-align: left; font-size: 11.5px; color: #4b5563; line-height: 1.9; }
   .meta b { color: #111827; }
 
