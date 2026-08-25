@@ -20,7 +20,7 @@ import {
   type Catalogue,
   type CalcState,
   type ItemState,
-  type PricingItem,
+  type CatalogueItem,
 } from "@/lib/pricing";
 
 /**
@@ -36,7 +36,7 @@ import {
 interface Section {
   title: string;
   hint: string;
-  items: readonly PricingItem[];
+  items: readonly CatalogueItem[];
 }
 
 export function QuoteBuilder({ catalogue = DEFAULT_CATALOGUE }: { catalogue?: Catalogue }) {
@@ -358,7 +358,7 @@ function ComponentRow({
   state,
   onChange,
 }: {
-  item: PricingItem;
+  item: CatalogueItem;
   state: ItemState | undefined;
   onChange: (id: string, patch: Partial<ItemState>) => void;
 }) {
@@ -380,11 +380,27 @@ function ComponentRow({
         className="h-5 w-5 flex-shrink-0 cursor-pointer accent-brand-pink"
       />
 
+      {item.image ? (
+        // Where the picture earns its place: fourteen kiosk models whose names
+        // differ by one number, being chosen from by someone on the phone with
+        // a customer. eslint wants next/image; this is a fixed-size thumbnail
+        // of a file that ships with the site.
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={item.image}
+          alt=""
+          width={40}
+          height={56}
+          className="h-14 w-10 flex-shrink-0 rounded-lg border border-slate-200 bg-white object-contain p-0.5"
+        />
+      ) : null}
+
       <div className="min-w-0 flex-1">
         <p className={`text-sm font-semibold ${enabled ? "text-brand-dark" : "text-brand-muted"}`}>
           {item.label}
         </p>
         <p className="text-xs text-brand-muted">
+          {item.supplier ? `${item.supplier} · ` : ""}
           {item.note ? `${item.note} · ` : ""}הקמה {fmt(item.setup)}
           {item.txNote ? ` · ${item.txNote}` : ""}
         </p>

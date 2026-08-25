@@ -16,7 +16,8 @@ for f in test/sql/00_supabase_stub.sql \
          supabase/migrations/0007_base_setup_is_not_an_argument.sql \
          supabase/migrations/0008_product_catalogue.a.sql \
          supabase/migrations/0008_product_catalogue.b.sql \
-         supabase/migrations/0009_product_taxonomy.sql; do
+         supabase/migrations/0009_product_taxonomy.sql \
+         supabase/migrations/0010_product_images.sql; do
   psql -q -v ON_ERROR_STOP=1 -d "$DB" -f "$f" > /dev/null
 done
 for t in test/sql/10_orders.sql test/sql/20_privileges.sql; do

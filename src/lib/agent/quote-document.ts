@@ -31,6 +31,7 @@ export function quoteDocumentData(quote: QuoteWithItems, agentEmail?: string | n
       label: item.label,
       note: item.note,
       item_group: item.item_group,
+      image: item.image,
       quantity: Number(item.quantity),
       setup_unit: Number(item.setup_unit),
       setup_total: Number(item.setup_total),

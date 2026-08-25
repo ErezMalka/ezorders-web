@@ -291,6 +291,22 @@ export function ProductManager({ products }: { products: ProductRow[] }) {
                       }`}
                     >
                       <td className="px-4 py-3">
+                        <span className="flex items-start gap-3">
+                          {product.image ? (
+                            // Fourteen kiosk models are one number apart in name and
+                            // nothing alike in the showroom. eslint wants next/image
+                            // here; these are fixed-size thumbnails of files that ship
+                            // with the site, so the optimiser has nothing to add.
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={product.image}
+                              alt=""
+                              width={44}
+                              height={44}
+                              className="h-11 w-11 shrink-0 rounded-lg border border-slate-200 bg-white object-contain p-0.5"
+                            />
+                          ) : null}
+                          <span className="min-w-0">
                         <span className="font-medium text-brand-dark">{product.label}</span>
                         {product.note ? (
                           <span className="block text-xs text-brand-muted">{product.note}</span>
@@ -321,6 +337,8 @@ export function ProductManager({ products }: { products: ProductRow[] }) {
                               patch(product.id, { category: v }, `${product.label}: סוג עודכן`)
                             }
                           />
+                        </span>
+                          </span>
                         </span>
                       </td>
                       <td className="px-4 py-3 font-mono text-xs text-brand-muted" dir="ltr">

@@ -141,6 +141,8 @@ export interface CatalogueItem extends PricingItem {
   supplier?: string | null;
   /** What kind of thing it is. Merchandising — item_group is what decides the money. */
   category?: string | null;
+  /** Site-relative path to a photo. Fourteen kiosk models are one sentence apart in name. */
+  image?: string | null;
 }
 
 export interface Catalogue {
@@ -275,6 +277,8 @@ export interface SelectedLine {
   label: string;
   note: string;
   txNote: string;
+  /** Frozen with the line: what the customer was shown, not what the catalogue holds today. */
+  image: string | null;
   qty: number;
   setupUnit: number;
   monthlyUnit: number;
@@ -303,6 +307,7 @@ export function selectedLines(calc: CalcState, catalogue: Catalogue = DEFAULT_CA
       note: item.note ?? "",
       txNote: item.txNote ?? "",
       qty,
+      image: item.image ?? null,
       setupUnit: item.setup,
       monthlyUnit: item.monthly,
       setupTotal: item.setup * qty,
