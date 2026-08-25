@@ -261,6 +261,109 @@ select test_assert(ip is null, 'and is stored as null rather than guessed')
  where event_type = 'reopened' order by at desc limit 1;
 
 -- ════════════════════════════════════════════════════════════════════════════
+--  the agent's notes
+-- ════════════════════════════════════════════════════════════════════════════
+-- Notes are the only text on a contract an agent writes. They are inside the
+-- document, so they are inside the hash — which makes "who may write them and
+-- until when" a correctness question and not a convenience one.
+do $$
+declare v_id uuid; v jsonb;
+begin
+  select id into v_id from public.contracts;
+
+  perform become('11111111-1111-1111-1111-111111111111');
+  set local role authenticated;
+
+  v := public.contract_set_notes(v_id, '  ההתקנה לאחר השיפוץ.  ',
+        jsonb_build_object('pos', '  הקופה השנייה לסניף  ', 'nosuchthing', 'לא קיים'));
+  perform test_assert((v->>'ok')::boolean, 'the agent writes notes on their own contract');
+  reset role;
+end $$;
+
+select test_assert(notes = 'ההתקנה לאחר השיפוץ.', 'the deal note is stored trimmed')
+  from public.contracts;
+
+-- A note can only hang off a line that exists. Storing one under an invented
+-- key would put text in the row that no rendering ever prints, which is the
+-- quiet kind of wrong.
+select test_assert(item_notes ? 'pos' and not (item_notes ? 'nosuchthing'),
+                   'a note for a line that is not on the quote is dropped')
+  from public.contracts;
+
+select test_assert(notes_updated_at is not null, 'and the edit is stamped')
+  from public.contracts;
+
+-- Blank is absent, not empty string: an empty note must not render an empty box.
+do $$
+declare v_id uuid; v jsonb;
+begin
+  select id into v_id from public.contracts;
+  perform become('11111111-1111-1111-1111-111111111111');
+  set local role authenticated;
+  v := public.contract_set_notes(v_id, '   ', jsonb_build_object('pos', '   '));
+  reset role;
+  perform test_assert((v->>'ok')::boolean, 'clearing the notes is allowed');
+end $$;
+
+select test_assert(notes is null and item_notes = '{}'::jsonb,
+                   'blank notes are stored as absent, not as empty text')
+  from public.contracts;
+
+-- Another agent's contract is not theirs to annotate.
+do $$
+declare v_id uuid; v jsonb;
+begin
+  select id into v_id from public.contracts;
+  perform become('22222222-2222-2222-2222-222222222222');
+  set local role authenticated;
+  v := public.contract_set_notes(v_id, 'שלי עכשיו', '{}'::jsonb);
+  reset role;
+  perform test_assert(v->>'code' = 'not_yours', 'another agent cannot write notes on it');
+end $$;
+
+-- The customer holds a token and no session, and the token gives no way in.
+do $$
+begin
+  set local role anon;
+  begin
+    perform public.contract_set_notes('00000000-0000-0000-0000-000000000000', 'x', '{}'::jsonb);
+    reset role;
+    raise exception 'FAIL: anon reached contract_set_notes';
+  exception when insufficient_privilege then
+    raise notice 'ok  anon cannot reach contract_set_notes';
+  end;
+  reset role;
+end $$;
+
+-- Put a real note back, so the signed contract below carries one and the
+-- freeze below is tested against something that exists.
+do $$
+declare v_id uuid;
+begin
+  select id into v_id from public.contracts;
+  perform become('11111111-1111-1111-1111-111111111111');
+  set local role authenticated;
+  perform public.contract_set_notes(v_id, 'ההתקנה לאחר השיפוץ.',
+                                    jsonb_build_object('pos', 'הקופה השנייה לסניף רמת גן'));
+  reset role;
+end $$;
+
+-- The customer's payload carries them, under names that keep the catalogue's
+-- description and the agent's note apart.
+do $$
+declare v_token text; v jsonb;
+begin
+  select public_token into v_token from public.contracts;
+  set local role anon;
+  v := public.contract_by_token(v_token, null, null, false);
+  reset role;
+  perform test_assert(v->>'notes' = 'ההתקנה לאחר השיפוץ.',
+                      'the contract the customer reads carries the deal note');
+  perform test_assert(v->'items'->0->>'agent_note' = 'הקופה השנייה לסניף רמת גן',
+                      'and each line carries its own');
+end $$;
+
+-- ════════════════════════════════════════════════════════════════════════════
 --  signing
 -- ════════════════════════════════════════════════════════════════════════════
 do $$
@@ -387,6 +490,25 @@ end $$;
 
 select test_assert(jsonb_array_length(sections) = 7, 'the terms are unchanged after the attempt')
   from public.contract_templates where is_current;
+
+-- ── frozen by the signature ────────────────────────────────────────────────
+-- The hash was taken over a document that contains these words. Editing them
+-- afterwards would leave a stored fingerprint that disagrees with the stored
+-- text, which is worse than not being able to fix a typo.
+do $$
+declare v_id uuid; v jsonb;
+begin
+  select id into v_id from public.contracts where status = 'signed';
+  perform become('11111111-1111-1111-1111-111111111111');
+  set local role authenticated;
+  v := public.contract_set_notes(v_id, 'משהו אחר לגמרי', '{}'::jsonb);
+  reset role;
+  perform test_assert(v->>'code' = 'already_signed',
+                      'notes cannot be edited once the contract is signed');
+end $$;
+
+select test_assert(notes = 'ההתקנה לאחר השיפוץ.', 'and the signed text is untouched')
+  from public.contracts where status = 'signed';
 
 select test_assert(count(*) = 0, 'every contract table has row level security')
   from pg_class c join pg_namespace n on n.oid = c.relnamespace

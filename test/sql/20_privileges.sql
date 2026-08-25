@@ -56,10 +56,10 @@ where n.nspname = 'public' and has_function_privilege('anon', p.oid, 'execute')
 select test_assert(
   coalesce(string_agg(p.proname, ', ' order by p.proname), '') =
     'agent_price_list, contract_by_token, contract_cancel, contract_send, '
-    || 'contract_sign_by_token, create_contract_from_quote, hardware_list, '
-    || 'is_active_agent, is_admin, is_manager, price_list, quote_accept_by_agent, '
-    || 'quote_by_token, quote_respond_by_token, recalc_quote',
-  'authenticated may execute only the fifteen functions it needs (found: ' ||
+    || 'contract_set_notes, contract_sign_by_token, create_contract_from_quote, '
+    || 'hardware_list, is_active_agent, is_admin, is_manager, price_list, '
+    || 'quote_accept_by_agent, quote_by_token, quote_respond_by_token, recalc_quote',
+  'authenticated may execute only the sixteen functions it needs (found: ' ||
   coalesce(string_agg(p.proname, ', ' order by p.proname), 'none') || ')')
 from pg_proc p
 join pg_namespace n on n.oid = p.pronamespace

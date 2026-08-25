@@ -25,7 +25,10 @@ import { fmt, type ItemGroup } from "@/lib/pricing";
 
 export interface ContractLine {
   label: string;
+  /** The catalogue's description of the product. */
   note?: string | null;
+  /** What the agent told this customer about this line, if anything. */
+  agent_note?: string | null;
   item_group: ItemGroup;
   quantity: number;
   setup_total: number;
@@ -66,6 +69,8 @@ export interface ContractDocumentData {
   customerEmail?: string | null;
   posCompany?: string | null;
   termMonths: number;
+  /** The agent's note on the deal as a whole. Part of the document, and of the hash. */
+  notes?: string | null;
 
   quoteNumber?: string | null;
   agentName?: string | null;
@@ -202,6 +207,11 @@ export function renderContractDocument(data: ContractDocumentData): string {
           <td>
             ${escapeHtml(item.label)}
             ${item.note ? `<div class="sub">${escapeHtml(item.note)}</div>` : ""}
+            ${
+              item.agent_note
+                ? `<div class="anote">${escapeHtml(item.agent_note).replace(/\n/g, "<br>")}</div>`
+                : ""
+            }
           </td>
           <td class="c">${num(String(item.quantity))}</td>
           <td class="c">${item.setup_total > 0 ? num(fmt(item.setup_total)) : "—"}</td>
@@ -244,6 +254,25 @@ export function renderContractDocument(data: ContractDocumentData): string {
   </section>`
     )
     .join("");
+
+  /**
+   * What the agent added to this particular deal.
+   *
+   * Placed after the terms and immediately before the signature block, which is
+   * where a reader looks last. And it says which text wins: a document that
+   * carries both a boilerplate clause and a specific promise, without saying
+   * which governs, has an argument built into it.
+   */
+  const notes = !data.notes?.trim()
+    ? ""
+    : `
+  <section class="block notes">
+    <h2>הערות והתאמות לעסקה זו</h2>
+    <p class="nlead">
+      האמור בסעיף זה סוכם באופן פרטני עם הלקוח, וגובר על הוראות ההסכם הכלליות בכל מקרה של סתירה.
+    </p>
+    <p class="ntext">${escapeHtml(data.notes.trim()).replace(/\n/g, "<br>")}</p>
+  </section>`;
 
   const signed = Boolean(data.signaturePng && data.signedAt);
 
@@ -368,6 +397,8 @@ export function renderContractDocument(data: ContractDocumentData): string {
   .lines tfoot td { border-top: 2px solid #191D2A; padding: 9px 10px; font-weight: 700; }
   .c { text-align: center; }
   .sub { color: #5F6575; font-size: 11.5px; }
+  .anote { margin-top: 4px; padding-right: 8px; border-right: 2px solid #F05D86;
+           color: #191D2A; font-size: 11.5px; }
   .muted-cell { color: #9aa0ad; text-align: center; padding: 14px; }
   .num { unicode-bidi: isolate; }
   .vat { margin: 10px 0 0; font-size: 11.5px; color: #5F6575; text-align: center; }
@@ -377,6 +408,11 @@ export function renderContractDocument(data: ContractDocumentData): string {
   .clause { display: flex; gap: 10px; margin-bottom: 7px; align-items: baseline; }
   .cnum { flex: 0 0 34px; font-weight: 600; color: #5F6575; font-size: 12px; unicode-bidi: isolate; }
   .ctext { flex: 1; text-align: justify; font-size: 12.5px; }
+
+  .notes { border: 1px solid #F05D86; padding: 14px 16px; }
+  .notes h2 { border-bottom: 0; margin-bottom: 4px; }
+  .nlead { margin: 0 0 8px; color: #5F6575; font-size: 11.5px; }
+  .ntext { margin: 0; font-size: 12.5px; text-align: justify; white-space: normal; }
 
   .signrow { display: flex; gap: 32px; margin-top: 40px; padding-top: 22px; border-top: 1px solid #e5e7eb; }
   .party { flex: 1; }
@@ -428,6 +464,7 @@ export function renderContractDocument(data: ContractDocumentData): string {
   </p>
 
   ${terms}
+  ${notes}
   ${signatures}
   ${annex}
 </div>

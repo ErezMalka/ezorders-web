@@ -44,6 +44,7 @@ interface PublicContract {
   customer_email: string | null;
   pos_company: string | null;
   term_months: number;
+  notes: string | null;
   signer_name: string | null;
   signer_id_number: string | null;
   signer_role: string | null;
@@ -62,6 +63,7 @@ interface PublicContract {
   items: Array<{
     label: string;
     note: string | null;
+    agent_note: string | null;
     item_group: ContractLine["item_group"];
     quantity: string | number;
     setup_total: string | number;
@@ -95,10 +97,19 @@ export async function POST(request: Request, { params }: { params: Promise<{ tok
   const { token } = await params;
   if (!isTokenShaped(token)) return notFoundResponse();
 
-  const origin = request.headers.get("origin");
-  if (origin && new URL(origin).host !== new URL(request.url).host) {
-    return notFoundResponse();
+  // Nothing below is allowed to reach the customer as a blank 500. A page that
+  // says "HTTP ERROR 500" after someone has drawn their signature tells them
+  // nothing, and tells us nothing either.
+  try {
+    return await sign(request, token);
+  } catch (error) {
+    console.error("[c/token] sign threw", error);
+    return redirectBack(request, token, "failed");
   }
+}
+
+async function sign(request: Request, token: string): Promise<Response> {
+  if (!sameOrigin(request)) return notFoundResponse();
 
   let form: FormData;
   try {
@@ -249,11 +260,43 @@ function clientIp(request: Request): string | null {
   return request.headers.get("x-real-ip")?.slice(0, 64) ?? null;
 }
 
+/**
+ * Same-origin, without throwing on a header we did not write.
+ *
+ * A browser may send `Origin: null` — from a sandboxed frame, from some privacy
+ * extensions, from a redirect chain. new URL("null") throws, and a throw here
+ * used to land on the customer as a blank 500 the moment they pressed sign.
+ * A header we cannot parse is not this origin, which is the same answer a
+ * mismatch gets.
+ */
+function sameOrigin(request: Request): boolean {
+  const origin = request.headers.get("origin");
+  if (!origin) return true; // Not sent at all — a plain form post, which is fine.
+  try {
+    return new URL(origin).host === new URL(request.url).host;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * See the customer back to their own contract.
+ *
+ * Deliberately a hand-built response rather than Response.redirect(): that
+ * helper returns a response whose headers are immutable, and the framework adds
+ * its own headers on the way out. The result was an exception thrown after the
+ * handler had already returned — no signature written, no log the customer
+ * could see, and a blank "HTTP ERROR 500" on the one screen where trust is the
+ * entire product.
+ */
 function redirectBack(request: Request, token: string, errorCode: string | null) {
   const url = new URL(`/c/${token}`, request.url);
   if (errorCode) url.searchParams.set("e", errorCode);
   else url.hash = "sign";
-  return Response.redirect(url, 303);
+  return new Response(null, {
+    status: 303,
+    headers: { Location: url.toString(), "Cache-Control": "no-store, max-age=0" },
+  });
 }
 
 function toDocument(c: PublicContract, opts: { signed: boolean }): ContractDocumentData {
@@ -273,12 +316,14 @@ function toDocument(c: PublicContract, opts: { signed: boolean }): ContractDocum
     customerEmail: c.customer_email,
     posCompany: c.pos_company,
     termMonths: Number(c.term_months),
+    notes: c.notes,
 
     quoteNumber: c.quote_number,
     agentName: c.agent_name,
     items: (c.items ?? []).map((i) => ({
       label: i.label,
       note: i.note,
+      agent_note: i.agent_note,
       item_group: i.item_group,
       quantity: Number(i.quantity),
       setup_total: Number(i.setup_total),
