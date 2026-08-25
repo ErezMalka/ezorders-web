@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { createElement } from "react";
 import { PageLayout } from "@/components/PageLayout";
+import { HardwareShowcase } from "@/components/sections/HardwareShowcase";
+import { loadHardwareShowcase } from "@/lib/agent/products";
 
 export const metadata: Metadata = {
   title: "עמדות קיוסק - ezorders",
@@ -20,7 +22,19 @@ const ctaWrapStyle = { marginTop: "3rem" } as const;
 const ctaStyle = { display: "inline-block", background: "#e5306f", color: "#fff", padding: "0.9rem 2rem", borderRadius: "999px", fontWeight: 600, textDecoration: "none" } as const;
 const imgStyle = { width: "100%", height: "auto", borderRadius: "1rem", marginBottom: "2.5rem" } as const;
 
-export default function HeKioskStandsPage() {
+/**
+ * Rebuilt at most once an hour.
+ *
+ * The prices come from the database now, and this is a marketing page that
+ * should be served from cache. An hour suits hardware: a kiosk is repriced when
+ * a supplier reprices it, a handful of times a year — not the one-minute cadence
+ * /he/price uses for a list an admin edits while on the phone to a customer.
+ */
+export const revalidate = 3600;
+
+export default async function HeKioskStandsPage() {
+  const hardware = await loadHardwareShowcase();
+
   const content = createElement(
     "section",
     { style: sectionStyle },
@@ -47,5 +61,10 @@ export default function HeKioskStandsPage() {
     createElement("div", { style: ctaWrapStyle }, createElement("a", { href: "/he/contact", style: ctaStyle }, "דברו איתנו ותתחילו היום"))
     );
 
-return createElement(PageLayout, { locale: "he" }, content);
+return createElement(
+    PageLayout,
+    { locale: "he" },
+    content,
+    createElement(HardwareShowcase, { items: hardware })
+  );
 }
