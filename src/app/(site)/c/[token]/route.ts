@@ -109,7 +109,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ tok
 }
 
 async function sign(request: Request, token: string): Promise<Response> {
-  if (!sameOrigin(request)) return notFoundResponse();
+  // Back to the panel with a message rather than a 404. Nothing was written, so
+  // this tells a forger nothing — and it stops a legitimate signer being told
+  // their contract does not exist.
+  if (!sameOrigin(request)) return redirectBack(request, token, "failed");
 
   let form: FormData;
   try {
@@ -261,22 +264,52 @@ function clientIp(request: Request): string | null {
 }
 
 /**
- * Same-origin, without throwing on a header we did not write.
+ * Same-origin, measured against every name this deployment answers to.
  *
- * A browser may send `Origin: null` — from a sandboxed frame, from some privacy
- * extensions, from a redirect chain. new URL("null") throws, and a throw here
- * used to land on the customer as a blank 500 the moment they pressed sign.
- * A header we cannot parse is not this origin, which is the same answer a
- * mismatch gets.
+ * The naive version compared the Origin header with the host in request.url,
+ * and behind a proxy those are two different strings for the same server: the
+ * customer is on ezorders.com and the function sees the deployment's own
+ * hostname. Every signature posted from the real domain was refused as a
+ * cross-site request, and the customer — who had just drawn their name — was
+ * told the contract did not exist.
+ *
+ * So the comparison is against the set of hosts we actually are: what the proxy
+ * forwarded, what the request was addressed to, and the site's configured
+ * origin. A header we cannot parse is not one of them, which is the same answer
+ * a genuine mismatch gets — and `new URL("null")` throwing is the reason this
+ * is wrapped rather than inlined.
  */
 function sameOrigin(request: Request): boolean {
   const origin = request.headers.get("origin");
   if (!origin) return true; // Not sent at all — a plain form post, which is fine.
+
+  let originHost: string;
   try {
-    return new URL(origin).host === new URL(request.url).host;
+    originHost = new URL(origin).host;
   } catch {
     return false;
   }
+
+  const hosts = new Set<string>();
+  const add = (value: string | null | undefined) => {
+    if (value) hosts.add(value.split(",")[0]!.trim().toLowerCase());
+  };
+  add(request.headers.get("x-forwarded-host"));
+  add(request.headers.get("host"));
+  try {
+    add(new URL(request.url).host);
+  } catch {
+    // request.url is always absolute here; the guard costs nothing.
+  }
+  try {
+    if (process.env.NEXT_PUBLIC_SITE_URL) {
+      add(new URL(process.env.NEXT_PUBLIC_SITE_URL).host);
+    }
+  } catch {
+    // A misconfigured env var must not decide whether contracts can be signed.
+  }
+
+  return hosts.has(originHost.toLowerCase());
 }
 
 /**
