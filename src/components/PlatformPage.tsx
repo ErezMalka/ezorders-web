@@ -1,5 +1,7 @@
 import { PageLayout } from "@/components/PageLayout";
 import { CTAButton } from "@/components/CTAButton";
+import { AdminPreview } from "@/components/sections/AdminPreview";
+import { AdminScreens } from "@/components/sections/AdminScreens";
 import { Capabilities } from "@/components/sections/Capabilities";
 import { ContactBand } from "@/components/sections/ContactBand";
 import { ModuleIcon } from "@/components/Icons";
@@ -186,6 +188,18 @@ export function PlatformPage({ locale = "en" }: { locale?: Locale }) {
 
       {/* CAPABILITIES GRID */}
       <Capabilities locale={locale} variant="platform" />
+
+      {/* THE PANEL ITSELF. Hebrew gets the real captures; the panel's own UI is
+          Hebrew, so on other locales AdminScreens renders nothing and the
+          rebuilt-in-markup AdminPreview stands in, because it translates. */}
+      <AdminScreens
+        locale={locale}
+        keys={["branch", "orders", "report", "home"]}
+        eyebrow="מתוך המערכת"
+        heading="ככה זה נראה מהצד שלך"
+        lead="דשבורד הסניף, רשימת ההזמנות והדוחות — הכול מהטלפון, בלי להתקין כלום."
+      />
+      {locale === "he" ? null : <AdminPreview locale={locale} />}
 
       {/* POS */}
       <section className="bg-brand-grey py-20">

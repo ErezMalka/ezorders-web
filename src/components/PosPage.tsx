@@ -1,5 +1,6 @@
 import { PageLayout } from "@/components/PageLayout";
 import { CTAButton } from "@/components/CTAButton";
+import { AdminScreens } from "@/components/sections/AdminScreens";
 import { ContactBand } from "@/components/sections/ContactBand";
 import { ModuleIcon } from "@/components/Icons";
 import { SIGNUP_URL } from "@/data/content";
@@ -102,6 +103,15 @@ export function PosPage({ locale = "en" }: { locale?: Locale }) {
           </div>
         </div>
       </section>
+
+      {/* THE REGISTER SCREEN — Hebrew only; renders nothing for other locales */}
+      <AdminScreens
+        locale={locale}
+        keys={["pos", "report"]}
+        eyebrow="מתוך המערכת"
+        heading="הקופה, כמו שהצוות רואה אותה"
+        lead="פתיחת מגירה, הזמנה חדשה, דוח Z וסגירת יום — הכול ממסך אחד."
+      />
 
       {/* PRICING — refer to the up-to-date pricing calculator */}
       <section className="mx-auto max-w-container px-6 py-20 text-center">
