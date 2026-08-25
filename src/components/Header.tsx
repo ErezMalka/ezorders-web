@@ -87,7 +87,7 @@ export function Header({ dictionary, locale = "en" }: { dictionary?: Dictionary;
   const drawerHeader = createElement(
     "div",
     { className: "mb-6 flex items-center justify-between" },
-    createElement(Logo, { href: dict.nav[0].href }),
+    createElement(Logo, { href: dict.nav[0].href, priority: true }),
     createElement(
       "button",
       {
@@ -176,7 +176,7 @@ export function Header({ dictionary, locale = "en" }: { dictionary?: Dictionary;
       createElement(
         "div",
         { className: "mx-auto flex max-w-container items-center justify-between px-6 py-6" },
-        createElement(Logo, { href: dict.nav[0].href }),
+        createElement(Logo, { href: dict.nav[0].href, priority: true }),
         desktopNav,
         createElement(
           "div",
