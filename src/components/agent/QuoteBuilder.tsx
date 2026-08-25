@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import { useCallback, useState, type FormEvent } from "react";
 
 import {
+  BASE_SETUP_LABEL,
+  DEFAULT_CATALOGUE,
   DEFAULT_TERM_MONTHS,
   DEFAULT_VALID_DAYS,
   DEFAULT_VAT_PERCENT,
@@ -12,11 +14,13 @@ import {
   buildInitialState,
   computeQuote,
   fmt,
+  itemsInGroup,
   nextTier,
   withMoney,
+  type Catalogue,
   type CalcState,
   type ItemState,
-  type PricingItem,
+  type CatalogueItem,
 } from "@/lib/pricing";
 
 /**
@@ -32,12 +36,12 @@ import {
 interface Section {
   title: string;
   hint: string;
-  items: readonly PricingItem[];
+  items: readonly CatalogueItem[];
 }
 
-export function QuoteBuilder() {
+export function QuoteBuilder({ catalogue = DEFAULT_CATALOGUE }: { catalogue?: Catalogue }) {
   const router = useRouter();
-  const [calc, setCalc] = useState<CalcState>(buildInitialState);
+  const [calc, setCalc] = useState<CalcState>(() => buildInitialState(catalogue));
   const [vatPercent, setVatPercent] = useState(DEFAULT_VAT_PERCENT);
   const [termMonths, setTermMonths] = useState(DEFAULT_TERM_MONTHS);
   const [validDays, setValidDays] = useState(DEFAULT_VALID_DAYS);
@@ -50,32 +54,24 @@ export function QuoteBuilder() {
     setCalc((prev) => ({ ...prev, [id]: { ...prev[id], ...patch } }));
   }, []);
 
-  const totals = computeQuote(calc);
+  const totals = computeQuote(calc, catalogue);
   const money = withMoney(totals, vatPercent, termMonths);
   const upcoming = nextTier(totals.eligibleMonthlySubtotal);
 
-  const sections: Section[] = [
-    {
-      title: "מוצרים ראשיים",
-      hint: "נכללים בחישוב ההנחה",
-      items: PRICING_CONFIG.coreProducts as unknown as PricingItem[],
-    },
-    {
-      title: "תוספות — כלולות בהנחה",
-      hint: "מגדילות את מדרגת ההנחה",
-      items: PRICING_CONFIG.addonsIncluded as unknown as PricingItem[],
-    },
-    {
-      title: "תוספות — ללא הנחה",
-      hint: "נוספות לסה״כ במלוא המחיר",
-      items: PRICING_CONFIG.addonsExcluded as unknown as PricingItem[],
-    },
-    {
-      title: "אפליקציה",
-      hint: "ללא הנחה",
-      items: [PRICING_CONFIG.mobileApp as unknown as PricingItem],
-    },
-  ];
+  // Built from the catalogue, so a product an admin adds appears here without a
+  // deploy. Empty groups are dropped: an agent should not scroll past a heading
+  // with nothing under it.
+  const sections: Section[] = (
+    [
+      { title: "מוצרים ראשיים", hint: "נכללים בחישוב ההנחה", group: "core" },
+      { title: "תוספות — כלולות בהנחה", hint: "מגדילות את מדרגת ההנחה", group: "addon_included" },
+      { title: "תוספות — ללא הנחה", hint: "נוספות לסה״כ במלוא המחיר", group: "addon_excluded" },
+      { title: "אפליקציה", hint: "ללא הנחה", group: "mobile_app" },
+      { title: "מוצרים וחומרה", hint: "תשלום חד־פעמי, ללא הנחה", group: "hardware" },
+    ] as const
+  )
+    .map((s) => ({ title: s.title, hint: s.hint, items: itemsInGroup(s.group, catalogue) }))
+    .filter((s) => s.items.length > 0);
 
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -119,11 +115,11 @@ export function QuoteBuilder() {
         <section className="rounded-card border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="text-sm font-bold text-brand-dark">{PRICING_CONFIG.initialSetup.label}</p>
+              <p className="text-sm font-bold text-brand-dark">{BASE_SETUP_LABEL}</p>
               <p className="text-xs text-brand-muted">חד פעמי — נכלל תמיד בכל חבילה</p>
             </div>
             <p className="text-sm font-bold tabular-nums text-brand-dark">
-              {fmt(PRICING_CONFIG.initialSetup.setup)}
+              {fmt(catalogue.baseSetup)}
             </p>
           </div>
         </section>
@@ -295,6 +291,16 @@ export function QuoteBuilder() {
             <Row label="סה״כ הקמה (חד פעמי)" value={fmt(totals.finalSetupTotal)} emphasis />
             <Row label={`כולל מע״מ ${vatPercent}%`} value={fmt(money.setupInclVat)} faint />
 
+            {/* Shown only when something physical was selected. An empty
+                hardware line on a software-only quote is noise. */}
+            {totals.hardwareTotal > 0 ? (
+              <>
+                <div className="my-3 h-px bg-slate-100" />
+                <Row label="מוצרים וחומרה (חד פעמי)" value={fmt(totals.hardwareTotal)} emphasis />
+                <Row label={`כולל מע״מ ${vatPercent}%`} value={fmt(money.hardwareInclVat)} faint />
+              </>
+            ) : null}
+
             <div className="my-3 h-px bg-slate-100" />
 
             <Row label="חודשי זכאי להנחה" value={fmt(totals.eligibleMonthlySubtotal)} />
@@ -334,7 +340,7 @@ export function QuoteBuilder() {
             </button>
             <button
               type="button"
-              onClick={() => setCalc(buildInitialState())}
+              onClick={() => setCalc(buildInitialState(catalogue))}
               className="w-full rounded-pill border border-slate-200 px-4 py-2 text-sm font-semibold text-brand-muted transition-colors hover:bg-brand-grey"
             >
               איפוס החבילה
@@ -352,7 +358,7 @@ function ComponentRow({
   state,
   onChange,
 }: {
-  item: PricingItem;
+  item: CatalogueItem;
   state: ItemState | undefined;
   onChange: (id: string, patch: Partial<ItemState>) => void;
 }) {
@@ -374,11 +380,27 @@ function ComponentRow({
         className="h-5 w-5 flex-shrink-0 cursor-pointer accent-brand-pink"
       />
 
+      {item.image ? (
+        // Where the picture earns its place: fourteen kiosk models whose names
+        // differ by one number, being chosen from by someone on the phone with
+        // a customer. eslint wants next/image; this is a fixed-size thumbnail
+        // of a file that ships with the site.
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={item.image}
+          alt=""
+          width={40}
+          height={56}
+          className="h-14 w-10 flex-shrink-0 rounded-lg border border-slate-200 bg-white object-contain p-0.5"
+        />
+      ) : null}
+
       <div className="min-w-0 flex-1">
         <p className={`text-sm font-semibold ${enabled ? "text-brand-dark" : "text-brand-muted"}`}>
           {item.label}
         </p>
         <p className="text-xs text-brand-muted">
+          {item.supplier ? `${item.supplier} · ` : ""}
           {item.note ? `${item.note} · ` : ""}הקמה {fmt(item.setup)}
           {item.txNote ? ` · ${item.txNote}` : ""}
         </p>

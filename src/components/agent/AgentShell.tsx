@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { Logo } from "@/components/Logo";
 import { SignOutButton } from "./SignOutButton";
 import type { AgentSession } from "@/lib/agent/session";
 
@@ -15,6 +16,7 @@ const NAV = [
   { href: "/he/agent/new", label: "הצעה חדשה", adminOnly: false },
   { href: "/he/agent/quotes", label: "ההצעות שלי", adminOnly: false },
   { href: "/he/agent/orders", label: "הזמנות", adminOnly: false },
+  { href: "/he/agent/products", label: "מחירון", adminOnly: true },
   { href: "/he/agent/team", label: "צוות", adminOnly: true },
 ];
 
@@ -43,9 +45,7 @@ export function AgentShell({
     <div dir="rtl" className="min-h-screen bg-brand-grey">
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-container flex-wrap items-center gap-4 px-6 py-3">
-          <Link href="/he/agent" className="text-xl font-extrabold tracking-tight text-brand-dark">
-            EZ<span className="text-brand-pink">ORDERS</span>
-          </Link>
+          <Logo href="/he/agent" width={118} />
           <span className="rounded-pill bg-brand-tint px-3 py-1 text-xs font-semibold text-brand-pink">
             {ROLE_LABEL[session.role]}
           </span>

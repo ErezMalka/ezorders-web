@@ -35,6 +35,25 @@ export async function createSupabaseServerClient() {
 }
 
 /**
+ * A client with no session at all: the anon key, no cookies, nothing read from
+ * the request.
+ *
+ * That last part is the point. createSupabaseServerClient() reads cookies, and a
+ * Next.js page that reads cookies cannot be statically rendered — so using it on
+ * /he/price silently turned a cached marketing page into one that hits the
+ * server on every visit. This client lets that page pre-render and revalidate on
+ * a timer while still reading the live price list.
+ *
+ * It holds exactly the privileges anon holds, which after supabase/0004 is no
+ * table access whatsoever — only the handful of functions granted by name.
+ */
+export function createSupabaseAnonClient() {
+  return createClient(supabaseUrl(), supabaseAnonKey(), {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+}
+
+/**
  * A client that bypasses RLS. Server-only, and only for requests already
  * authorised another way — see supabaseServiceRoleKey().
  *

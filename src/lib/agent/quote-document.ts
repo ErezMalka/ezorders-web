@@ -1,5 +1,7 @@
 import "server-only";
 
+import { DEFAULT_CATALOGUE } from "@/lib/pricing";
+
 import { renderQuoteDocument, type QuoteDocumentData } from "./quote-html";
 import type { QuoteWithItems } from "./quotes";
 
@@ -29,12 +31,19 @@ export function quoteDocumentData(quote: QuoteWithItems, agentEmail?: string | n
       label: item.label,
       note: item.note,
       item_group: item.item_group,
+      image: item.image,
       quantity: Number(item.quantity),
+      setup_unit: Number(item.setup_unit),
       setup_total: Number(item.setup_total),
       monthly_total: Number(item.monthly_total),
     })),
 
+    // The base fee is not stored per quote, so a document reprints with today's.
+    // It has not moved since the portal was built; if it ever does, it belongs
+    // on the quote row next to vat_percent and term_months.
+    baseSetup: DEFAULT_CATALOGUE.baseSetup,
     setupTotal: Number(quote.setup_total),
+    hardwareTotal: Number(quote.hardware_total ?? 0),
     monthlyEligible: Number(quote.monthly_eligible),
     discountPercent: Number(quote.discount_percent),
     discountAmount: Number(quote.discount_amount),
