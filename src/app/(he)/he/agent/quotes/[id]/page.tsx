@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 
 import { AgentShell } from "@/components/agent/AgentShell";
 import { CloseQuoteButton } from "@/components/agent/CloseQuoteButton";
+import { CreateContractButton } from "@/components/agent/CreateContractButton";
 import { QuoteActions } from "@/components/agent/QuoteActions";
 import { getOrderForQuote } from "@/lib/agent/orders";
 import { getQuote } from "@/lib/agent/quotes";
@@ -194,6 +195,19 @@ export default async function QuoteDetailPage({ params }: { params: Promise<{ id
             </div>
           ) : quote.status === "sent" || quote.status === "viewed" ? (
             <CloseQuoteButton quoteId={quote.id} />
+          ) : null}
+
+          {/* A contract restates terms the customer has already been shown, so
+              it is offered from the moment the quote is out and not before. */}
+          {quote.status === "sent" || quote.status === "viewed" || quote.status === "accepted" ? (
+            <div className="rounded-card border border-slate-200 bg-white p-5">
+              <h2 className="text-sm font-bold text-brand-dark">הסכם לחתימה</h2>
+              <p className="mb-3 mt-1 text-xs leading-relaxed text-brand-muted">
+                מפיק הסכם עם הפרטים והרכיבים של ההצעה הזו. הלקוח חותם בקישור, והמערכת מתעדת
+                מי חתם, מתי ומאיזו כתובת.
+              </p>
+              <CreateContractButton quoteId={quote.id} />
+            </div>
           ) : null}
         </aside>
       </div>
