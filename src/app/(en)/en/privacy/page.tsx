@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   description:
     "How EZOrders collects, uses, and protects the information you share through our website.",
   alternates: {
+    canonical: "./",
     languages: {
       en: "/en/privacy",
       he: "/he/privacy",

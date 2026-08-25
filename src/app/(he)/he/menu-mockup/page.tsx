@@ -6,7 +6,8 @@ export const metadata: Metadata = {
   title: "שלחו תפריט → קבלו הדמיית קיוסק | EZOrders",
   description:
     "שלחו לנו תמונה של התפריט ונבנה לכם הדמיה חינם איך המסעדה שלכם נראית בעמדת קיוסק להזמנה עצמית. ללא התחייבות.",
-  alternates: { languages: { he: "/he/menu-mockup", "x-default": "/he/menu-mockup" } },
+  alternates: {
+    canonical: "./", languages: { he: "/he/menu-mockup", "x-default": "/he/menu-mockup" } },
 };
 
 export default function MenuMockupPage() {

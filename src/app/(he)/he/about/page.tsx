@@ -11,6 +11,7 @@ export const metadata: Metadata = {
   description:
     "הכירו את EZOrders — אנחנו בונים תפריטים דיגיטליים ומערכת הזמנות למסעדות, שמתעדכנים בשניות ומלווים את הלקוח בצורה חלקה מהעיון ועד ההזמנה.",
   alternates: {
+    canonical: "./",
     languages: {
       en: "/en/about",
       he: "/he/about",

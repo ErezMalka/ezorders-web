@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   description:
     "הפתרונות של EZOrders למסעדות: אתר הזמנות למסעדה, תפריטים דיגיטליים, עמדות קיוסק ואפליקציית הזמנות — הכל מסונכרן ומתעדכן בזמן אמת.",
   alternates: {
+    canonical: "./",
     languages: {
       en: "/en/solutions",
       he: "/he/solutions",

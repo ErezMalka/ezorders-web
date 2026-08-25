@@ -6,6 +6,15 @@ import { Testimonials } from "@/components/sections/Testimonials";
 import { ContactBand } from "@/components/sections/ContactBand";
 
 export const metadata: Metadata = {
+  alternates: {
+    canonical: "./",
+    languages: {
+      en: "/en/solutions",
+      he: "/he/solutions",
+      // "/" serves Hebrew (middleware.ts), so that is the fallback.
+      "x-default": "/he/solutions",
+    },
+  },
   title: "Solutions - ezorders",
   description:
     "Digitize your restaurant menu with endless options — digital menus, websites, membership clubs, kiosk stands, applications and an order management system.",

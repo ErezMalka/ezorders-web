@@ -5,7 +5,8 @@ export const metadata: Metadata = {
   title: "הזמנה בסריקת QR מהשולחן - ezorders",
   description:
     "תפריט QR למסעדה: הסועדים סורקים קוד בשולחן, מזמינים ומשלמים מהטלפון — בלי אפליקציה, בלי המתנה למלצר. יותר הזמנות, פחות עומס על הצוות.",
-  alternates: { languages: { he: "/he/qr-ordering", "x-default": "/he/qr-ordering" } },
+  alternates: {
+    canonical: "./", languages: { he: "/he/qr-ordering", "x-default": "/he/qr-ordering" } },
 };
 
 const sectionStyle = { padding: "8rem 1.5rem 4rem", maxWidth: "56rem", margin: "0 auto" } as const;
