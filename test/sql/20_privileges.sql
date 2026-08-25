@@ -33,15 +33,16 @@ select test_assert(count(*) = 0, 'anon holds no privilege on any sequence')
 from information_schema.role_usage_grants
 where object_schema = 'public' and grantee = 'anon' and object_type = 'SEQUENCE';
 
--- ── anon reaches exactly the four functions a public page needs ─────────────
--- Two read the marketing lists, two serve one customer their own quote by a
--- token only they were sent. Nothing else in public/ is reachable without a
--- session, and this assertion is what keeps it that way when someone adds a
--- function and reaches for a convenient grant.
+-- ── anon reaches exactly the six functions a public page needs ──────────────
+-- Two read the marketing lists. Four serve one customer their own quote or
+-- their own contract, by a token only they were sent. Nothing else in public/
+-- is reachable without a session, and this assertion is what keeps it that way
+-- when someone adds a function and reaches for a convenient grant.
 select test_assert(
   coalesce(string_agg(p.proname, ', ' order by p.proname), '') =
-    'hardware_list, price_list, quote_by_token, quote_respond_by_token',
-  'anon may execute only the two public lists and the two token functions (found: ' ||
+    'contract_by_token, contract_sign_by_token, hardware_list, price_list, '
+    'quote_by_token, quote_respond_by_token',
+  'anon may execute only the two public lists and the four token functions (found: ' ||
   coalesce(string_agg(p.proname, ', ' order by p.proname), 'none') || ')')
 from pg_proc p
 join pg_namespace n on n.oid = p.pronamespace
@@ -54,9 +55,11 @@ where n.nspname = 'public' and has_function_privilege('anon', p.oid, 'execute')
 -- querying role, so revoking them would silently break every policy.
 select test_assert(
   coalesce(string_agg(p.proname, ', ' order by p.proname), '') =
-    'agent_price_list, hardware_list, is_active_agent, is_admin, is_manager, price_list, '
-    || 'quote_accept_by_agent, quote_by_token, quote_respond_by_token, recalc_quote',
-  'authenticated may execute only the ten functions it needs (found: ' ||
+    'agent_price_list, contract_by_token, contract_cancel, contract_send, '
+    || 'contract_sign_by_token, create_contract_from_quote, hardware_list, '
+    || 'is_active_agent, is_admin, is_manager, price_list, quote_accept_by_agent, '
+    || 'quote_by_token, quote_respond_by_token, recalc_quote',
+  'authenticated may execute only the fifteen functions it needs (found: ' ||
   coalesce(string_agg(p.proname, ', ' order by p.proname), 'none') || ')')
 from pg_proc p
 join pg_namespace n on n.oid = p.pronamespace

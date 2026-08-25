@@ -19,9 +19,12 @@ for f in test/sql/00_supabase_stub.sql \
          supabase/migrations/0009_product_taxonomy.sql \
          supabase/migrations/0010_product_images.sql \
          supabase/migrations/0011_hardware_showcase.sql \
-         supabase/migrations/0012_price_tabs.sql; do
+         supabase/migrations/0012_price_tabs.sql \
+         supabase/migrations/0013_contracts.sql \
+         supabase/migrations/0014_contract_flow.sql \
+         supabase/migrations/0015_contract_template_v1.sql; do
   psql -q -v ON_ERROR_STOP=1 -d "$DB" -f "$f" > /dev/null
 done
-for t in test/sql/10_orders.sql test/sql/20_privileges.sql; do
+for t in test/sql/10_orders.sql test/sql/20_privileges.sql test/sql/30_contracts.sql; do
   psql -q -v ON_ERROR_STOP=1 -d "$DB" -f "$t" 2>&1 | grep -E 'NOTICE:  ok|ERROR|── ' | sed 's/^psql:[^ ]* //'
 done
