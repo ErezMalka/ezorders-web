@@ -3,6 +3,15 @@ import { PageLayout } from "@/components/PageLayout";
 import { ContactForm } from "@/components/ContactForm";
 
 export const metadata: Metadata = {
+  alternates: {
+    canonical: "./",
+    languages: {
+      en: "/en/contact",
+      he: "/he/contact",
+      // "/" serves Hebrew (middleware.ts), so that is the fallback.
+      "x-default": "/he/contact",
+    },
+  },
   title: "Contact - ezorders",
   description:
     "Our experts can answer your questions. Contact EZOrders today and let’s start building your success together.",

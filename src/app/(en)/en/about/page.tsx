@@ -7,6 +7,15 @@ import { ContactBand } from "@/components/sections/ContactBand";
 import { SIGNUP_URL } from "@/data/content";
 
 export const metadata: Metadata = {
+  alternates: {
+    canonical: "./",
+    languages: {
+      en: "/en/about",
+      he: "/he/about",
+      // "/" serves Hebrew (middleware.ts), so that is the fallback.
+      "x-default": "/he/about",
+    },
+  },
   title: "About - ezorders",
   description:
     "Get to know EZOrders — we build mobile-first digital menus for restaurants that update in seconds and guide guests smoothly from browsing to ordering.",

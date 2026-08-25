@@ -5,7 +5,8 @@ export const metadata: Metadata = {
   title: "מסך מטבח דיגיטלי (KDS) - ezorders",
   description:
     "מסך מטבח KDS למסעדות: כל ההזמנות מכל הערוצים על מסך אחד במטבח, עם זמני הכנה, סטטוסים ולוח מוכנות ללקוחות. נגמר עידן הבונים המודפסים.",
-  alternates: { languages: { he: "/he/kitchen-display", "x-default": "/he/kitchen-display" } },
+  alternates: {
+    canonical: "./", languages: { he: "/he/kitchen-display", "x-default": "/he/kitchen-display" } },
 };
 
 const sectionStyle = { padding: "8rem 1.5rem 4rem", maxWidth: "56rem", margin: "0 auto" } as const;

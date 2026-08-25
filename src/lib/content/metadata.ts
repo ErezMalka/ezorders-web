@@ -8,7 +8,7 @@
 import type { Metadata } from "next";
 import { getArticle, getTranslationGroup } from "./articles";
 import type { Article } from "./schema";
-import { locales, defaultLocale, type Locale } from "@/i18n/config";
+import { locales, xDefaultLocale, type Locale } from "@/i18n/config";
 
 const SITE = "https://ezorders.com";
 
@@ -123,23 +123,23 @@ export function articleMetadata(locale: Locale, slug: string): Metadata {
  * hreflang map for one article: every locale the article is actually published
  * in, plus x-default.
  *
- * x-default points at the ENGLISH URL when an English version exists, matching
- * `defaultLocale` in i18n/config.ts. It is the entry point search engines offer
- * when they cannot match a user's language, so it should be the widest-reach
- * version. Falls back to the article's own URL when there is no English one.
+ * x-default points at the locale "/" actually serves — Hebrew, per
+ * middleware.ts and `xDefaultLocale`. It is the entry point search engines
+ * offer when they cannot match a visitor's language, so it has to be the page
+ * a visitor would really land on. Falls back to the article's own URL when the
+ * Hebrew translation does not exist.
  */
 function articleLanguageAlternates(article: Article): Record<string, string> {
   const group = getTranslationGroup(article.translationKey);
   const out: Record<string, string> = {};
   for (const [loc, a] of Object.entries(group)) out[loc] = a.canonicalUrl;
-  out["x-default"] = group.en?.canonicalUrl ?? article.canonicalUrl;
+  out["x-default"] = group[xDefaultLocale]?.canonicalUrl ?? article.canonicalUrl;
   return out;
 }
 
 function languageAlternates(build: (l: Locale) => string): Record<string, string> {
   const out: Record<string, string> = {};
   for (const l of locales) out[l] = build(l);
-  // English is the site's default locale (i18n/config.ts `defaultLocale`).
-  out["x-default"] = build(defaultLocale);
+  out["x-default"] = build(xDefaultLocale);
   return out;
 }

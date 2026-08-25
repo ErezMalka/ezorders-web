@@ -10,6 +10,15 @@ import { SampleApps } from "@/components/sections/SampleApps";
 import { ContactBand } from "@/components/sections/ContactBand";
 
 export const metadata: Metadata = {
+  alternates: {
+    canonical: "./",
+    languages: {
+      en: "/en",
+      he: "/he",
+      // "/" serves Hebrew (middleware.ts), so that is the fallback.
+      "x-default": "/he",
+    },
+  },
   title: "Home - ezorders",
   description:
     "EZorders turns offline to online — digital menus, online ordering, kiosk stands and apps for modern restaurants.",

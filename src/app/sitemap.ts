@@ -4,7 +4,11 @@ import { getAllArticles, getTranslationGroup } from "@/lib/content/articles";
 const BASE = "https://ezorders.com";
 
 /**
- * English is the default locale (i18n/config.ts), so x-default points at /en.
+ * x-default points at /he, because that is what "/" actually serves
+ * (middleware.ts). The page-level hreflang says the same; these two used to
+ * disagree, which left search engines with two contradictory answers about
+ * where to send a visitor whose language matches neither.
+ *
  * Paths are locale-agnostic; each shared path is emitted twice (/he and /en).
  */
 const sharedRoutes: { path: string; priority: number }[] = [
@@ -40,7 +44,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const shared = sharedRoutes.flatMap((route) => {
     const heUrl = `${BASE}/he${route.path}`;
     const enUrl = `${BASE}/en${route.path}`;
-    const languages = { en: enUrl, he: heUrl, "x-default": enUrl };
+    const languages = { en: enUrl, he: heUrl, "x-default": heUrl };
 
     return [heUrl, enUrl].map((url) => ({
       url,
@@ -94,7 +98,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     if (localeUrls.length > 1) {
       const languages: Record<string, string> = {};
       for (const [loc, a] of localeUrls) languages[loc] = a.canonicalUrl;
-      languages["x-default"] = group.en?.canonicalUrl ?? article.canonicalUrl;
+      languages["x-default"] = group.he?.canonicalUrl ?? article.canonicalUrl;
       entry.alternates = { languages };
     }
 

@@ -5,7 +5,8 @@ import { PageLayout } from "@/components/PageLayout";
 export const metadata: Metadata = {
   title: "תפריטים דיגיטליים - ezorders",
   description: "תפריט דיגיטלי למסעדה שמתעדכן בשניות, נראה מצוין בכל מכשיר ומגדיל את הסל הממוצע — עם QR לכל שולחן ותמיכה רב-לשונית.",
-  alternates: { languages: { en: "/en/digital-menus", he: "/he/digital-menus", "x-default": "/he/digital-menus" } },
+  alternates: {
+    canonical: "./", languages: { en: "/en/digital-menus", he: "/he/digital-menus", "x-default": "/he/digital-menus" } },
 };
 
 const sectionStyle = { padding: "8rem 1.5rem 4rem", maxWidth: "56rem", margin: "0 auto" } as const;
