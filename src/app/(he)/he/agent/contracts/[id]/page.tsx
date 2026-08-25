@@ -94,6 +94,18 @@ export default async function AgentContractPage({
                 value={contract.signed_at ? STAMP.format(new Date(contract.signed_at)) : null}
                 mono
               />
+              {/* Null means nobody got a copy. Worth seeing rather than
+                  assuming: the signature stands either way, so a failed send
+                  is silent unless it is shown. */}
+              <Row
+                label="עותק במייל"
+                value={
+                  contract.signed_email_sent_at
+                    ? STAMP.format(new Date(contract.signed_email_sent_at))
+                    : "לא נשלח"
+                }
+                mono={Boolean(contract.signed_email_sent_at)}
+              />
             </dl>
             <div className="mt-4">
               <p className="mb-1 text-xs font-semibold text-brand-muted">טביעת המסמך (SHA-256)</p>

@@ -60,6 +60,7 @@ export interface ContractRow extends ContractListRow {
   document_hash: string | null;
   first_viewed_at: string | null;
   last_viewed_at: string | null;
+  signed_email_sent_at: string | null;
 }
 
 export class ContractError extends Error {}

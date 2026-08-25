@@ -12,6 +12,7 @@ import {
   renderSignPanel,
   renderSignedPanel,
 } from "@/lib/agent/contract-sign-html";
+import { sendSignedContractCopy } from "@/lib/agent/contract-email";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
@@ -49,6 +50,7 @@ interface PublicContract {
   signature_png: string | null;
   document_hash: string | null;
   agent_name: string | null;
+  agent_email: string | null;
   template_version: number;
   template_title: string;
   sections: ContractSection[];
@@ -148,7 +150,59 @@ export async function POST(request: Request, { params }: { params: Promise<{ tok
   const result = (data ?? {}) as { ok?: boolean; code?: string };
   if (result.ok !== true) return redirectBack(request, token, result.code ?? "failed");
 
+  // Only on the transition. Signing is idempotent, and a customer who refreshes
+  // should not send themselves a second copy.
+  if (result.code === "signed") {
+    await mailSignedCopy(request, token);
+  }
+
   return redirectBack(request, token, null);
+}
+
+/**
+ * Send both parties their copy.
+ *
+ * Everything in here is best-effort. The signature is already recorded and the
+ * customer is already on their way to the confirmation; a provider having a bad
+ * afternoon must not turn that into a page saying the signing failed. Failures
+ * are logged, and signed_email_sent_at stays null so an unsent copy is visible
+ * rather than assumed.
+ */
+async function mailSignedCopy(request: Request, token: string): Promise<void> {
+  try {
+    // Re-read without counting a view: this is the signed state, and the
+    // document it renders is the one that gets attached.
+    const signed = await loadContract(request, token, false);
+    if (signed === "error" || !signed || signed.status !== "signed") return;
+
+    const sent = await sendSignedContractCopy({
+      contractNumber: signed.contract_number,
+      customerName: signed.customer_name,
+      customerEmail: signed.customer_email,
+      contactName: signed.contact_name,
+      agentName: signed.agent_name,
+      agentEmail: signed.agent_email,
+      signerName: signed.signer_name,
+      signedAt: signed.signed_at ? new Date(signed.signed_at) : new Date(),
+      documentHash: signed.document_hash ?? "",
+      setupTotal: Number(signed.setup_total),
+      hardwareTotal: Number(signed.hardware_total ?? 0),
+      monthlyTotal: Number(signed.monthly_total),
+      termMonths: Number(signed.term_months),
+      documentHtml: renderDocument(signed, { signed: true }),
+      url: new URL(`/c/${token}`, request.url).toString(),
+    });
+
+    if (!sent) return;
+
+    const supabase = createSupabaseAdminClient();
+    await supabase
+      .from("contracts")
+      .update({ signed_email_sent_at: new Date().toISOString() })
+      .eq("public_token", token);
+  } catch (error) {
+    console.error("[c/token] sending the signed copy failed", error);
+  }
 }
 
 // ── helpers ──────────────────────────────────────────────────
