@@ -104,26 +104,31 @@ export async function POST(request: Request, { params }: { params: Promise<{ tok
     return await sign(request, token);
   } catch (error) {
     console.error("[c/token] sign threw", error);
-    return redirectBack(request, token, "failed");
+    return redirectBack(request, token, "unexpected");
   }
 }
 
 async function sign(request: Request, token: string): Promise<Response> {
-  // Back to the panel with a message rather than a 404. Nothing was written, so
-  // this tells a forger nothing — and it stops a legitimate signer being told
-  // their contract does not exist.
-  if (!sameOrigin(request)) return redirectBack(request, token, "failed");
-
-  let form: FormData;
+  /**
+   * Read the posted fields.
+   *
+   * The panel posts a plain urlencoded form, so the body is parsed as text
+   * rather than through formData(). It is the most primitive reader there is,
+   * it cannot be defeated by a multipart edge case, and this is not a place
+   * that can afford a parser having an opinion — a customer has already drawn
+   * their signature by the time this runs.
+   */
+  let form: URLSearchParams;
   try {
-    form = await request.formData();
-  } catch {
-    return redirectBack(request, token, "failed");
+    form = await readForm(request);
+  } catch (error) {
+    console.error("[c/token] could not read the posted form", error);
+    return redirectBack(request, token, "body_unreadable");
   }
 
   if (form.get("consent") !== "1") return redirectBack(request, token, "consent_required");
 
-  const signature = String(form.get("signature") ?? "");
+  const signature = form.get("signature") ?? "";
   if (!signature.startsWith("data:image/png;base64,") || signature.length < 200) {
     return redirectBack(request, token, "signature_required");
   }
@@ -245,11 +250,25 @@ async function loadContract(
   return (data as PublicContract | null) ?? null;
 }
 
-function field(form: FormData, name: string, max: number): string | null {
+function field(form: URLSearchParams, name: string, max: number): string | null {
   const raw = form.get(name);
-  if (typeof raw !== "string") return null;
+  if (raw === null) return null;
   const value = raw.trim().slice(0, max);
   return value.length > 0 ? value : null;
+}
+
+/** The posted fields, however the browser chose to encode them. */
+async function readForm(request: Request): Promise<URLSearchParams> {
+  const contentType = request.headers.get("content-type") ?? "";
+  if (contentType.includes("multipart/form-data")) {
+    const form = await request.formData();
+    const params = new URLSearchParams();
+    for (const [key, value] of form.entries()) {
+      if (typeof value === "string") params.append(key, value);
+    }
+    return params;
+  }
+  return new URLSearchParams(await request.text());
 }
 
 /**
@@ -263,54 +282,25 @@ function clientIp(request: Request): string | null {
   return request.headers.get("x-real-ip")?.slice(0, 64) ?? null;
 }
 
-/**
- * Same-origin, measured against every name this deployment answers to.
+/*
+ * There is no same-origin check here, and that is deliberate.
  *
- * The naive version compared the Origin header with the host in request.url,
- * and behind a proxy those are two different strings for the same server: the
- * customer is on ezorders.com and the function sees the deployment's own
- * hostname. Every signature posted from the real domain was refused as a
- * cross-site request, and the customer — who had just drawn their name — was
- * told the contract did not exist.
+ * There was one. It compared the browser's Origin header with the host in
+ * request.url, then with every name we could think of that this deployment
+ * answers to, and it went on refusing real signatures from the real domain —
+ * because behind a proxy those strings are not the same string, and the list of
+ * ways they can differ is not one we get to finish.
  *
- * So the comparison is against the set of hosts we actually are: what the proxy
- * forwarded, what the request was addressed to, and the site's configured
- * origin. A header we cannot parse is not one of them, which is the same answer
- * a genuine mismatch gets — and `new URL("null")` throwing is the reason this
- * is wrapped rather than inlined.
+ * What it was protecting is the question. Posting here requires the 48-hex
+ * token from gen_random_bytes(24), which is sent to one customer and appears in
+ * no page we serve to anybody else. An attacker who has it can simply open the
+ * link and sign; one who does not cannot forge this request from any origin.
+ * The check guarded nothing the token was not already guarding, and it cost the
+ * one screen where the whole product is trust.
+ *
+ * The token is the boundary. The database re-checks the contract's state, and
+ * the evidence annex records the address every signature actually came from.
  */
-function sameOrigin(request: Request): boolean {
-  const origin = request.headers.get("origin");
-  if (!origin) return true; // Not sent at all — a plain form post, which is fine.
-
-  let originHost: string;
-  try {
-    originHost = new URL(origin).host;
-  } catch {
-    return false;
-  }
-
-  const hosts = new Set<string>();
-  const add = (value: string | null | undefined) => {
-    if (value) hosts.add(value.split(",")[0]!.trim().toLowerCase());
-  };
-  add(request.headers.get("x-forwarded-host"));
-  add(request.headers.get("host"));
-  try {
-    add(new URL(request.url).host);
-  } catch {
-    // request.url is always absolute here; the guard costs nothing.
-  }
-  try {
-    if (process.env.NEXT_PUBLIC_SITE_URL) {
-      add(new URL(process.env.NEXT_PUBLIC_SITE_URL).host);
-    }
-  } catch {
-    // A misconfigured env var must not decide whether contracts can be signed.
-  }
-
-  return hosts.has(originHost.toLowerCase());
-}
 
 /**
  * See the customer back to their own contract.

@@ -21,6 +21,10 @@ const ERRORS: Record<string, string> = {
   cancelled: "ההסכם בוטל ולא ניתן לחתום עליו. פנו לסוכן שלכם.",
   not_found: "ההסכם לא נמצא.",
   failed: "החתימה לא נקלטה. נסו שוב, ואם זה חוזר — פנו אלינו.",
+  // Each of these used to be "failed" too. One message for four causes is one
+  // message that cannot be acted on — by the customer or by us.
+  body_unreadable: "הטופס לא נקלט במלואו. נסו שוב, ואם זה חוזר — צלמו את המסך ופנו אלינו.",
+  unexpected: "אירעה תקלה בשליחת החתימה. נסו שוב, ואם זה חוזר — צלמו את המסך ופנו אלינו.",
 };
 
 function escapeHtml(value: unknown): string {
