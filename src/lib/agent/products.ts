@@ -113,6 +113,59 @@ export function loadAgentCatalogue(): Promise<Catalogue> {
   return loadVia("agent_price_list");
 }
 
+/**
+ * The hardware showcase: what a visitor sees on the kiosk page.
+ *
+ * A separate list from the calculator's on purpose. price_list() adds up a
+ * monthly subscription; a ₪29,800 cash kiosk in that arithmetic changes what
+ * the page is. This one carries a price, a picture and a category, and no
+ * manufacturer — who builds the cabinet is a fact about our supply chain, not
+ * about what the customer is buying.
+ *
+ * No shipped fallback, unlike the catalogue. There is no hardware in
+ * pricing.ts to fall back to, and a marketing section that renders nothing is
+ * better than one that renders a stale price for a five-figure object. A failed
+ * read returns an empty list and the section does not appear.
+ */
+export interface ShowcaseItem {
+  key: string;
+  label: string;
+  note: string | null;
+  category: string | null;
+  image: string | null;
+  setup: number;
+}
+
+export async function loadHardwareShowcase(): Promise<ShowcaseItem[]> {
+  if (!isPortalConfigured()) return [];
+
+  try {
+    const supabase = createSupabaseAnonClient();
+    const { data, error } = await supabase.rpc("hardware_list");
+    if (error) {
+      console.error("[products] hardware_list failed", error);
+      return [];
+    }
+    if (!Array.isArray(data)) return [];
+
+    return (data as Array<Record<string, unknown>>)
+      .map((row) => ({
+        key: String(row.key ?? ""),
+        label: String(row.label ?? ""),
+        note: row.note == null ? null : String(row.note),
+        category: row.category == null ? null : String(row.category),
+        image: row.image == null ? null : String(row.image),
+        // Numerics arrive as strings. A stray string here would concatenate
+        // into a nonsense price on a public page.
+        setup: Number(row.setup),
+      }))
+      .filter((item) => item.key && item.label && Number.isFinite(item.setup));
+  } catch (error) {
+    console.error("[products] hardware_list threw", error);
+    return [];
+  }
+}
+
 // ════════════════════════════════════════════════════════════
 //  Administration
 // ════════════════════════════════════════════════════════════

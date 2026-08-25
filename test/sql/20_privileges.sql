@@ -33,11 +33,15 @@ select test_assert(count(*) = 0, 'anon holds no privilege on any sequence')
 from information_schema.role_usage_grants
 where object_schema = 'public' and grantee = 'anon' and object_type = 'SEQUENCE';
 
--- ── anon reaches exactly two functions ──────────────────────────────────────
+-- ── anon reaches exactly the four functions a public page needs ─────────────
+-- Two read the marketing lists, two serve one customer their own quote by a
+-- token only they were sent. Nothing else in public/ is reachable without a
+-- session, and this assertion is what keeps it that way when someone adds a
+-- function and reaches for a convenient grant.
 select test_assert(
   coalesce(string_agg(p.proname, ', ' order by p.proname), '') =
-    'price_list, quote_by_token, quote_respond_by_token',
-  'anon may execute only the public price list and the two token functions (found: ' ||
+    'hardware_list, price_list, quote_by_token, quote_respond_by_token',
+  'anon may execute only the two public lists and the two token functions (found: ' ||
   coalesce(string_agg(p.proname, ', ' order by p.proname), 'none') || ')')
 from pg_proc p
 join pg_namespace n on n.oid = p.pronamespace
@@ -50,9 +54,9 @@ where n.nspname = 'public' and has_function_privilege('anon', p.oid, 'execute')
 -- querying role, so revoking them would silently break every policy.
 select test_assert(
   coalesce(string_agg(p.proname, ', ' order by p.proname), '') =
-    'agent_price_list, is_active_agent, is_admin, is_manager, price_list, '
+    'agent_price_list, hardware_list, is_active_agent, is_admin, is_manager, price_list, '
     || 'quote_accept_by_agent, quote_by_token, quote_respond_by_token, recalc_quote',
-  'authenticated may execute only the nine functions it needs (found: ' ||
+  'authenticated may execute only the ten functions it needs (found: ' ||
   coalesce(string_agg(p.proname, ', ' order by p.proname), 'none') || ')')
 from pg_proc p
 join pg_namespace n on n.oid = p.pronamespace
@@ -234,6 +238,49 @@ end $$;
 update public.products set image = '/images/products/t-kiosk-32.webp' where key = 't-kiosk-32';
 select test_assert(image = '/images/products/t-kiosk-32.webp', 'a local image path is accepted')
   from public.products where key = 't-kiosk-32';
+
+-- ── the showcase and the calculator are two different lists ─────────────────
+-- The calculator adds up a monthly subscription. Hardware earns no discount and
+-- costs five figures; it belongs on a page of its own, and price_list() must not
+-- start carrying it just because a product got flagged for the website.
+update public.products set show_on_website = true where key = 't-kiosk-32';
+
+select test_assert(
+  not exists (
+    select 1 from jsonb_array_elements(public.price_list()->'items') i
+     where i->>'group' = 'hardware'
+  ),
+  'the calculator list carries no hardware, flagged or not');
+
+select test_assert(
+  exists (
+    select 1 from jsonb_array_elements(public.hardware_list()) i
+     where i->>'key' = 't-kiosk-32'
+       and (i->>'setup')::numeric = 11500
+  ),
+  'the showcase carries the hardware and its price');
+
+select test_assert(
+  not exists (select 1 from jsonb_array_elements(public.hardware_list()) i where i ? 'supplier'),
+  'the showcase names no manufacturer');
+
+-- Unflagged means unseen, in both lists.
+update public.products set show_on_website = false where key = 't-kiosk-32';
+select test_assert(
+  not exists (select 1 from jsonb_array_elements(public.hardware_list()) i where i->>'key' = 't-kiosk-32'),
+  'an unflagged product stays off the showcase');
+update public.products set show_on_website = true where key = 't-kiosk-32';
+
+do $$
+begin
+  set local role anon;
+  perform public.hardware_list();
+  reset role;
+  raise notice 'ok  anon can read the showcase';
+exception when insufficient_privilege then
+  reset role;
+  raise exception 'FAIL: anon cannot read the showcase';
+end $$;
 
 -- ── hardware never earns a discount ─────────────────────────────────────────
 -- The volume tiers reward recurring commitment. If a screen could raise the
