@@ -115,6 +115,30 @@ all — so a ₪24,500 cash kiosk an agent ticked was dropped silently on the wa
 the quote. It reads `loadAgentCatalogue()` now, and the file stays what it has
 always been: the fallback.
 
+## A contract without a quote
+
+**The price was agreed on the telephone.** `/he/agent/new-contract` builds a
+package in the same builder a quote uses and draws a contract from it directly.
+Nothing goes to the customer except the agreement, ready to sign.
+
+**It still has a quote behind it, and that is not a formality.** Everything a
+contract renders — the customer, the lines, the totals — hangs off `quote_id`,
+its SHA-256 is taken over exactly those words, and the pipeline counts the deal.
+A contract with nothing behind it would be a signed deal invisible in every
+report the company reads. So the package is written onto a quote flagged
+`direct_contract`: never sent, never listed, and `/q/<token>` already refuses a
+draft, so it has no reachable address. `quotes_list` drops those rows, which is
+why "ההצעות שלי" stays a list of proposals.
+
+`create_contract_from_quote` accepts a draft when — and only when — it is one of
+these. A quote an agent is still writing is not a contract.
+
+**The freeze grew one clause with it.** Until 0024 a contract could only come
+from a quote that had already left draft, so "frozen once sent" was enough. A
+direct-contract quote stays a draft forever, and without the extra clause it
+would stay editable underneath a document somebody had already signed. The rule
+now reads: a quote a live contract has been drawn from cannot change either.
+
 ## Roles
 
 | role | sees | can also |

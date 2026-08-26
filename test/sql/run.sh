@@ -49,10 +49,12 @@ for f in test/sql/00_supabase_stub.sql \
          supabase/migrations/0019_contract_template_v3.sql \
          supabase/migrations/0020_contract_template_v4.sql \
          supabase/migrations/0021_hardware_kds_payment_printer.sql \
-         supabase/migrations/0022_quote_edit_and_phone.sql; do
+         supabase/migrations/0022_quote_edit_and_phone.sql \
+         supabase/migrations/0023_software_families.sql \
+         supabase/migrations/0024_direct_contract.sql; do
   psql -q -v ON_ERROR_STOP=1 -d "$DB" -f "$f" > /dev/null
 done
 for t in test/sql/10_orders.sql test/sql/20_privileges.sql test/sql/30_contracts.sql \
-         test/sql/40_quote_editing.sql; do
+         test/sql/40_quote_editing.sql test/sql/50_direct_contract.sql; do
   psql -q -v ON_ERROR_STOP=1 -d "$DB" -f "$t" 2>&1 | grep -E 'NOTICE:  ok|ERROR|── ' | sed 's/^psql:[^ ]* //'
 done

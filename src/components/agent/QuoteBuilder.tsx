@@ -40,6 +40,30 @@ interface Section {
 }
 
 /**
+ * Split a section into the families its products belong to, in catalogue order.
+ *
+ * Twenty-seven pieces of hardware under one heading is a wall an agent scrolls
+ * past rather than reads. `category` already says which family a product is in
+ * — it is what the price page builds its tabs from — so the builder uses the
+ * same answer instead of inventing a second one.
+ *
+ * A section whose products all share one family, or name none, is rendered flat:
+ * a sub-heading over the whole list says nothing the section heading did not.
+ */
+function byCategory(
+  items: readonly CatalogueItem[]
+): { title: string | null; items: CatalogueItem[] }[] {
+  const families: { title: string | null; items: CatalogueItem[] }[] = [];
+  for (const item of items) {
+    const title = item.category?.trim() || null;
+    const last = families[families.length - 1];
+    if (last && last.title === title) last.items.push(item);
+    else families.push({ title, items: [item] });
+  }
+  return families.length > 1 ? families : [{ title: null, items: [...items] }];
+}
+
+/**
  * Tick the components an existing quote holds, in the state built from today's
  * catalogue. A component that has been retired since the quote was written is
  * simply absent from that state and is skipped here — it cannot be sold, so it
@@ -69,6 +93,7 @@ export interface QuoteDraft {
 export function QuoteBuilder({
   catalogue = DEFAULT_CATALOGUE,
   draft,
+  mode = "quote",
 }: {
   catalogue?: Catalogue;
   /**
@@ -76,6 +101,13 @@ export function QuoteBuilder({
    * a second screen for editing would be a second place for the two to drift.
    */
   draft?: QuoteDraft;
+  /**
+   * "contract" draws a contract straight from the package, with no proposal in
+   * front of it — for a price agreed on the telephone. Same question, same
+   * form; only where it lands is different, which is why it is a mode and not
+   * a second builder.
+   */
+  mode?: "quote" | "contract";
 }) {
   const router = useRouter();
   const [calc, setCalc] = useState<CalcState>(() => applyDraft(buildInitialState(catalogue), draft));
@@ -97,6 +129,7 @@ export function QuoteBuilder({
     setCalc((prev) => ({ ...prev, [id]: { ...prev[id], ...patch } }));
   }, []);
 
+  const contractMode = mode === "contract";
   const totals = computeQuote(calc, catalogue);
   const money = withMoney(totals, vatPercent, termMonths);
   const upcoming = nextTier(totals.eligibleMonthlySubtotal);
@@ -138,23 +171,31 @@ export function QuoteBuilder({
 
     setBusy(true);
     try {
-      const response = await fetch(draft ? `/api/agent/quotes/${draft.id}` : "/api/agent/quotes", {
-        method: draft ? "PATCH" : "POST",
+      const endpoint = contractMode
+        ? "/api/agent/contracts/direct"
+        : draft
+          ? `/api/agent/quotes/${draft.id}`
+          : "/api/agent/quotes";
+
+      const response = await fetch(endpoint, {
+        method: draft && !contractMode ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ customer, calc, vatPercent, termMonths, validDays, notes }),
       });
 
       const payload = (await response.json()) as { id?: string; error?: string };
       if (!response.ok || !payload.id) {
-        setError(payload.error ?? "שמירת ההצעה נכשלה");
+        setError(payload.error ?? (contractMode ? "הפקת ההסכם נכשלה" : "שמירת ההצעה נכשלה"));
         setBusy(false);
         return;
       }
 
-      router.push(`/he/agent/quotes/${payload.id}`);
+      router.push(
+        contractMode ? `/he/agent/contracts/${payload.id}` : `/he/agent/quotes/${payload.id}`
+      );
       router.refresh();
     } catch {
-      setError("שמירת ההצעה נכשלה — בדקו את החיבור לרשת");
+      setError("השמירה נכשלה — בדקו את החיבור לרשת");
       setBusy(false);
     }
   };
@@ -182,8 +223,18 @@ export function QuoteBuilder({
               <span className="text-xs text-brand-muted">{section.hint}</span>
             </div>
             <div className="space-y-2">
-              {section.items.map((item) => (
-                <ComponentRow key={item.id} item={item} state={calc[item.id]} onChange={update} />
+              {byCategory(section.items).map((family) => (
+                <div key={family.title ?? "—"} className="space-y-2">
+                  {family.title ? (
+                    <p className="px-1 pt-2 text-xs font-bold text-brand-muted">
+                      {family.title}
+                      <span className="ms-1.5 font-normal">({family.items.length})</span>
+                    </p>
+                  ) : null}
+                  {family.items.map((item) => (
+                    <ComponentRow key={item.id} item={item} state={calc[item.id]} onChange={update} />
+                  ))}
+                </div>
               ))}
             </div>
           </section>
@@ -257,7 +308,7 @@ export function QuoteBuilder({
               onChange={(v) => setCustomer({ ...customer, taxId: v })}
               dir="ltr"
             />
-            <div>
+            <div className={contractMode ? "hidden" : undefined}>
               <label htmlFor="valid" className="mb-1.5 block text-xs font-semibold text-brand-muted">
                 תוקף ההצעה
               </label>
@@ -352,7 +403,17 @@ export function QuoteBuilder({
               disabled={busy || !totals.hasAnyEnabled}
               className="w-full rounded-pill bg-brand-pink px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-pinkDark disabled:cursor-not-allowed disabled:opacity-40"
             >
-              {busy ? (draft ? "שומר…" : "יוצר הצעה…") : draft ? "שמירת השינויים" : "צור הצעה"}
+              {busy
+                ? contractMode
+                  ? "מפיק הסכם…"
+                  : draft
+                    ? "שומר…"
+                    : "יוצר הצעה…"
+                : contractMode
+                  ? "הפקת הסכם"
+                  : draft
+                    ? "שמירת השינויים"
+                    : "צור הצעה"}
             </button>
             <button
               type="button"
