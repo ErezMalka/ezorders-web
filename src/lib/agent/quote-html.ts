@@ -68,6 +68,15 @@ export interface QuoteDocumentData {
   discountAmount: number;
   monthlyNonEligible: number;
   monthlyTotal: number;
+  /**
+   * Kept on the record, printed nowhere.
+   *
+   * Every price this document states is before VAT, and it says so once in the
+   * terms. A rate reprinted beside each line is a rate that will be wrong the
+   * next time the law changes, on a document somebody already filed. The term
+   * is here for the same reason: the quote no longer states one, because there
+   * is no minimum commitment to state.
+   */
   vatPercent: number;
   termMonths: number;
 
@@ -103,17 +112,11 @@ export function renderQuoteDocument(data: QuoteDocumentData): string {
     discountAmount,
     monthlyNonEligible,
     monthlyTotal,
-    vatPercent,
-    termMonths,
   } = data;
 
-  const setupVat = (setupTotal * vatPercent) / 100;
-  const monthlyVat = (monthlyTotal * vatPercent) / 100;
-  const contractValue = setupTotal + (data.hardwareTotal ?? 0) + monthlyTotal * termMonths;
   const annualSaving = discountAmount * 12;
 
   const hardwareTotal = data.hardwareTotal ?? 0;
-  const hardwareVat = (hardwareTotal * vatPercent) / 100;
 
   // The document is read by someone deciding whether to sign, and the question
   // they are actually asking is "what does this cost me, and when". So the lines
@@ -356,10 +359,11 @@ export function renderQuoteDocument(data: QuoteDocumentData): string {
         ? `<div class="row"><span>מוצרים וחומרה (חד פעמי)</span>${num(fmt(hardwareTotal))}</div>`
         : ""
     }
-    <div class="row faint"><span>מע״מ ${vatPercent}%</span>${num(fmt(setupVat + hardwareVat))}</div>
-    <div class="row section"><span>${
-      hardwareTotal > 0 ? "סה״כ לתשלום מיידי כולל מע״מ" : "הקמה כולל מע״מ"
-    }</span>${num(fmt(setupTotal + hardwareTotal + setupVat + hardwareVat))}</div>
+    ${
+      hardwareTotal > 0
+        ? `<div class="row section"><span>סה״כ לתשלום מיידי</span>${num(fmt(setupTotal + hardwareTotal))}</div>`
+        : ""
+    }
 
     <div class="spacer"></div>
 
@@ -374,9 +378,7 @@ export function renderQuoteDocument(data: QuoteDocumentData): string {
         ? `<div class="row faint"><span>רכיבים ללא הנחה</span>${num("+" + fmt(monthlyNonEligible))}</div>`
         : ""
     }
-    <div class="row"><span>סה״כ חודשי</span>${num(fmt(monthlyTotal))}</div>
-    <div class="row faint"><span>מע״מ ${vatPercent}%</span>${num(fmt(monthlyVat))}</div>
-    <div class="row grand"><span>חודשי כולל מע״מ</span>${num(fmt(monthlyTotal + monthlyVat))}</div>
+    <div class="row grand"><span>סה״כ חודשי</span>${num(fmt(monthlyTotal))}</div>
   </div>
 
   ${
@@ -388,9 +390,9 @@ export function renderQuoteDocument(data: QuoteDocumentData): string {
   ${data.notes ? `<div class="notes"><h2>הערות ותנאים</h2>${escapeHtml(data.notes)}</div>` : ""}
 
   <div class="terms">
-    ההצעה בתוקף עד ${num(HE_DATE.format(data.validUntil))}. המחירים נקובים בשקלים חדשים ואינם כוללים מע״מ אלא אם צוין אחרת.
+    ההצעה בתוקף עד ${num(HE_DATE.format(data.validUntil))}. כל המחירים נקובים בשקלים חדשים ואינם כוללים מע״מ.
     המחיר מתייחס לסניף בודד — ברשת עם מספר סניפים, כל סניף מחויב ומחושב בנפרד.
-    התחייבות ל-${num(String(termMonths))} חודשים; שווי החוזה לתקופה ${num(fmt(contractValue))} לפני מע״מ.
+    אין התחייבות לתקופה מינימלית; סיום ההתקשרות בהודעה של 60 יום מראש.
     ההנחה החודשית מחושבת על רכיבי הליבה והתוספות הכלולות בלבד, ונקבעת לפי מדרגת החודשי הזכאי במועד החתימה.
   </div>
 

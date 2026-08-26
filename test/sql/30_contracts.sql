@@ -68,9 +68,21 @@ select test_assert(
   'and forty-four clauses')
   from public.contract_templates where is_current;
 
+-- The period is written out in 1.5, not filled in from a field. A leftover
+-- {{termMonths}} would print literal braces on a document a customer signs,
+-- and nothing fills them any more — the quote stopped carrying a term.
 select test_assert(
-  sections::text like '%{{termWords}}%' and sections::text like '%{{termMonths}}%',
-  'clause 1.4 carries the term placeholders rather than a hard-coded twelve')
+  sections::text not like '%{{termWords}}%' and sections::text not like '%{{termMonths}}%'
+  and sections::text not like '%תקופת הסכם השירות הראשונית%',
+  'the current terms carry no placeholder for a period')
+  from public.contract_templates where is_current;
+
+-- Version 4 names a period again — twelve months — and says in the same breath
+-- that it binds nobody. The number and the parenthesis travel together: a term
+-- printed without it is exactly the commitment this contract does not sell.
+select test_assert(
+  sections::text like '%תקופת ההסכם היא 12 חודשים (ללא התחייבות)%',
+  'the term is twelve months, stated with no commitment')
   from public.contract_templates where is_current;
 
 -- 2.8 set a percentage penalty that duplicated 2.9's remaining-payments rule.
@@ -105,7 +117,7 @@ select test_assert(
 -- would be the sales conversation's opposite, in writing.
 select test_assert(
   sections::text like '%60 יום מראש%'
-  and sections::text like '%אין בתקופה זו התחייבות%',
+  and sections::text like '%(ללא התחייבות)%',
   'the terms carry a 60-day notice and no minimum period')
   from public.contract_templates where is_current;
 
@@ -130,7 +142,7 @@ select test_assert(
 
 -- Versions accumulate. A version that was approved is never edited, because a
 -- contract issued under it must keep rendering the words that were signed.
-select test_assert(count(*) >= 2, 'earlier versions are kept, not overwritten')
+select test_assert(count(*) >= 3, 'earlier versions are kept, not overwritten')
   from public.contract_templates;
 
 select test_assert(count(*) = 1, 'exactly one version is current')

@@ -37,11 +37,6 @@ export default async function QuoteDetailPage({ params }: { params: Promise<{ id
 
   const status = QUOTE_STATUS[quote.status];
   const hardwareTotal = Number(quote.hardware_total ?? 0);
-  const setupVat = (Number(quote.setup_total) * Number(quote.vat_percent)) / 100;
-  const hardwareVat = (hardwareTotal * Number(quote.vat_percent)) / 100;
-  const monthlyVat = (Number(quote.monthly_total) * Number(quote.vat_percent)) / 100;
-  const contractValue =
-    Number(quote.setup_total) + hardwareTotal + Number(quote.monthly_total) * quote.term_months;
 
   const grouped = GROUP_ORDER.map((group) => ({
     group,
@@ -130,16 +125,12 @@ export default async function QuoteDetailPage({ params }: { params: Promise<{ id
               <h2 className="text-sm font-bold">סיכום</h2>
             </div>
             <div className="px-5 py-4 text-sm">
-              <SummaryRow label="סה״כ הקמה" value={fmt(Number(quote.setup_total))} />
-              <SummaryRow label={`מע״מ ${quote.vat_percent}%`} value={fmt(setupVat)} faint />
-              <SummaryRow label="הקמה כולל מע״מ" value={fmt(Number(quote.setup_total) + setupVat)} emphasis />
+              <SummaryRow label="סה״כ הקמה" value={fmt(Number(quote.setup_total))} emphasis />
 
               {hardwareTotal > 0 ? (
                 <>
                   <div className="my-3 h-px bg-slate-100" />
-                  <SummaryRow label="מוצרים וחומרה" value={fmt(hardwareTotal)} />
-                  <SummaryRow label={`מע״מ ${quote.vat_percent}%`} value={fmt(hardwareVat)} faint />
-                  <SummaryRow label="מוצרים כולל מע״מ" value={fmt(hardwareTotal + hardwareVat)} emphasis />
+                  <SummaryRow label="מוצרים וחומרה" value={fmt(hardwareTotal)} emphasis />
                 </>
               ) : null}
 
@@ -156,17 +147,10 @@ export default async function QuoteDetailPage({ params }: { params: Promise<{ id
               {Number(quote.monthly_non_eligible) > 0 ? (
                 <SummaryRow label="ללא הנחה" value={`+${fmt(Number(quote.monthly_non_eligible))}`} faint />
               ) : null}
-              <SummaryRow label="סה״כ חודשי" value={fmt(Number(quote.monthly_total))} />
-              <SummaryRow label={`מע״מ ${quote.vat_percent}%`} value={fmt(monthlyVat)} faint />
-              <SummaryRow
-                label="חודשי כולל מע״מ"
-                value={fmt(Number(quote.monthly_total) + monthlyVat)}
-                emphasis
-              />
+              <SummaryRow label="סה״כ חודשי" value={fmt(Number(quote.monthly_total))} emphasis />
 
               <p className="mt-3 text-center text-xs text-brand-muted">
-                שווי החוזה ל-{quote.term_months} חודשים:{" "}
-                <span className="font-semibold text-brand-dark">{fmt(contractValue)}</span>
+                כל המחירים אינם כוללים מע״מ.
               </p>
             </div>
           </div>

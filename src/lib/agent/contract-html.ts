@@ -175,7 +175,6 @@ const EVENT_LABEL: Record<string, string> = {
 };
 
 export function renderContractDocument(data: ContractDocumentData): string {
-  const vat = data.vatPercent;
   const oneTime = data.setupTotal + data.hardwareTotal;
 
   const detail = (label: string, value: string | null | undefined) => `
@@ -193,7 +192,6 @@ export function renderContractDocument(data: ContractDocumentData): string {
         ${detail("טלפון נייד", data.contactPhone)}
         ${detail("דואר אלקטרוני", data.customerEmail)}
         ${detail("חברת קופות", data.posCompany)}
-        ${detail("תקופת ההסכם", `${data.termMonths} חודשים`)}
         ${detail("תאריך", HE_DATE.format(data.issuedAt))}
       </tbody>
     </table>`;
@@ -235,7 +233,7 @@ export function renderContractDocument(data: ContractDocumentData): string {
         </tr>
       </tfoot>
     </table>
-    <p class="vat">** המחירים אינם כוללים מע״מ כחוק (${num(`${vat}%`)})</p>`;
+    <p class="vat">** כל המחירים אינם כוללים מע״מ.</p>`;
 
   const terms = data.sections
     .map(
