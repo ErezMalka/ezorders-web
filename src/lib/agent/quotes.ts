@@ -188,7 +188,19 @@ export function normalizeCreateInput(
  * database's job. The header is inserted with zeroed money and recalc_quote()
  * fills it in from the lines that were actually stored.
  */
-export async function createQuote(input: CreateQuoteInput, agentId: string): Promise<QuoteRow> {
+export async function createQuote(
+  input: CreateQuoteInput,
+  agentId: string,
+  options: {
+    /**
+     * True when this quote exists only to carry a contract's package — never
+     * sent, never listed. Passed as an argument rather than read from the body,
+     * because a caller must not be able to hide their own quote from the
+     * pipeline by adding a field to a POST. See 0024.
+     */
+    directContract?: boolean;
+  } = {}
+): Promise<QuoteRow> {
   // Priced from the catalogue an agent may actually sell, which is the database
   // with the shipped file behind it. It used to be priced from the file alone,
   // and the file carries no hardware at all — so a kiosk an agent ticked was
@@ -214,6 +226,7 @@ export async function createQuote(input: CreateQuoteInput, agentId: string): Pro
       valid_days: normalized.validDays,
       valid_until: validUntil.toISOString().slice(0, 10),
       notes: normalized.notes || null,
+      direct_contract: options.directContract ?? false,
     })
     .select()
     .single();

@@ -1,5 +1,6 @@
 import "server-only";
 
+import { createQuote, type CreateQuoteInput } from "@/lib/agent/quotes";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 /**
@@ -201,6 +202,28 @@ export async function createContractFromQuote(quoteId: string): Promise<CreatedC
     contractNumber: result.contract_number!,
     existed: result.code === "already_exists",
   };
+}
+
+/**
+ * A contract with no proposal in front of it.
+ *
+ * The price was agreed on the telephone and the customer is waiting for the
+ * agreement, not for a proposal they have already said yes to. So the package
+ * is written onto a quote that is never sent and never listed, and the contract
+ * is drawn from it in the same breath.
+ *
+ * The quote is not a formality. Everything a contract renders — the customer,
+ * the lines, the totals — hangs off it, its hash is taken over exactly those
+ * words, and the pipeline counts the deal. A contract with nothing behind it
+ * would be a signed deal invisible in every report the company reads.
+ */
+export async function createDirectContract(
+  input: CreateQuoteInput,
+  agentId: string
+): Promise<CreatedContract & { quoteId: string }> {
+  const quote = await createQuote(input, agentId, { directContract: true });
+  const contract = await createContractFromQuote(quote.id);
+  return { ...contract, quoteId: quote.id };
 }
 
 /** Moves a draft to sent and hands back the token to build the customer link. */

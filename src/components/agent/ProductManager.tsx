@@ -327,11 +327,15 @@ export function ProductManager({ products }: { products: ProductRow[] }) {
                               patch(product.id, { supplier: v }, `${product.label}: ספק עודכן`)
                             }
                           />
+                          {/* Offered on every product, not only on hardware: the
+                              quote builder groups each section by family now, and a
+                              product with no family stands under a heading it shares
+                              with nobody. */}
                           <TagCell
                             prefix="סוג"
                             value={product.category}
                             listId="category-values"
-                            offerWhenEmpty={group === "hardware"}
+                            offerWhenEmpty
                             busy={busy === product.id}
                             onSave={(v) =>
                               patch(product.id, { category: v }, `${product.label}: סוג עודכן`)
