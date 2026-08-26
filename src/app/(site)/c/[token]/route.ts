@@ -17,6 +17,9 @@ import { createSupabaseAdminClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+// Rendering a PDF starts a browser. That happens after the customer has been
+// sent on their way, but it still happens inside this invocation's lifetime.
+export const maxDuration = 60;
 
 /**
  * The customer's contract, by token.
@@ -172,10 +175,27 @@ async function sign(request: Request, token: string): Promise<Response> {
   // Only on the transition. Signing is idempotent, and a customer who refreshes
   // should not send themselves a second copy.
   if (result.code === "signed") {
-    await mailSignedCopy(request, token);
+    await deferred(mailSignedCopy(request, token));
   }
 
   return redirectBack(request, token, null);
+}
+
+/**
+ * Hand work to the platform to finish after the response has gone.
+ *
+ * Sending the copies now means starting a browser and rendering a PDF, and the
+ * customer must not sit on a spinner for it — they have signed, and the next
+ * thing they should see is the page saying so. Where there is no such hook, the
+ * work is awaited instead: slower, and certain, which is the right way round.
+ */
+async function deferred(work: Promise<void>): Promise<void> {
+  try {
+    const { waitUntil } = await import("@vercel/functions");
+    waitUntil(work);
+  } catch {
+    await work;
+  }
 }
 
 /**

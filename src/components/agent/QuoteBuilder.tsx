@@ -42,8 +42,12 @@ interface Section {
 export function QuoteBuilder({ catalogue = DEFAULT_CATALOGUE }: { catalogue?: Catalogue }) {
   const router = useRouter();
   const [calc, setCalc] = useState<CalcState>(() => buildInitialState(catalogue));
-  const [vatPercent, setVatPercent] = useState(DEFAULT_VAT_PERCENT);
-  const [termMonths, setTermMonths] = useState(DEFAULT_TERM_MONTHS);
+  // Not asked for any more, and not chosen per deal. VAT is whatever the law
+  // says on the day of the invoice, and every price we quote is before it; the
+  // term is gone because there is no commitment to state. Both are still
+  // written onto the quote so the shape of the record does not change.
+  const vatPercent = DEFAULT_VAT_PERCENT;
+  const termMonths = DEFAULT_TERM_MONTHS;
   const [validDays, setValidDays] = useState(DEFAULT_VALID_DAYS);
   const [notes, setNotes] = useState("");
   const [customer, setCustomer] = useState({ name: "", contact: "", phone: "", email: "", taxId: "" });
@@ -222,38 +226,6 @@ export function QuoteBuilder({ catalogue = DEFAULT_CATALOGUE }: { catalogue?: Ca
                 ))}
               </select>
             </div>
-            <div>
-              <label htmlFor="term" className="mb-1.5 block text-xs font-semibold text-brand-muted">
-                התחייבות
-              </label>
-              <select
-                id="term"
-                value={termMonths}
-                onChange={(e) => setTermMonths(Number(e.target.value))}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 outline-none focus:border-brand-pink"
-              >
-                {[12, 24, 36].map((months) => (
-                  <option key={months} value={months}>
-                    {months} חודשים
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label htmlFor="vat" className="mb-1.5 block text-xs font-semibold text-brand-muted">
-                מע״מ (%)
-              </label>
-              <input
-                id="vat"
-                type="number"
-                min={0}
-                max={100}
-                step={0.5}
-                value={vatPercent}
-                onChange={(e) => setVatPercent(Number(e.target.value))}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 tabular-nums outline-none focus:border-brand-pink"
-              />
-            </div>
             <div className="sm:col-span-2">
               <label htmlFor="notes" className="mb-1.5 block text-xs font-semibold text-brand-muted">
                 הערות ותנאי תשלום
@@ -289,7 +261,6 @@ export function QuoteBuilder({ catalogue = DEFAULT_CATALOGUE }: { catalogue?: Ca
               />
             ) : null}
             <Row label="סה״כ הקמה (חד פעמי)" value={fmt(totals.finalSetupTotal)} emphasis />
-            <Row label={`כולל מע״מ ${vatPercent}%`} value={fmt(money.setupInclVat)} faint />
 
             {/* Shown only when something physical was selected. An empty
                 hardware line on a software-only quote is noise. */}
@@ -297,7 +268,6 @@ export function QuoteBuilder({ catalogue = DEFAULT_CATALOGUE }: { catalogue?: Ca
               <>
                 <div className="my-3 h-px bg-slate-100" />
                 <Row label="מוצרים וחומרה (חד פעמי)" value={fmt(totals.hardwareTotal)} emphasis />
-                <Row label={`כולל מע״מ ${vatPercent}%`} value={fmt(money.hardwareInclVat)} faint />
               </>
             ) : null}
 
@@ -311,7 +281,6 @@ export function QuoteBuilder({ catalogue = DEFAULT_CATALOGUE }: { catalogue?: Ca
               <Row label="רכיבים ללא הנחה" value={`+${fmt(totals.nonDiscountableMonthly)}`} faint />
             ) : null}
             <Row label="סה״כ חודשי" value={fmt(totals.finalMonthlyTotal)} emphasis />
-            <Row label={`כולל מע״מ ${vatPercent}%`} value={fmt(money.monthlyInclVat)} faint />
 
             {totals.discountAmt > 0 ? (
               <p className="mt-3 rounded-xl bg-emerald-50 px-3 py-2 text-center text-xs font-semibold text-emerald-700">
@@ -320,8 +289,7 @@ export function QuoteBuilder({ catalogue = DEFAULT_CATALOGUE }: { catalogue?: Ca
             ) : null}
 
             <p className="mt-3 text-center text-xs text-brand-muted">
-              שווי החוזה ל-{termMonths} חודשים:{" "}
-              <span className="font-semibold text-brand-dark">{fmt(money.contractValue)}</span>
+              כל המחירים אינם כוללים מע״מ.
             </p>
           </div>
 
@@ -364,7 +332,16 @@ function ComponentRow({
 }) {
   const enabled = state?.enabled ?? false;
   const qty = state?.qty ?? 1;
-  const lineMonthly = enabled ? item.monthly * qty : 0;
+
+  // The row is a price list before it is a subtotal. It used to print ₪0 for
+  // anything not ticked, which made the branded app read as free at a glance
+  // and told an agent nothing about what they were about to add — so it now
+  // states the price either way and greys it out until the item is selected.
+  //
+  // A product with no monthly charge shows what it costs once instead of ₪0 a
+  // month, which is the only honest thing to say about a kiosk or a screen.
+  const oneTimeOnly = item.monthly === 0;
+  const lineAmount = (oneTimeOnly ? item.setup : item.monthly) * qty;
 
   return (
     <div
@@ -431,8 +408,14 @@ function ComponentRow({
       ) : null}
 
       <div className="w-24 flex-shrink-0 text-left">
-        <p className="text-sm font-bold tabular-nums text-brand-dark">{fmt(lineMonthly)}</p>
-        <p className="text-[11px] text-brand-muted">לחודש</p>
+        <p
+          className={`text-sm font-bold tabular-nums ${
+            enabled ? "text-brand-dark" : "text-brand-muted"
+          }`}
+        >
+          {fmt(lineAmount)}
+        </p>
+        <p className="text-[11px] text-brand-muted">{oneTimeOnly ? "חד־פעמי" : "לחודש"}</p>
       </div>
     </div>
   );

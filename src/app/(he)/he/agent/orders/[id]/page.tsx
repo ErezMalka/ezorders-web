@@ -39,8 +39,6 @@ export default async function AgentOrderPage({ params }: { params: Promise<{ id:
   const order = await getOrder(id);
   if (!order) notFound();
 
-  const monthlyWithVat = Number(order.monthly_total) * (1 + Number(order.vat_percent) / 100);
-  const setupWithVat = Number(order.setup_total) * (1 + Number(order.vat_percent) / 100);
   const acceptance = order.acceptance;
 
   return (
@@ -80,19 +78,15 @@ export default async function AgentOrderPage({ params }: { params: Promise<{ id:
                 {order.quote_number} — להצעה המקורית ←
               </Link>
             </div>
-            <Row label="הקמה חד־פעמית" value={`${fmt(order.setup_total)} (כולל מע״מ ${fmtExact(setupWithVat)})`} />
-            <Row
-              label="חודשי"
-              value={`${fmt(order.monthly_total)} (כולל מע״מ ${fmtExact(monthlyWithVat)})`}
-            />
+            <Row label="הקמה חד־פעמית" value={fmt(order.setup_total)} />
+            <Row label="חודשי" value={fmt(order.monthly_total)} />
             {Number(order.discount_percent) > 0 ? (
               <Row
                 label="הנחה"
                 value={`${Number(order.discount_percent)}% — ${fmt(order.discount_amount)} לחודש`}
               />
             ) : null}
-            <Row label="תקופה" value={`${order.term_months} חודשים`} />
-            <Row label="שווי חוזה" value={fmt(order.contract_value)} />
+            <p className="pt-2 text-xs text-brand-muted">כל המחירים אינם כוללים מע״מ.</p>
           </section>
 
           <section className="rounded-card border border-slate-200 bg-white p-5 shadow-sm">

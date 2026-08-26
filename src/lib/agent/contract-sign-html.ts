@@ -66,7 +66,33 @@ const PANEL_CSS = `
   .done p { margin: 0; color: #5F6575; font-size: 12.5px; }
   .nojs { margin: 0 0 18px; padding: 11px 14px; border-radius: 10px; background: #fff7ed;
           color: #9a3412; font-size: 12.5px; }
+
+  .pdf { display: inline-flex; align-items: center; gap: 7px; margin-top: 16px;
+         padding: 10px 20px; border: 1px solid #d9dee7; border-radius: 999px;
+         background: #fff; color: #191D2A; font: inherit; font-size: 13px;
+         font-weight: 600; cursor: pointer; }
+  .pdf:hover { border-color: #F05D86; color: #F05D86; }
+  .pdfhint { margin: 8px 0 0; color: #5F6575; font-size: 11.5px; }
+
+  /* The panel is the page's furniture, not the contract. Printing it would put
+     a signature pad and a submit button inside a signed PDF. */
+  @media print { .signpanel, .done { display: none !important; } }
 </style>`;
+
+/**
+ * Save the contract as a PDF.
+ *
+ * The browser's own print-to-PDF, not a second renderer. The document already
+ * carries @media print rules, and the file this produces is the page the
+ * customer read — same fonts, same pagination, same bytes on screen. Any PDF we
+ * built separately would be a second opinion about what the contract looks
+ * like, and this is the one document where there must only be one.
+ */
+function pdfButton(hint: string): string {
+  return `
+  <button type="button" class="pdf" onclick="window.print()">שמירה כ-PDF</button>
+  <p class="pdfhint">${hint}</p>`;
+}
 
 /** Shown once the contract carries a signature. */
 export function renderSignedPanel(contractNumber: string): string {
@@ -77,6 +103,7 @@ export function renderSignedPanel(contractNumber: string): string {
     הסכם ${escapeHtml(contractNumber)} נחתם ונשמר. נספח הראיות בתחתית המסמך מתעד מי חתם,
     מתי, ומאיזו כתובת. שמרו את הקישור הזה — הוא ימשיך להציג את ההסכם החתום.
   </p>
+  ${pdfButton("נפתח חלון ההדפסה של הדפדפן — בחרו ביעד ״שמירה כ-PDF״. הקובץ כולל את החתימה ואת נספח הראיות.")}
 </div>`;
 }
 
@@ -147,6 +174,8 @@ export function renderSignPanel(
   </label>
 
   <button type="submit" class="go" id="go">חתימה ושליחה</button>
+
+  ${pdfButton("רוצים לקרוא אותו לא כאן, או להראות אותו למישהו לפני שחותמים? שמרו עותק.")}
 </form>
 
 <script>

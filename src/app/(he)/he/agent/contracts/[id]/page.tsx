@@ -77,7 +77,6 @@ export default async function AgentContractPage({
             <Row label="איש קשר" value={contract.contact_name} />
             <Row label="טלפון" value={contract.contact_phone} mono />
             <Row label="דוא״ל" value={contract.customer_email} />
-            <Row label="תקופה" value={`${contract.term_months} חודשים`} />
             <Row label="גרסת נוסח" value={String(contract.template_version)} mono />
             <Row
               label="הצעת מחיר"

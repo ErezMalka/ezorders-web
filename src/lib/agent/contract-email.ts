@@ -4,6 +4,7 @@ import { Resend } from "resend";
 
 import { fmt } from "@/lib/pricing";
 import { SUPPLIER } from "./contract-html";
+import { renderContractPdf } from "./contract-pdf";
 
 /**
  * The signed copy, to both sides.
@@ -16,9 +17,18 @@ import { SUPPLIER } from "./contract-html";
  *
  * The document travels as an attachment rather than only a link. A link records
  * that it was opened, which is useful — but "send me a copy" means a file that
- * survives the link, the site and the company. The HTML is self-contained: the
- * logo, the signature and the terms are all inside it, so it opens years from
- * now with no network at all, and prints to PDF from any browser.
+ * survives the link, the site and the company.
+ *
+ * TWO FILES, FOR TWO DIFFERENT JOBS
+ *
+ * The PDF is what a person files, forwards and prints. It is what "send me the
+ * contract" means everywhere outside this codebase, and it is what the customer
+ * gets.
+ *
+ * The HTML is the document itself — the exact bytes the hash was taken over,
+ * self-contained down to the logo and the signature, openable in twenty years
+ * with no network. That is an archive, not a letter, so it goes to the company
+ * alongside the PDF and to the customer only if the PDF could not be made.
  */
 
 export interface ContractCopy {
@@ -101,8 +111,6 @@ function body(copy: ContractCopy, forCompany: boolean): string {
           <td style="padding:6px 0;text-align:left;font-weight:700">${fmt(oneTime)}</td></tr>
       <tr><td style="padding:6px 0;color:#5F6575">תשלום חודשי</td>
           <td style="padding:6px 0;text-align:left;font-weight:700;color:#F05D86">${fmt(copy.monthlyTotal)}</td></tr>
-      <tr><td style="padding:6px 0;color:#5F6575">תקופה</td>
-          <td style="padding:6px 0;text-align:left;font-weight:700">${copy.termMonths} חודשים</td></tr>
     </table>
     <p style="margin:0 0 20px;font-size:12px;color:#5F6575">המחירים אינם כוללים מע״מ.</p>
 
@@ -111,8 +119,7 @@ function body(copy: ContractCopy, forCompany: boolean): string {
     </a>
 
     <p style="margin:22px 0 6px;font-size:12px;color:#5F6575">
-      ההסכם החתום מצורף למייל הזה כקובץ. הוא נפתח בכל דפדפן, וכולל את נספח הראיות —
-      מי חתם, מתי, ומאיזו כתובת.
+      ההסכם החתום מצורף למייל הזה כקובץ, כולל נספח הראיות — מי חתם, מתי, ומאיזו כתובת.
     </p>
     <p style="margin:0 0 20px;font-size:11px;color:#9aa0ad">
       טביעת המסמך (SHA-256):<br>
@@ -145,10 +152,21 @@ export async function sendSignedContractCopy(copy: ContractCopy): Promise<boolea
     return false;
   }
 
-  const attachment = {
+  const htmlAttachment = {
     filename: `${copy.contractNumber}.html`,
     content: Buffer.from(copy.documentHtml, "utf8").toString("base64"),
   };
+
+  // Best effort, by design. A browser that would not start must not stop a
+  // signed contract from reaching the people who signed it — it costs them the
+  // nicer file, not the copy.
+  const pdf = await renderContractPdf(copy.documentHtml);
+  const pdfAttachment = pdf
+    ? { filename: `${copy.contractNumber}.pdf`, content: pdf.toString("base64") }
+    : null;
+  if (!pdfAttachment) {
+    console.error("[contract-email] no PDF for", copy.contractNumber, "— sending the HTML alone");
+  }
 
   const resend = new Resend(apiKey);
   let anySent = false;
@@ -156,18 +174,29 @@ export async function sendSignedContractCopy(copy: ContractCopy): Promise<boolea
   // Two separate messages rather than one with everyone on it: the customer
   // should not be able to read the company's internal address list, and the
   // two messages do not say the same thing.
-  const deliveries: Array<{ label: string; to: string[]; subject: string; forCompany: boolean }> = [
+  const deliveries: Array<{
+    label: string;
+    to: string[];
+    subject: string;
+    forCompany: boolean;
+    attachments: Array<{ filename: string; content: string }>;
+  }> = [
     {
       label: "customer",
       to: to.customer,
       subject: `הסכם ${copy.contractNumber} — עותק חתום`,
       forCompany: false,
+      // One file. A customer handed two versions of their own contract has to
+      // work out which one is the contract.
+      attachments: [pdfAttachment ?? htmlAttachment],
     },
     {
       label: "company",
       to: to.company,
       subject: `נחתם הסכם ${copy.contractNumber} — ${copy.customerName}`,
       forCompany: true,
+      // Both: the PDF to read, and the exact bytes the hash was taken over.
+      attachments: pdfAttachment ? [pdfAttachment, htmlAttachment] : [htmlAttachment],
     },
   ];
 
@@ -180,7 +209,7 @@ export async function sendSignedContractCopy(copy: ContractCopy): Promise<boolea
         replyTo: copy.agentEmail ?? undefined,
         subject: delivery.subject,
         html: body(copy, delivery.forCompany),
-        attachments: [attachment],
+        attachments: delivery.attachments,
       });
       if (error) {
         console.error(`[contract-email] ${delivery.label} rejected`, error);
