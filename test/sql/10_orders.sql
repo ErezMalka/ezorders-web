@@ -27,24 +27,38 @@ insert into public.agents (id, full_name, email, role) values
 
 -- Four quotes belonging to agent A: one to accept, one to reject, one expired,
 -- one left as a draft.
-insert into public.quotes (id, agent_id, customer_name, customer_email, valid_until, status, public_token)
+-- Every quote carries a phone number: since 0022 the database refuses one
+-- without. An email is still optional — plenty of customers do not give one and
+-- the link goes out on WhatsApp.
+insert into public.quotes (id, agent_id, customer_name, customer_phone, customer_email, valid_until, status, public_token)
 values
   ('aaaaaaaa-0000-0000-0000-000000000001', '11111111-1111-1111-1111-111111111111',
-   'מסעדת הדג', 'dag@x.com', current_date + 14, 'sent', repeat('a', 48)),
+   'מסעדת הדג', '050-1000001', 'dag@x.com', current_date + 14, 'draft', repeat('a', 48)),
   ('aaaaaaaa-0000-0000-0000-000000000002', '11111111-1111-1111-1111-111111111111',
-   'פיצה רומא', null, current_date + 14, 'viewed', repeat('b', 48)),
+   'פיצה רומא', '050-1000002', null, current_date + 14, 'draft', repeat('b', 48)),
   ('aaaaaaaa-0000-0000-0000-000000000003', '11111111-1111-1111-1111-111111111111',
-   'קפה נחמד', null, current_date - 1, 'sent', repeat('c', 48)),
+   'קפה נחמד', '050-1000003', null, current_date - 1, 'draft', repeat('c', 48)),
   ('aaaaaaaa-0000-0000-0000-000000000004', '11111111-1111-1111-1111-111111111111',
-   'בורגר בר', null, current_date + 14, 'draft', repeat('d', 48)),
+   'בורגר בר', '050-1000004', null, current_date + 14, 'draft', repeat('d', 48)),
   ('aaaaaaaa-0000-0000-0000-000000000005', '11111111-1111-1111-1111-111111111111',
-   'סושי סאן', null, current_date + 14, 'sent', repeat('e', 48));
+   'סושי סאן', '050-1000005', null, current_date + 14, 'draft', repeat('e', 48));
 
 insert into public.quote_items (quote_id, component_key, item_group, label, quantity,
                                 setup_unit, monthly_unit, setup_total, monthly_total, is_discountable)
 select id, 'pos', 'core', 'קופה', 1, 0, 800, 0, 800, true from public.quotes;
 
 select public.recalc_quote(id) from public.quotes;
+
+-- Built the way the portal builds one: the lines go on while the quote is still
+-- a draft, and the status moves afterwards. Since 0022 that is not a stylistic
+-- choice — a quote that has gone out is the document the customer is reading,
+-- and the database refuses to let its lines change.
+update public.quotes set status = 'sent'
+ where id in ('aaaaaaaa-0000-0000-0000-000000000001',
+              'aaaaaaaa-0000-0000-0000-000000000003',
+              'aaaaaaaa-0000-0000-0000-000000000005');
+update public.quotes set status = 'viewed'
+ where id = 'aaaaaaaa-0000-0000-0000-000000000002';
 
 -- ── 1. the customer accepts ─────────────────────────────────────────────────
 do $$
@@ -151,13 +165,14 @@ select test_assert(ip is null, 'the junk IP is stored as null rather than guesse
   from public.quote_responses where quote_id = 'aaaaaaaa-0000-0000-0000-000000000005';
 
 -- ── 5. the telephone yes, and who may record it ─────────────────────────────
-insert into public.quotes (id, agent_id, customer_name, valid_until, status, public_token)
+insert into public.quotes (id, agent_id, customer_name, customer_phone, valid_until, status, public_token)
 values ('aaaaaaaa-0000-0000-0000-000000000006', '11111111-1111-1111-1111-111111111111',
-        'שווארמה מרכזית', current_date + 14, 'sent', repeat('7', 48));
+        'שווארמה מרכזית', '050-1000006', current_date + 14, 'draft', repeat('7', 48));
 insert into public.quote_items (quote_id, component_key, item_group, label, quantity,
                                 setup_unit, monthly_unit, setup_total, monthly_total, is_discountable)
 values ('aaaaaaaa-0000-0000-0000-000000000006', 'pos', 'core', 'קופה', 1, 0, 800, 0, 800, true);
 select public.recalc_quote('aaaaaaaa-0000-0000-0000-000000000006');
+update public.quotes set status = 'sent' where id = 'aaaaaaaa-0000-0000-0000-000000000006';
 
 do $$
 declare r jsonb;

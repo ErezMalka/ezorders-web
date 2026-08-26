@@ -121,7 +121,7 @@ export function ContractNotes({
               >
                 {line.label}
                 {line.quantity > 1 ? (
-                  <span className="mr-1 text-xs font-normal text-brand-muted">× {line.quantity}</span>
+                  <span className="me-1 text-xs font-normal text-brand-muted">× {line.quantity}</span>
                 ) : null}
               </label>
               <span className="text-xs text-brand-muted">

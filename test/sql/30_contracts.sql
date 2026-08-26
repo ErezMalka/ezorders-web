@@ -26,18 +26,24 @@ insert into public.agents (id, full_name, email, role) values
   ('33333333-3333-3333-3333-333333333333', 'Manager', 'm@ez.com', 'manager')
 on conflict do nothing;
 
-insert into public.quotes (id, agent_id, customer_name, customer_tax_id, customer_email,
+insert into public.quotes (id, agent_id, customer_name, customer_phone, customer_tax_id, customer_email,
                            valid_until, status, public_token, term_months)
 values
   ('c0000001-0000-0000-0000-000000000001', '11111111-1111-1111-1111-111111111111',
-   'מסעדת הבדיקה', '515000111', 'x@t.co.il', current_date + 30, 'sent',  'tok-sent',  12),
+   'מסעדת הבדיקה', '050-3000001', '515000111', 'x@t.co.il', current_date + 30, 'draft', 'tok-sent',  12),
   ('c0000002-0000-0000-0000-000000000002', '11111111-1111-1111-1111-111111111111',
-   'טיוטה',        null,        null,        current_date + 30, 'draft', 'tok-draft', 12);
+   'טיוטה',        '050-3000002', null,        null,        current_date + 30, 'draft', 'tok-draft', 12);
 
 insert into public.quote_items (quote_id, component_key, item_group, label, quantity,
                                 setup_unit, monthly_unit, setup_total, monthly_total,
                                 is_discountable, sort_order)
 values ('c0000001-0000-0000-0000-000000000001', 'pos', 'core', 'קופה', 2, 490, 350, 980, 700, true, 0);
+
+-- Built the way the portal builds one: the lines go on while the quote is still
+-- a draft, and the status moves afterwards. Since 0022 that is not a stylistic
+-- choice — a quote that has gone out is the document the customer is reading,
+-- and the database refuses to let its lines change.
+update public.quotes set status = 'sent' where id = 'c0000001-0000-0000-0000-000000000001';
 
 -- ════════════════════════════════════════════════════════════════════════════
 --  the interlock: no approved template, no contract
