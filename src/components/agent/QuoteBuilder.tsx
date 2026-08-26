@@ -39,18 +39,57 @@ interface Section {
   items: readonly CatalogueItem[];
 }
 
-export function QuoteBuilder({ catalogue = DEFAULT_CATALOGUE }: { catalogue?: Catalogue }) {
+/**
+ * Tick the components an existing quote holds, in the state built from today's
+ * catalogue. A component that has been retired since the quote was written is
+ * simply absent from that state and is skipped here — it cannot be sold, so it
+ * cannot be re-ticked, and the agent sees a package without it rather than a
+ * row they cannot buy.
+ */
+function applyDraft(state: CalcState, draft?: QuoteDraft): CalcState {
+  if (!draft) return state;
+  const next: CalcState = { ...state };
+  for (const [id, qty] of Object.entries(draft.selection)) {
+    if (!next[id]) continue;
+    next[id] = { enabled: true, qty };
+  }
+  return next;
+}
+
+/** What an existing quote hands the builder when it is reopened for editing. */
+export interface QuoteDraft {
+  id: string;
+  customer: { name: string; contact: string; phone: string; email: string; taxId: string };
+  /** Which components, how many. Prices are not carried: the server re-derives them. */
+  selection: Record<string, number>;
+  validDays: number;
+  notes: string;
+}
+
+export function QuoteBuilder({
+  catalogue = DEFAULT_CATALOGUE,
+  draft,
+}: {
+  catalogue?: Catalogue;
+  /**
+   * Present when an existing draft is being edited. The same form either way —
+   * a second screen for editing would be a second place for the two to drift.
+   */
+  draft?: QuoteDraft;
+}) {
   const router = useRouter();
-  const [calc, setCalc] = useState<CalcState>(() => buildInitialState(catalogue));
+  const [calc, setCalc] = useState<CalcState>(() => applyDraft(buildInitialState(catalogue), draft));
   // Not asked for any more, and not chosen per deal. VAT is whatever the law
   // says on the day of the invoice, and every price we quote is before it; the
   // term is gone because there is no commitment to state. Both are still
   // written onto the quote so the shape of the record does not change.
   const vatPercent = DEFAULT_VAT_PERCENT;
   const termMonths = DEFAULT_TERM_MONTHS;
-  const [validDays, setValidDays] = useState(DEFAULT_VALID_DAYS);
-  const [notes, setNotes] = useState("");
-  const [customer, setCustomer] = useState({ name: "", contact: "", phone: "", email: "", taxId: "" });
+  const [validDays, setValidDays] = useState(draft?.validDays ?? DEFAULT_VALID_DAYS);
+  const [notes, setNotes] = useState(draft?.notes ?? "");
+  const [customer, setCustomer] = useState(
+    draft?.customer ?? { name: "", contact: "", phone: "", email: "", taxId: "" }
+  );
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -85,6 +124,13 @@ export function QuoteBuilder({ catalogue = DEFAULT_CATALOGUE }: { catalogue?: Ca
       setError("נא להזין שם לקוח");
       return;
     }
+    // A quote with no number to call back on is a quote nobody follows up. The
+    // server refuses it too, and so does the database — this is only the first
+    // of the three, and the only one that can say so before the round trip.
+    if (!customer.phone.trim()) {
+      setError("נא להזין טלפון לקוח");
+      return;
+    }
     if (!totals.hasAnyEnabled) {
       setError("נא לבחור לפחות רכיב אחד להצעה");
       return;
@@ -92,8 +138,8 @@ export function QuoteBuilder({ catalogue = DEFAULT_CATALOGUE }: { catalogue?: Ca
 
     setBusy(true);
     try {
-      const response = await fetch("/api/agent/quotes", {
-        method: "POST",
+      const response = await fetch(draft ? `/api/agent/quotes/${draft.id}` : "/api/agent/quotes", {
+        method: draft ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ customer, calc, vatPercent, termMonths, validDays, notes }),
       });
@@ -106,6 +152,7 @@ export function QuoteBuilder({ catalogue = DEFAULT_CATALOGUE }: { catalogue?: Ca
       }
 
       router.push(`/he/agent/quotes/${payload.id}`);
+      router.refresh();
     } catch {
       setError("שמירת ההצעה נכשלה — בדקו את החיבור לרשת");
       setBusy(false);
@@ -189,11 +236,12 @@ export function QuoteBuilder({ catalogue = DEFAULT_CATALOGUE }: { catalogue?: Ca
               onChange={(v) => setCustomer({ ...customer, contact: v })}
             />
             <Field
-              label="טלפון"
+              label="טלפון *"
               value={customer.phone}
               onChange={(v) => setCustomer({ ...customer, phone: v })}
               dir="ltr"
               placeholder="050-0000000"
+              required
             />
             <Field
               label="אימייל"
@@ -304,14 +352,16 @@ export function QuoteBuilder({ catalogue = DEFAULT_CATALOGUE }: { catalogue?: Ca
               disabled={busy || !totals.hasAnyEnabled}
               className="w-full rounded-pill bg-brand-pink px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-pinkDark disabled:cursor-not-allowed disabled:opacity-40"
             >
-              {busy ? "יוצר הצעה…" : "צור הצעה"}
+              {busy ? (draft ? "שומר…" : "יוצר הצעה…") : draft ? "שמירת השינויים" : "צור הצעה"}
             </button>
             <button
               type="button"
-              onClick={() => setCalc(buildInitialState(catalogue))}
+              onClick={() =>
+                draft ? router.push(`/he/agent/quotes/${draft.id}`) : setCalc(buildInitialState(catalogue))
+              }
               className="w-full rounded-pill border border-slate-200 px-4 py-2 text-sm font-semibold text-brand-muted transition-colors hover:bg-brand-grey"
             >
-              איפוס החבילה
+              {draft ? "ביטול" : "איפוס החבילה"}
             </button>
           </div>
         </div>

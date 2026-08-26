@@ -82,6 +82,39 @@ has one row per quote and the function is written to be idempotent.
 `went_live_at` from the status itself, so a screen that forgets to send one
 cannot leave the column empty forever.
 
+## Changing a quote
+
+**A draft is edited; anything else is duplicated.** `/he/agent/quotes/<id>/edit`
+reopens a draft in the same builder that made it, and the button is not offered
+once the quote has gone out. That is not tidiness: the document at `/q/<token>`
+is what the customer is reading, and if they press the button its SHA-256 is
+stored in `quote_responses` as the evidence of what they agreed to. Editing the
+text afterwards would leave a stored fingerprint that disagrees with the stored
+words — the one claim anybody would actually dispute.
+
+The rule is written three times: in the page, in the API, and as a trigger in
+the database (0022). Only the CONTENT columns freeze — status, view counts and
+the money columns keep moving, because a sent quote is still being read,
+answered and repriced by `recalc_quote()`.
+
+**Duplicating copies the selection, not the prices.** The copy is a new draft
+with its own number and its own link, priced again from today's catalogue. A
+quote is a promise about today's price list, and re-sending last quarter's
+figures under a new date is a promise nobody made. A product retired since then
+cannot be sold, so it does not survive the copy — and the agent is told which
+ones went rather than left to notice the total is short.
+
+**A phone number is required.** `quotes_customer_reachable` refuses a quote with
+no number, the same way `quotes_customer_named` refuses an unnamed customer. It
+was added NOT VALID: one draft predates the rule, and inventing a number for it
+would be worse than leaving it to be fixed the first time somebody opens it.
+
+**Quotes are priced from the catalogue an agent may sell.** `createQuote` used
+to price from `src/lib/pricing.ts` alone, and that file carries no hardware at
+all — so a ₪24,500 cash kiosk an agent ticked was dropped silently on the way to
+the quote. It reads `loadAgentCatalogue()` now, and the file stays what it has
+always been: the fallback.
+
 ## Roles
 
 | role | sees | can also |

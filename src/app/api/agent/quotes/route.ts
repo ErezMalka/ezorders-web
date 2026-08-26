@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { QuoteValidationError, createQuote } from "@/lib/agent/quotes";
+import { QuoteValidationError, createQuote, duplicateQuote } from "@/lib/agent/quotes";
 import { getAgentSession } from "@/lib/agent/session";
 
 export const runtime = "nodejs";
@@ -35,6 +35,19 @@ export async function POST(request: Request) {
   }
 
   try {
+    // Duplicating is creating: the copy is a new draft with its own number and
+    // its own link, priced from today's catalogue. It lives on this route
+    // rather than under the source quote because what comes back is a new
+    // quote, and the source is left untouched.
+    const duplicateOf = (body as { duplicateOf?: unknown }).duplicateOf;
+    if (typeof duplicateOf === "string" && duplicateOf) {
+      const { quote, dropped } = await duplicateQuote(duplicateOf, session.id);
+      return NextResponse.json(
+        { id: quote.id, quoteNumber: quote.quote_number, dropped },
+        { status: 201 }
+      );
+    }
+
     const quote = await createQuote(body as Parameters<typeof createQuote>[0], session.id);
     return NextResponse.json({ id: quote.id, quoteNumber: quote.quote_number }, { status: 201 });
   } catch (error) {

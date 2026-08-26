@@ -92,14 +92,15 @@ select test_assert(value = 1950, 'the base setup fee lives in pricing_settings')
 insert into auth.users (id, email) values ('44444444-4444-4444-4444-444444444444','p@ez.com');
 insert into public.agents (id, full_name, email, role)
 values ('44444444-4444-4444-4444-444444444444','Priv Test','p@ez.com','agent');
-insert into public.quotes (id, agent_id, customer_name, valid_until, status, public_token)
+insert into public.quotes (id, agent_id, customer_name, customer_phone, valid_until, status, public_token)
 values ('bbbbbbbb-0000-0000-0000-000000000001','44444444-4444-4444-4444-444444444444',
-        'בדיקת הרשאות', current_date + 14, 'sent', repeat('1', 48));
+        'בדיקת הרשאות', '050-2000001', current_date + 14, 'draft', repeat('1', 48));
 insert into public.quote_items (quote_id, component_key, item_group, label, quantity,
                                 setup_unit, monthly_unit, setup_total, monthly_total, is_discountable)
 values ('bbbbbbbb-0000-0000-0000-000000000001','pos','core','קופה',1,490,350,490,350,true);
 
 select public.recalc_quote('bbbbbbbb-0000-0000-0000-000000000001');
+update public.quotes set status = 'sent' where id = 'bbbbbbbb-0000-0000-0000-000000000001';
 select test_assert(setup_total = 2440, 'setup is the base fee plus the lines (1950 + 490)')
   from public.quotes where id = 'bbbbbbbb-0000-0000-0000-000000000001';
 
@@ -300,15 +301,29 @@ on conflict (key) do nothing;
 -- name, because those assertions pin it. Fold it into its family here.
 update public.products set category = 'עמדות קיוסק', sort_order = 103 where key = 't-kiosk-32';
 
+-- Asserted against the table rather than against a list written out here, so
+-- that adding a product family to the catalogue is not a failing test. What is
+-- being pinned is the property the tabs depend on: families arrive in
+-- sort_order order, and a family arrives all at once rather than in pieces.
+with arrived as (
+  select i->>'category' as cat, min(ord) as first_seen, max(ord) as last_seen
+    from (select value as i, row_number() over () as ord
+            from jsonb_array_elements(public.hardware_list())) t
+   group by i->>'category'
+), expected as (
+  select category as cat, min(sort_order) as ord
+    from public.products
+   where is_active and show_on_website and item_group = 'hardware'
+   group by category
+)
 select test_assert(
-  (select array_agg(distinct_cat order by ord)
-     from (
-       select i->>'category' as distinct_cat, min(ord) as ord
-         from (select value as i, row_number() over () as ord
-                 from jsonb_array_elements(public.hardware_list())) t
-        group by i->>'category'
-     ) c
-  ) = array['עמדות קיוסק', 'ציוד נוסף'],
+  (select array_agg(cat order by first_seen) from arrived)
+    = (select array_agg(cat order by ord, cat) from expected)
+  and not exists (
+    select 1
+      from arrived a join arrived b on a.cat is distinct from b.cat
+     where b.first_seen between a.first_seen and a.last_seen
+  ),
   'the showcase arrives grouped, families in sort_order order');
 
 select test_assert(
@@ -322,15 +337,16 @@ select test_assert(
 -- ── hardware never earns a discount ─────────────────────────────────────────
 -- The volume tiers reward recurring commitment. If a screen could raise the
 -- tier, an agent could discount the monthly charge by adding hardware.
-insert into public.quotes (id, agent_id, customer_name, valid_until, status, public_token)
+insert into public.quotes (id, agent_id, customer_name, customer_phone, valid_until, status, public_token)
 values ('bbbbbbbb-0000-0000-0000-000000000002', v_hw_agent(),
-        'בדיקת חומרה', current_date + 14, 'sent', repeat('2', 48));
+        'בדיקת חומרה', '050-2000002', current_date + 14, 'draft', repeat('2', 48));
 insert into public.quote_items (quote_id, component_key, item_group, label, quantity,
                                 setup_unit, monthly_unit, setup_total, monthly_total, is_discountable)
 values ('bbbbbbbb-0000-0000-0000-000000000002','pos','core','קופה',1,490,350,490,350,true),
        ('bbbbbbbb-0000-0000-0000-000000000002','screen','hardware','מסך מגע 15״',2,1200,0,2400,0,false);
 
 select public.recalc_quote('bbbbbbbb-0000-0000-0000-000000000002');
+update public.quotes set status = 'sent' where id = 'bbbbbbbb-0000-0000-0000-000000000002';
 
 select test_assert(setup_total = 2440, 'setup counts the base fee and the services only (1950 + 490)')
   from public.quotes where id = 'bbbbbbbb-0000-0000-0000-000000000002';
