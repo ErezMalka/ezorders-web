@@ -3,7 +3,7 @@ import { createElement } from "react";
 import { PageLayout } from "@/components/PageLayout";
 
 export const metadata: Metadata = {
-  title: "אפליקציית הזמנות למסעדה - ezorders",
+  title: "אפליקציית הזמנות למסעדה — מותגת עם מועדון לקוחות | EZOrders",
   description: "אפליקציית הזמנות למסעדה שמנהלת הזמנות אונליין, מגבירה נאמנות לקוחות ומגדילה מכירות — עם התראות פוש, מעקב הזמנות ותשלום מאובטח.",
   alternates: {
     canonical: "./", languages: { en: "/en/restaurant-ordering-app", he: "/he/restaurant-ordering-app", "x-default": "/he/restaurant-ordering-app" } },

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { PageLayout } from "@/components/PageLayout";
 
 export const metadata: Metadata = {
-  title: "מסך מטבח דיגיטלי (KDS) - ezorders",
+  title: "מסך מטבח דיגיטלי KDS — כל ההזמנות במסך אחד | EZOrders",
   description:
     "מסך מטבח KDS למסעדות: כל ההזמנות מכל הערוצים על מסך אחד במטבח, עם זמני הכנה, סטטוסים ולוח מוכנות ללקוחות. נגמר עידן הבונים המודפסים.",
   alternates: {

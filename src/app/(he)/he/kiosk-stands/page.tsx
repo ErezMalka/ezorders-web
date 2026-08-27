@@ -5,7 +5,7 @@ import { HardwareShowcase } from "@/components/sections/HardwareShowcase";
 import { loadHardwareShowcase } from "@/lib/agent/products";
 
 export const metadata: Metadata = {
-  title: "עמדות קיוסק - ezorders",
+  title: "עמדות קיוסק למסעדות — הזמנה עצמית שמקצרת תורים | EZOrders",
   description: "עמדת קיוסק למסעדה בשירות עצמי שהופכת עומסי שעות שיא להזמנות מהירות, מדויקות ובעלות סל גבוה — ומפנה זמן לצוות.",
   alternates: {
     canonical: "./", languages: { en: "/en/kiosk-stands", he: "/he/kiosk-stands", "x-default": "/he/kiosk-stands" } },

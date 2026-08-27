@@ -3,7 +3,7 @@ import { createElement } from "react";
 import { PageLayout } from "@/components/PageLayout";
 
 export const metadata: Metadata = {
-  title: "פתרונות - ezorders",
+  title: "פתרונות דיגיטליים למסעדות — קופה, קיוסק ותפריט | EZOrders",
   description:
     "הפתרונות של EZOrders למסעדות: אתר הזמנות למסעדה, תפריטים דיגיטליים, עמדות קיוסק ואפליקציית הזמנות — הכל מסונכרן ומתעדכן בזמן אמת.",
   alternates: {

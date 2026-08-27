@@ -4,7 +4,7 @@ import { PageLayout } from "@/components/PageLayout";
 import { ContactForm } from "@/components/ContactForm";
 
 export const metadata: Metadata = {
-  title: "צור קשר - ezorders",
+  title: "צור קשר — דמו למערכת הזמנות למסעדה | EZOrders",
   description:
     "רוצים לשמוע עוד על EZOrders? צרו איתנו קשר ונשמח להראות לכם איך תפריטים דיגיטליים והזמנות אונליין יכולים לעזור למסעדה שלכם.",
   alternates: {
