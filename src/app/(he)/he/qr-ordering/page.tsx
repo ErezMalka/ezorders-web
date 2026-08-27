@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { PageLayout } from "@/components/PageLayout";
 
 export const metadata: Metadata = {
-  title: "הזמנה בסריקת QR מהשולחן - ezorders",
+  title: "הזמנה בסריקת QR מהשולחן — בלי אפליקציה ובלי המתנה | EZOrders",
   description:
     "תפריט QR למסעדה: הסועדים סורקים קוד בשולחן, מזמינים ומשלמים מהטלפון — בלי אפליקציה, בלי המתנה למלצר. יותר הזמנות, פחות עומס על הצוות.",
   alternates: {

@@ -21,7 +21,7 @@ const INDEX_META: Record<Locale, { title: string; description: string }> = {
       "Practical guides for quick-service restaurant operators: online ordering, self-order kiosks, kitchen flow, and the numbers behind them.",
   },
   he: {
-    title: "בלוג - ezorders",
+    title: "בלוג — תפעול מסעדות, הזמנות דיגיטליות ונתונים | EZOrders",
     description:
       "מדריכים פרקטיים למפעילי מסעדות מהיר: הזמנות אונליין, עמדות שירות עצמי, זרימת מטבח והמספרים שמאחוריהם.",
   },

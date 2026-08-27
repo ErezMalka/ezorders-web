@@ -3,7 +3,7 @@ import { createElement } from "react";
 import { PageLayout } from "@/components/PageLayout";
 
 export const metadata: Metadata = {
-  title: "תפריטים דיגיטליים - ezorders",
+  title: "תפריט דיגיטלי למסעדה — QR, תמונות ואלרגנים | EZOrders",
   description: "תפריט דיגיטלי למסעדה שמתעדכן בשניות, נראה מצוין בכל מכשיר ומגדיל את הסל הממוצע — עם QR לכל שולחן ותמיכה רב-לשונית.",
   alternates: {
     canonical: "./", languages: { en: "/en/digital-menus", he: "/he/digital-menus", "x-default": "/he/digital-menus" } },

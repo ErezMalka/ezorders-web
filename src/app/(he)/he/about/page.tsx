@@ -7,7 +7,7 @@ import { ContactBand } from "@/components/sections/ContactBand";
 import { SIGNUP_URL } from "@/data/content";
 
 export const metadata: Metadata = {
-  title: "אודות - ezorders",
+  title: "אודות EZOrders — מערכות הזמנה וניהול למסעדות בישראל",
   description:
     "הכירו את EZOrders — אנחנו בונים תפריטים דיגיטליים ומערכת הזמנות למסעדות, שמתעדכנים בשניות ומלווים את הלקוח בצורה חלקה מהעיון ועד ההזמנה.",
   alternates: {

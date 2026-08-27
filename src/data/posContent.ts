@@ -67,7 +67,7 @@ const en: PosContent = {
 
 const he: PosContent = {
   meta: {
-    title: "קופה (POS) - ezorders",
+    title: "קופה למסעדה — מערכת POS להזמנות ותשלומים | EZOrders",
     description:
       "קופה למסעדה שבנויה לקצב של שירות — לקחת הזמנות, לפצל חשבונות, לנהל מגירת מזומן ולסגור יום עם דוחות X ו-Z, הכול מחובר לתפריט ולדוחות.",
   },

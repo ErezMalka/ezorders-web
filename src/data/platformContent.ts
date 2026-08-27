@@ -191,7 +191,7 @@ const en: PlatformContent = {
 
 const he: PlatformContent = {
   meta: {
-    title: "המערכת - ezorders",
+    title: "מערכת ניהול מסעדה אחת — הזמנות, מטבח ודוחות | EZOrders",
     description:
       "מערכת אחת לניהול כל המסעדה — קופה, הזמנות, תפריט דיגיטלי, מועדון לקוחות, שליחים, עובדים וניהול רב-סניפי, עם דוחות ואנליטיקה בזמן אמת.",
   },
