@@ -4,6 +4,7 @@ import { PricingTable } from "@/components/sections/PricingTable";
 import { StatsStrip } from "@/components/sections/StatsStrip";
 import { Testimonials } from "@/components/sections/Testimonials";
 import { ContactBand } from "@/components/sections/ContactBand";
+import { softwareApplicationSchema } from "@/lib/seo/product-schema";
 
 export const metadata: Metadata = {
   alternates: {
@@ -23,6 +24,10 @@ export const metadata: Metadata = {
 export default function PricePage() {
   return (
     <PageLayout>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareApplicationSchema("en")) }}
+      />
       <div className="pt-28">
         <PricingTable />
       </div>

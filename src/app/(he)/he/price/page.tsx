@@ -3,6 +3,7 @@ import { PageLayout } from "@/components/PageLayout";
 import { PriceTabs } from "@/components/PriceTabs";
 import { PricingCalculator } from "@/components/PricingCalculator";
 import { loadHardwareShowcase, loadPublicCatalogue } from "@/lib/agent/products";
+import { softwareApplicationSchema } from "@/lib/seo/product-schema";
 import { StatsStrip } from "@/components/sections/StatsStrip";
 import { Testimonials } from "@/components/sections/Testimonials";
 import { ContactBand } from "@/components/sections/ContactBand";
@@ -40,6 +41,13 @@ export default async function HePricePage() {
 
   return (
     <PageLayout locale="he">
+    {/* Tells a search engine that this page prices a piece of software, which
+        nothing on the site said before. Prices come from PRICING_CONFIG so the
+        schema cannot drift from what the calculator shows. */}
+    <script
+    type="application/ld+json"
+    dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareApplicationSchema("he")) }}
+    />
     <div className="pt-28">
     <PriceTabs hardware={hardware}>
     <PricingCalculator catalogue={catalogue} />
