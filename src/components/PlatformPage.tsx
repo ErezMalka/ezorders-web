@@ -4,6 +4,8 @@ import { AdminPreview } from "@/components/sections/AdminPreview";
 import { AdminScreens } from "@/components/sections/AdminScreens";
 import { Capabilities } from "@/components/sections/Capabilities";
 import { ContactBand } from "@/components/sections/ContactBand";
+import { FaqSection } from "@/components/sections/FaqSection";
+import { GENERAL_FAQ } from "@/data/faq";
 import { ModuleIcon } from "@/components/Icons";
 import { SIGNUP_URL } from "@/data/content";
 import {
@@ -296,6 +298,8 @@ export function PlatformPage({ locale = "en" }: { locale?: Locale }) {
           </div>
         </div>
       </section>
+
+      <FaqSection items={GENERAL_FAQ[locale]} locale={locale} />
 
       <ContactBand locale={locale} />
     </PageLayout>

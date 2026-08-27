@@ -2,7 +2,8 @@ import { PageLayout } from "./PageLayout";
 import { CTAButton } from "./CTAButton";
 import { FeatureCard } from "./FeatureCard";
 import { PricingTable } from "./sections/PricingTable";
-import { FAQ } from "./sections/FAQ";
+import { FaqSection } from "./sections/FaqSection";
+import { GENERAL_FAQ } from "@/data/faq";
 import { ContactBand } from "./sections/ContactBand";
 import { getHomeContent, type Locale } from "@/data/homeContent";
 import { ModuleIcon, type IconName } from "@/components/Icons";
@@ -113,8 +114,18 @@ export function ProductPageLayout({
       {/* PRICING */}
       <PricingTable locale={locale} />
 
-      {/* FAQ */}
-      {content.faq.length > 0 && <FAQ items={content.faq} />}
+      {/* FAQ. Only questions that have an answer: the shipped list carried four
+          keyword-shaped ones ("What is digital ordering?") with nothing behind
+          them, which rendered accordions that opened onto blank space and made
+          FAQPage schema impossible. The general questions fill the gap with
+          answers a customer actually asked for. */}
+      <FaqSection
+        locale={locale}
+        items={[
+          ...content.faq.filter((f): f is { q: string; a: string } => Boolean(f.a)),
+          ...GENERAL_FAQ[locale],
+        ]}
+      />
 
       {/* CONTACT */}
       <ContactBand locale={locale} />
