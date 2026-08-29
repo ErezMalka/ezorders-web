@@ -51,7 +51,7 @@ function Slider({
         <span className="text-sm font-medium text-white/90">{label}</span>
         <span className="text-lg font-bold text-white">
           {value.toLocaleString("he-IL")}
-          <span className="ms-1 text-sm font-normal text-white/70">{suffix}</span>
+          <span className="ms-1 text-sm font-normal text-white/80">{suffix}</span>
         </span>
       </div>
       <input
@@ -147,7 +147,7 @@ export function QueueCalculator() {
       {/* Calculator card */}
       <div className="rounded-card bg-brand-indigo p-6 md:p-8">
         <h2 className="mb-1 text-xl font-bold text-white">כמה עולה לך התור?</h2>
-        <p className="mb-6 text-sm text-white/70">הזיזו את הסליידרים לפי המסעדה שלכם.</p>
+        <p className="mb-6 text-sm text-white/80">הזיזו את הסליידרים לפי המסעדה שלכם.</p>
         <div className="space-y-6">
           <Slider label="הזמנות ביום" suffix="הזמנות" min={20} max={600} step={10} value={dailyOrders} onChange={setDailyOrders} />
           <Slider label="ממוצע הזמנה" suffix="₪" min={20} max={150} step={1} value={avgTicket} onChange={setAvgTicket} />
@@ -155,10 +155,10 @@ export function QueueCalculator() {
         </div>
 
         <div className="mt-8 rounded-xl bg-white/10 p-5 text-center">
-          <div className="text-sm text-white/70">התור מבריח לך בערך</div>
+          <div className="text-sm text-white/80">התור מבריח לך בערך</div>
           <div className="my-1 text-4xl font-extrabold text-white">{ils(monthlyLoss)}</div>
-          <div className="text-sm text-white/70">בחודש · ≈ {Math.round(lostPerDay)} לקוחות ביום שלא מחכים</div>
-          <div className="mt-3 text-xs text-white/50">
+          <div className="text-sm text-white/80">בחודש · ≈ {Math.round(lostPerDay)} לקוחות ביום שלא מחכים</div>
+          <div className="mt-3 text-xs text-white/75">
             הערכה בלבד, מבוססת על שיעורי נטישה מקובלים בענף ({Math.round(abandonRate * 100)}% נטישה). ניתוח מדויק בשיחה.
           </div>
         </div>

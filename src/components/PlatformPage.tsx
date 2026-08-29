@@ -19,7 +19,7 @@ function FeatureList({ features }: { features: PlatformFeature[] }) {
     <ul className="mt-8 space-y-6">
       {features.map((f) => (
         <li key={f.title} className="flex gap-4">
-          <span className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-tint text-brand-pink">
+          <span className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-tint text-brand-pinkInk">
             <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M5 12l5 5L19 7" />
             </svg>

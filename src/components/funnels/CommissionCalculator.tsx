@@ -70,7 +70,7 @@ function Slider({
         <span className="text-sm font-medium text-white/90">{label}</span>
         <span className="text-lg font-bold text-white">
           {value.toLocaleString("he-IL")}
-          <span className="ms-1 text-sm font-normal text-white/70">{suffix}</span>
+          <span className="ms-1 text-sm font-normal text-white/80">{suffix}</span>
         </span>
       </div>
       <input
@@ -181,7 +181,7 @@ export function CommissionCalculator() {
       {/* Calculator card */}
       <div className="rounded-card bg-brand-indigo p-6 md:p-8">
         <h2 className="mb-1 text-xl font-bold text-white">כמה אתם משלמים בעמלות?</h2>
-        <p className="mb-6 text-sm text-white/70">הזיזו את הסליידרים לפי המסעדה שלכם.</p>
+        <p className="mb-6 text-sm text-white/80">הזיזו את הסליידרים לפי המסעדה שלכם.</p>
 
         <div className="space-y-6">
           <Slider label="הזמנות משלוחים בחודש" suffix="הזמנות" min={50} max={3000} step={25} value={monthlyOrders} onChange={setMonthlyOrders} />
@@ -192,22 +192,22 @@ export function CommissionCalculator() {
 
         <div className="mt-8 space-y-3">
           <div className="rounded-xl bg-white/10 p-4 text-center">
-            <div className="text-sm text-white/70">אתם משלמים בעמלות</div>
+            <div className="text-sm text-white/80">אתם משלמים בעמלות</div>
             <div className="my-1 text-3xl font-extrabold text-white">{ils(commissionPaid)}</div>
-            <div className="text-sm text-white/70">בחודש · מתוך מחזור של {ils(platformRevenue)}</div>
+            <div className="text-sm text-white/80">בחודש · מתוך מחזור של {ils(platformRevenue)}</div>
           </div>
 
           <div className="rounded-xl bg-white/10 p-4 text-center">
-            <div className="text-sm text-white/70">חיסכון נטו אם הלקוחות החוזרים יזמינו ישירות</div>
+            <div className="text-sm text-white/80">חיסכון נטו אם הלקוחות החוזרים יזמינו ישירות</div>
             <div className="my-1 text-4xl font-extrabold text-white">{ils(netMonthlySaving)}</div>
-            <div className="text-sm text-white/70">בחודש · {ils(netYearlySaving)} בשנה</div>
+            <div className="text-sm text-white/80">בחודש · {ils(netYearlySaving)} בשנה</div>
           </div>
         </div>
 
         {/* The caveat belongs next to the number, not in small print at the
             bottom of the page. An operator who spots the omission stops
             believing the rest of the figures. */}
-        <p className="mt-4 text-xs leading-relaxed text-white/60">
+        <p className="mt-4 text-xs leading-relaxed text-white/75">
           החישוב מנכה {Math.round(PROCESSING_RATE * 100)}% סליקה מכל הזמנה ישירה, כי היא זולה יותר — לא חינם.
           הוא גם לא מניח שתעברו ל-100% ישיר: הפלטפורמות מביאות לקוחות חדשים שלא הכירו אתכם, וזה שווה עמלה.
           הרווח נמצא בלקוחות שכבר חוזרים אליכם ומשלמים דרכן עמלה שלא הייתם צריכים לשלם.

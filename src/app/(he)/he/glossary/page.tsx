@@ -44,7 +44,14 @@ const entryStyle = {
 const termStyle = { fontSize: "1.35rem", fontWeight: 700, marginBottom: "0.5rem" } as const;
 const shortStyle = { color: "#222", lineHeight: 1.8, fontWeight: 500, marginBottom: "0.75rem" } as const;
 const detailStyle = { color: "#555", lineHeight: 1.8, marginBottom: "0.75rem" } as const;
-const aliasStyle = { color: "#888", fontSize: "0.9rem", marginBottom: "0.75rem" } as const;
+const aliasStyle = {
+  // #888 measured 3.54:1 on white, under the 4.5:1 floor. #666 is 5.74:1 and
+  // still reads as secondary against the #555 body text, which was the point
+  // of the lighter grey in the first place.
+  color: "#666",
+  fontSize: "0.9rem",
+  marginBottom: "0.75rem",
+} as const;
 const linkStyle = { color: "#C92A5C", fontWeight: 600, textDecoration: "none" } as const;
 const ctaWrapStyle = { marginTop: "2.5rem", display: "flex", flexWrap: "wrap", gap: "0.75rem", alignItems: "center" } as const;
 const ctaStyle = { display: "inline-block", background: "#D22F63", color: "#fff", padding: "0.9rem 2rem", borderRadius: "999px", fontWeight: 600, textDecoration: "none" } as const;

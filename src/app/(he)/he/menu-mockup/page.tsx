@@ -28,13 +28,13 @@ export default function MenuMockupPage() {
             </p>
             <ul className="mt-6 space-y-3 text-brand-dark">
               <li className="flex items-start gap-2">
-                <span className="text-brand-pink">✓</span> פחות תורים, יותר הזמנות
+                <span className="text-brand-pinkInk">✓</span> פחות תורים, יותר הזמנות
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-brand-pink">✓</span> Upsell אוטומטי בכל הזמנה
+                <span className="text-brand-pinkInk">✓</span> Upsell אוטומטי בכל הזמנה
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-brand-pink">✓</span> פחות תלות בכוח אדם
+                <span className="text-brand-pinkInk">✓</span> פחות תלות בכוח אדם
               </li>
             </ul>
           </div>

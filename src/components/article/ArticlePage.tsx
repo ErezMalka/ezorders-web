@@ -70,7 +70,7 @@ export function ArticlePage({ locale, slug }: { locale: Locale; slug: string }) 
             )}
 
             <div className="mb-5 flex flex-wrap items-center gap-2 text-xs text-brand-muted">
-              <span className="rounded-pill bg-brand-tint px-3 py-1 font-medium text-brand-pink">
+              <span className="rounded-pill bg-brand-tint px-3 py-1 font-medium text-brand-pinkInk">
                 {article.category}
               </span>
               {article.draft && (
