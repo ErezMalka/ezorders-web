@@ -20,7 +20,7 @@ export function BlogIndex({ locale }: { locale: Locale }) {
     <PageLayout locale={locale}>
       <section dir={dir} className="bg-brand-grey pb-16 pt-36 text-center">
         <div className="mx-auto max-w-3xl px-6">
-          <span className="mb-6 inline-block rounded-pill bg-brand-tint px-6 py-2 text-sm font-medium text-brand-pink">
+          <span className="mb-6 inline-block rounded-pill bg-brand-tint px-6 py-2 text-sm font-medium text-brand-pinkInk">
             {t.eyebrow}
           </span>
           <h1 className="text-4xl font-bold leading-tight md:text-5xl">{t.indexTitle}</h1>

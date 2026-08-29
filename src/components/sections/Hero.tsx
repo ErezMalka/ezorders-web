@@ -49,7 +49,7 @@ export function Hero({ locale = "en" }: { locale?: Locale }) {
       <div className="mx-auto grid max-w-container items-center gap-10 px-6 md:grid-cols-2">
         <div>
           {t.heroBadge ? (
-            <span className="mb-6 inline-block rounded-pill bg-brand-tint px-5 py-2 text-sm font-medium text-brand-pink">
+            <span className="mb-6 inline-block rounded-pill bg-brand-tint px-5 py-2 text-sm font-medium text-brand-pinkInk">
               {t.heroBadge}
             </span>
           ) : null}

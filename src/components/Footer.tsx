@@ -24,7 +24,7 @@ export function Footer({ dictionary }: { dictionary?: Dictionary }) {
                     createElement(
                                 "div",
                                 null,
-                                createElement("h4", { className: "mb-4 font-semibold" }, f.contactTitle),
+                                createElement("h2", { className: "mb-4 font-semibold" }, f.contactTitle),
                                 createElement("p", { className: "text-brand-muted" }, f.tel)
                               )
                   ),
@@ -52,7 +52,7 @@ function FooterCol({ title, links }: { title: string; links: FooterLink[] }) {
       return createElement(
               "div",
               null,
-              createElement("h4", { className: "mb-4 font-semibold" }, title),
+              createElement("h2", { className: "mb-4 font-semibold" }, title),
               createElement(
                         "ul",
                   { className: "space-y-2 text-brand-muted" },

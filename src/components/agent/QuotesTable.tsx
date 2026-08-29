@@ -69,7 +69,7 @@ export function QuotesTable({
                 <td className="px-4 py-3 text-left">
                   <Link
                     href={`/he/agent/quotes/${quote.id}`}
-                    className="rounded-pill border border-slate-200 px-3 py-1.5 text-xs font-semibold text-brand-muted transition-colors hover:bg-brand-tint hover:text-brand-pink"
+                    className="rounded-pill border border-slate-200 px-3 py-1.5 text-xs font-semibold text-brand-muted transition-colors hover:bg-brand-tint hover:text-brand-pinkInk"
                   >
                     צפייה
                   </Link>

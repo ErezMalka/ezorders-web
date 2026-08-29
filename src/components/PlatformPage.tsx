@@ -50,7 +50,7 @@ function DashboardMock({
       <div className="p-6">
         <div className="flex items-center justify-between">
           <span className="text-lg font-bold text-brand-indigo">EZ<span className="text-brand-pink">Orders</span></span>
-          <span className="rounded-pill bg-brand-tint px-3 py-1 text-xs font-medium text-brand-pink">
+          <span className="rounded-pill bg-brand-tint px-3 py-1 text-xs font-medium text-brand-pinkInk">
             {label}
           </span>
         </div>
@@ -61,7 +61,7 @@ function DashboardMock({
               <p className="text-2xl font-bold text-brand-dark">{s.value}</p>
               <p className="mt-1 text-xs text-brand-muted">{s.label}</p>
               {s.delta && (
-                <span className="mt-2 inline-block rounded-pill bg-brand-tint px-2 py-0.5 text-xs font-semibold text-brand-pink">
+                <span className="mt-2 inline-block rounded-pill bg-brand-tint px-2 py-0.5 text-xs font-semibold text-brand-pinkInk">
                   {s.delta}
                 </span>
               )}
@@ -99,7 +99,7 @@ function ReportsMock({
       <div className="p-6">
         <div className="flex items-center justify-between">
           <span className="text-lg font-bold text-brand-indigo">EZ<span className="text-brand-pink">Orders</span></span>
-          <span className="rounded-pill bg-brand-tint px-3 py-1 text-xs font-medium text-brand-pink">
+          <span className="rounded-pill bg-brand-tint px-3 py-1 text-xs font-medium text-brand-pinkInk">
             {label}
           </span>
         </div>
@@ -166,7 +166,7 @@ export function PlatformPage({ locale = "en" }: { locale?: Locale }) {
       <section className="relative overflow-hidden pb-16 pt-36">
         <div className="mx-auto grid max-w-container items-center gap-12 px-6 md:grid-cols-2">
           <div>
-            <span className="mb-5 inline-block rounded-pill bg-brand-tint px-5 py-2 text-sm font-medium text-brand-pink">
+            <span className="mb-5 inline-block rounded-pill bg-brand-tint px-5 py-2 text-sm font-medium text-brand-pinkInk">
               {t.heroTag}
             </span>
             <h1 className="text-4xl font-bold leading-tight md:text-6xl">
@@ -210,7 +210,7 @@ export function PlatformPage({ locale = "en" }: { locale?: Locale }) {
             <ModuleChips items={t.posModules} />
           </div>
           <div className="order-1 md:order-2">
-            <span className="mb-4 inline-block rounded-pill bg-white px-5 py-2 text-sm font-medium text-brand-pink">
+            <span className="mb-4 inline-block rounded-pill bg-white px-5 py-2 text-sm font-medium text-brand-pinkInk">
               {t.posTag}
             </span>
             <h2 className="text-3xl font-bold md:text-4xl">{t.posTitle}</h2>
@@ -224,7 +224,7 @@ export function PlatformPage({ locale = "en" }: { locale?: Locale }) {
       <section className="mx-auto max-w-container px-6 py-20">
         <div className="grid items-center gap-12 md:grid-cols-2">
           <div>
-            <span className="mb-4 inline-block rounded-pill bg-brand-tint px-5 py-2 text-sm font-medium text-brand-pink">
+            <span className="mb-4 inline-block rounded-pill bg-brand-tint px-5 py-2 text-sm font-medium text-brand-pinkInk">
               {t.branchesTag}
             </span>
             <h2 className="text-3xl font-bold md:text-4xl">{t.branchesTitle}</h2>
@@ -260,7 +260,7 @@ export function PlatformPage({ locale = "en" }: { locale?: Locale }) {
             <ReportsMock label={t.analyticsTag} title={t.reportsMock.title} rows={t.reportsMock.rows} />
           </div>
           <div className="order-1 md:order-2">
-            <span className="mb-4 inline-block rounded-pill bg-white px-5 py-2 text-sm font-medium text-brand-pink">
+            <span className="mb-4 inline-block rounded-pill bg-white px-5 py-2 text-sm font-medium text-brand-pinkInk">
               {t.analyticsTag}
             </span>
             <h2 className="text-3xl font-bold md:text-4xl">{t.analyticsTitle}</h2>
@@ -274,7 +274,7 @@ export function PlatformPage({ locale = "en" }: { locale?: Locale }) {
       <section className="mx-auto max-w-container px-6 py-20">
         <div className="grid items-center gap-12 md:grid-cols-2">
           <div>
-            <span className="mb-4 inline-block rounded-pill bg-brand-tint px-5 py-2 text-sm font-medium text-brand-pink">
+            <span className="mb-4 inline-block rounded-pill bg-brand-tint px-5 py-2 text-sm font-medium text-brand-pinkInk">
               {t.loyaltyTag}
             </span>
             <h2 className="text-3xl font-bold md:text-4xl">{t.loyaltyTitle}</h2>

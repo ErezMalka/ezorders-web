@@ -129,7 +129,7 @@ export function MenuMockup() {
         <button
           type="button"
           onClick={() => fileRef.current?.click()}
-          className="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gray-300 px-4 py-4 text-sm font-medium text-brand-muted transition hover:border-brand-pink hover:text-brand-pink"
+          className="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gray-300 px-4 py-4 text-sm font-medium text-brand-muted transition hover:border-brand-pink hover:text-brand-pinkInk"
         >
           {file ? `✓ ${file.name}` : "📷 העלו תמונה של התפריט (JPG/PNG)"}
         </button>
@@ -148,7 +148,7 @@ export function MenuMockup() {
         <p className="mt-4 text-sm font-medium text-red-600" role="alert">אנא מלאו שם וטלפון ונסו שוב.</p>
       )}
 
-      <button type="submit" disabled={status === "sending"} className="mt-5 w-full rounded-pill bg-brand-pink px-9 py-3 font-medium text-white transition hover:bg-brand-pinkDark disabled:opacity-60">
+      <button type="submit" disabled={status === "sending"} className="mt-5 w-full rounded-pill bg-brand-pinkStrong px-9 py-3 font-medium text-white transition hover:bg-brand-pinkInk disabled:opacity-60">
         {status === "sending" ? "שולח…" : "קבלו הדמיה חינם"}
       </button>
       <p className="mt-3 text-center text-xs text-brand-muted">אין תפריט מוכן? השאירו פרטים ונתאם בשיחה.</p>

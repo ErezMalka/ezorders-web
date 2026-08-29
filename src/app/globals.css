@@ -10,6 +10,31 @@ html {
   scroll-behavior: smooth;
 }
 
+/* ---------------------------------------------------------------------------
+   Keyboard focus
+   Nothing on the site drew a focus ring — every link and button relied on the
+   UA default, which Tailwind's preflight removes. Measured before this: 25 of
+   25 interactive elements gave no visible indication of focus, so anyone
+   navigating by keyboard could not tell where they were. WCAG 2.4.7.
+
+   :focus-visible rather than :focus, so a mouse click does not leave a ring
+   behind but Tab always does.
+   --------------------------------------------------------------------------- */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 3px solid #3b33c8;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* On the indigo and pink surfaces an indigo ring disappears. White reads on
+   both, and the dark halo keeps it visible if the surface is light. */
+.bg-brand-indigo :where(a, button):focus-visible,
+.bg-brand-pinkStrong:focus-visible,
+.bg-brand-indigo:focus-visible {
+  outline-color: #ffffff;
+  box-shadow: 0 0 0 5px rgba(25, 29, 42, 0.55);
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

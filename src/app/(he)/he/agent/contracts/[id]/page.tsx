@@ -182,7 +182,7 @@ export default async function AgentContractPage({
         </section>
 
         <p className="px-1 text-xs text-brand-muted">
-          <Link href="/he/agent/contracts" className="font-semibold text-brand-pink hover:underline">
+          <Link href="/he/agent/contracts" className="font-semibold text-brand-pinkInk hover:underline">
             ← חזרה לרשימת ההסכמים
           </Link>
         </p>

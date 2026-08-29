@@ -38,7 +38,7 @@ export function HardwareShowcase({ items }: { items: ShowcaseItem[] }) {
           <HardwareFootnote />
           <a
             href="/he/contact"
-            className="mt-4 inline-block rounded-pill bg-brand-pink px-7 py-3 font-semibold text-white transition-colors hover:bg-brand-pinkDark"
+            className="mt-4 inline-block rounded-pill bg-brand-pinkStrong px-7 py-3 font-semibold text-white transition-colors hover:bg-brand-pinkInk"
           >
             דברו איתנו על עמדה
           </a>

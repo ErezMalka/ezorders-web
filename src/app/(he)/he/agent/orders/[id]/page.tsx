@@ -73,7 +73,7 @@ export default async function AgentOrderPage({ params }: { params: Promise<{ id:
               <h2 className="text-sm font-bold text-brand-dark">מה נמכר</h2>
               <Link
                 href={`/he/agent/quotes/${order.quote_id}`}
-                className="text-xs font-semibold text-brand-pink hover:underline"
+                className="text-xs font-semibold text-brand-pinkInk hover:underline"
               >
                 {order.quote_number} — להצעה המקורית ←
               </Link>

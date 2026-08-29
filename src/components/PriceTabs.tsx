@@ -71,7 +71,7 @@ export function PriceTabs({
                 onClick={() => setActive(tab)}
                 className={`rounded-pill px-5 py-2.5 text-sm font-semibold transition-colors ${
                   selected
-                    ? "bg-brand-pink text-white"
+                    ? "bg-brand-pinkStrong text-white"
                     : "bg-brand-grey text-brand-muted hover:bg-brand-tint hover:text-brand-pink"
                 }`}
               >
@@ -111,7 +111,7 @@ export function PriceTabs({
             <HardwareFootnote />
             <a
               href="/he/contact"
-              className="mt-4 inline-block rounded-pill bg-brand-pink px-7 py-3 font-semibold text-white transition-colors hover:bg-brand-pinkDark"
+              className="mt-4 inline-block rounded-pill bg-brand-pinkStrong px-7 py-3 font-semibold text-white transition-colors hover:bg-brand-pinkInk"
             >
               דברו איתנו על עמדה
             </a>

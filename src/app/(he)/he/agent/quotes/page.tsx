@@ -26,7 +26,7 @@ export default async function AgentQuotesPage() {
       action={
         <Link
           href="/he/agent/new"
-          className="rounded-pill bg-brand-pink px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-pinkDark"
+          className="rounded-pill bg-brand-pinkStrong px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-pinkInk"
         >
           + הצעה חדשה
         </Link>

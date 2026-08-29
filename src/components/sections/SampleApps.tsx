@@ -36,7 +36,7 @@ export function SampleApps({ locale = "en" }: { locale?: Locale }) {
         <button
           onClick={prev}
           aria-label="Previous"
-          className="absolute left-0 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-brand-pink text-white transition hover:bg-brand-pinkDark"
+          className="absolute left-0 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-brand-pinkStrong text-white transition hover:bg-brand-pinkInk"
         >
           ‹
         </button>
@@ -56,7 +56,7 @@ export function SampleApps({ locale = "en" }: { locale?: Locale }) {
         <button
           onClick={next}
           aria-label="Next"
-          className="absolute right-0 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-brand-pink text-white transition hover:bg-brand-pinkDark"
+          className="absolute right-0 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-brand-pinkStrong text-white transition hover:bg-brand-pinkInk"
         >
           ›
         </button>

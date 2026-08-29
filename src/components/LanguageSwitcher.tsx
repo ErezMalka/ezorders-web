@@ -26,7 +26,17 @@ function stripLocale(pathname: string): string {
  * Builds the href for a given target locale, preserving the current route.
  * Both locales are prefixed: "/en/about" <-> "/he/about", "/en" <-> "/he".
  */
+/**
+ * Paths that exist in Hebrew only. Swapping the prefix on these produced a link
+ * to a page that does not exist — /he/kitchen-display offered /en/kitchen-display
+ * and a visitor clicking EN landed on a 404.
+ */
+const HEBREW_ONLY = ["/kitchen-display", "/qr-ordering", "/menu-mockup", "/queue-calculator"];
+
 function buildHref(basePath: string, target: Locale): string {
+  // No counterpart in the target locale, so send them to that locale's home
+  // rather than to a dead URL. Losing the page is better than losing the site.
+  if (target === "en" && HEBREW_ONLY.some((p) => basePath.startsWith(p))) return "/en";
   return basePath === "/" ? `/${target}` : `/${target}${basePath}`;
 }
 

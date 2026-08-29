@@ -142,7 +142,7 @@ export function TeamManager({ team, currentAgentId }: { team: TeamMember[]; curr
                   () => setError("ההעתקה נכשלה — סמנו והעתיקו ידנית")
                 );
               }}
-              className="rounded-pill bg-brand-pink px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-pinkDark"
+              className="rounded-pill bg-brand-pinkStrong px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-pinkInk"
             >
               העתק
             </button>
@@ -239,7 +239,7 @@ export function TeamManager({ team, currentAgentId }: { team: TeamMember[]; curr
             <button
               type="submit"
               disabled={busy === "create"}
-              className="rounded-pill bg-brand-pink px-6 py-2.5 text-sm font-semibold text-white hover:bg-brand-pinkDark disabled:opacity-50"
+              className="rounded-pill bg-brand-pinkStrong px-6 py-2.5 text-sm font-semibold text-white hover:bg-brand-pinkInk disabled:opacity-50"
             >
               {busy === "create" ? "יוצר…" : "צור סוכן"}
             </button>
@@ -262,7 +262,7 @@ export function TeamManager({ team, currentAgentId }: { team: TeamMember[]; curr
             setAdding(true);
             setRevealed(null);
           }}
-          className="rounded-pill bg-brand-pink px-6 py-2.5 text-sm font-semibold text-white hover:bg-brand-pinkDark"
+          className="rounded-pill bg-brand-pinkStrong px-6 py-2.5 text-sm font-semibold text-white hover:bg-brand-pinkInk"
         >
           + סוכן חדש
         </button>

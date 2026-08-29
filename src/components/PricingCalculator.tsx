@@ -145,7 +145,7 @@ function ProductRow({ id, label, note, txNote, setup, monthly, maxQty, icon, sta
               aria-label="הפחת כמות"
               className={`h-8 w-8 rounded-md transition-colors sm:h-7 sm:w-7 ${
                 state.enabled && state.qty > 1
-                  ? "bg-white text-brand-pink hover:bg-brand-pink hover:text-white"
+                  ? "bg-white text-brand-pink hover:bg-brand-pinkStrong hover:text-white"
                   : "cursor-not-allowed bg-slate-100 text-slate-300"
               }`}
             >
@@ -161,7 +161,7 @@ function ProductRow({ id, label, note, txNote, setup, monthly, maxQty, icon, sta
               aria-label="הוסף כמות"
               className={`h-8 w-8 rounded-md transition-colors sm:h-7 sm:w-7 ${
                 state.enabled && state.qty < maxQty
-                  ? "bg-white text-brand-pink hover:bg-brand-pink hover:text-white"
+                  ? "bg-white text-brand-pink hover:bg-brand-pinkStrong hover:text-white"
                   : "cursor-not-allowed bg-slate-100 text-slate-300"
               }`}
             >
@@ -181,7 +181,7 @@ function ProductRow({ id, label, note, txNote, setup, monthly, maxQty, icon, sta
 
         <div className="w-24 flex-shrink-0 text-center sm:w-28">
           <p className="text-xs text-brand-muted">חודשי</p>
-          <p className={`text-sm font-bold ${state.enabled ? "text-brand-pink" : "text-slate-400"}`}>
+          <p className={`text-sm font-bold ${state.enabled ? "text-brand-pinkInk" : "text-slate-400"}`}>
             {state.enabled && maxQty > 1 && state.qty > 1 ? (
               <>
                 <span className="text-xs font-normal">
@@ -375,14 +375,14 @@ export function PricingCalculator({ catalogue = DEFAULT_CATALOGUE }: { catalogue
     <section dir="rtl" className="mx-auto max-w-container px-6">
       {/* Heading */}
       <div className="mb-10 text-center">
-        <span className="mb-4 inline-block rounded-pill bg-brand-tint px-6 py-2 text-sm font-medium text-brand-pink">
+        <span className="mb-4 inline-block rounded-pill bg-brand-tint px-6 py-2 text-sm font-medium text-brand-pinkInk">
           מחירון
         </span>
         <h1 className="text-4xl font-bold leading-tight text-brand-dark md:text-5xl">בנו את החבילה שלכם</h1>
         <p className="mx-auto mt-4 max-w-2xl text-lg text-brand-muted">
           סמנו את המוצרים שמתאימים למסעדה שלכם וראו את המחיר בזמן אמת — ככל שמוסיפים יותר, ההנחה החודשית גדלה, עד 40%.
         </p>
-        <p className="mx-auto mt-3 max-w-2xl rounded-xl bg-brand-tint px-4 py-2 text-sm font-medium text-brand-pink">
+        <p className="mx-auto mt-3 max-w-2xl rounded-xl bg-brand-tint px-4 py-2 text-sm font-medium text-brand-pinkInk">
           החישוב מתייחס לסניף בודד — ברשת עם מספר סניפים, כל סניף מחויב ומחושב בנפרד.
         </p>
       </div>
@@ -552,7 +552,7 @@ export function PricingCalculator({ catalogue = DEFAULT_CATALOGUE }: { catalogue
                 type="button"
                 onClick={copyQuote}
                 disabled={!hasAnyEnabled}
-                className="flex flex-1 items-center justify-center gap-1.5 rounded-pill bg-brand-pink px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-pinkDark disabled:cursor-not-allowed disabled:opacity-40"
+                className="flex flex-1 items-center justify-center gap-1.5 rounded-pill bg-brand-pinkStrong px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-pinkInk disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <Icon name="copy" className="h-3.5 w-3.5" />
                 {copied ? "הועתק!" : "העתק הצעה"}
@@ -561,7 +561,7 @@ export function PricingCalculator({ catalogue = DEFAULT_CATALOGUE }: { catalogue
 
             <a
               href="/he/contact"
-              className="mt-3 block rounded-pill border border-brand-pink px-3 py-2 text-center text-sm font-semibold text-brand-pink transition-colors hover:bg-brand-tint"
+              className="mt-3 block rounded-pill border border-brand-pink px-3 py-2 text-center text-sm font-semibold text-brand-pinkInk transition-colors hover:bg-brand-tint"
             >
               דברו איתנו על ההצעה
             </a>

@@ -100,7 +100,7 @@ export function AdminScreens({
   return (
     <section dir="rtl" className="bg-brand-grey py-20">
       <div className="mx-auto max-w-container px-6">
-        <p className="mb-2 text-sm font-medium text-brand-pink">{eyebrow}</p>
+        <p className="mb-2 text-sm font-medium text-brand-pinkInk">{eyebrow}</p>
         <h2 className="max-w-2xl text-4xl font-bold leading-tight md:text-5xl">{heading}</h2>
         <p className="mt-4 max-w-2xl text-lg text-brand-muted">{lead}</p>
       </div>

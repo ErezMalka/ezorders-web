@@ -27,7 +27,7 @@ export default function ContactPage() {
               257px column at 320px. `anywhere` lets it break, which also
               lowers the column's min-content width. */}
           <div className="min-w-0 [overflow-wrap:anywhere]">
-            <span className="mb-6 inline-block rounded-pill bg-brand-tint px-6 py-2 text-sm font-medium text-brand-pink">
+            <span className="mb-6 inline-block rounded-pill bg-brand-tint px-6 py-2 text-sm font-medium text-brand-pinkInk">
               Contact
             </span>
             <h1 className="text-4xl font-bold leading-tight md:text-5xl">
@@ -43,7 +43,7 @@ export default function ContactPage() {
               Already a customer?{" "}
               <a
                 href="mailto:contact@ezorders.com"
-                className="font-normal text-brand-pink underline"
+                className="font-normal text-brand-pinkInk underline"
               >
                 contact@ezorders.com
               </a>

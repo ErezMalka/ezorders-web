@@ -88,7 +88,7 @@ export function LoginForm() {
       <button
         type="submit"
         disabled={busy}
-        className="w-full rounded-pill bg-brand-pink px-4 py-2.5 font-semibold text-white transition-colors hover:bg-brand-pinkDark disabled:opacity-50"
+        className="w-full rounded-pill bg-brand-pinkStrong px-4 py-2.5 font-semibold text-white transition-colors hover:bg-brand-pinkInk disabled:opacity-50"
       >
         {busy ? "מתחבר…" : "כניסה למערכת"}
       </button>

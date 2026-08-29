@@ -17,7 +17,7 @@ function PosTerminal({ label, modules }: { label: string; modules: PosChip[] }) 
           <span className="text-lg font-bold text-brand-indigo">
             EZ<span className="text-brand-pink">Orders</span>
           </span>
-          <span className="inline-flex items-center gap-2 rounded-pill bg-brand-tint px-3 py-1 text-xs font-medium text-brand-pink">
+          <span className="inline-flex items-center gap-2 rounded-pill bg-brand-tint px-3 py-1 text-xs font-medium text-brand-pinkInk">
             <span className="h-2 w-2 rounded-full bg-brand-pink" />
             {label}
           </span>
@@ -52,7 +52,7 @@ export function PosPage({ locale = "en" }: { locale?: Locale }) {
       <section className="relative overflow-hidden pb-16 pt-36">
         <div className="mx-auto grid max-w-container items-center gap-10 px-6 md:grid-cols-2">
           <div>
-            <span className="mb-5 inline-block rounded-pill bg-brand-tint px-5 py-2 text-sm font-medium text-brand-pink">
+            <span className="mb-5 inline-block rounded-pill bg-brand-tint px-5 py-2 text-sm font-medium text-brand-pinkInk">
               {t.heroTag}
             </span>
             <h1 className="text-4xl font-bold leading-tight md:text-6xl">
@@ -115,7 +115,7 @@ export function PosPage({ locale = "en" }: { locale?: Locale }) {
 
       {/* PRICING — refer to the up-to-date pricing calculator */}
       <section className="mx-auto max-w-container px-6 py-20 text-center">
-        <p className="mb-3 inline-block rounded-pill bg-brand-tint px-5 py-1 text-sm font-medium text-brand-pink">
+        <p className="mb-3 inline-block rounded-pill bg-brand-tint px-5 py-1 text-sm font-medium text-brand-pinkInk">
           {locale === "he" ? "מחירון" : "Pricing"}
         </p>
         <h2 className="text-3xl font-bold md:text-4xl">

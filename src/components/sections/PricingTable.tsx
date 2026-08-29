@@ -12,7 +12,7 @@ export function PricingTable({ locale = "en" }: { locale?: Locale }) {
   return (
     <section className="mx-auto max-w-container px-6 py-20">
       <div className="mb-10 text-center">
-        <p className="mb-2 inline-block rounded-pill bg-brand-tint px-5 py-1 text-sm font-medium text-brand-pink">
+        <p className="mb-2 inline-block rounded-pill bg-brand-tint px-5 py-1 text-sm font-medium text-brand-pinkInk">
           {t.badge}
         </p>
         <h2 className="text-4xl font-bold md:text-5xl">
@@ -27,7 +27,7 @@ export function PricingTable({ locale = "en" }: { locale?: Locale }) {
             onClick={() => setYearly(false)}
             className={clsx(
               "rounded-pill px-6 py-2 text-sm font-medium",
-              !yearly ? "bg-brand-pink text-white" : "text-brand-dark"
+              !yearly ? "bg-brand-pinkStrong text-white" : "text-brand-dark"
             )}
           >
             {t.monthly}
@@ -36,7 +36,7 @@ export function PricingTable({ locale = "en" }: { locale?: Locale }) {
             onClick={() => setYearly(true)}
             className={clsx(
               "rounded-pill px-6 py-2 text-sm font-medium",
-              yearly ? "bg-brand-pink text-white" : "text-brand-dark"
+              yearly ? "bg-brand-pinkStrong text-white" : "text-brand-dark"
             )}
           >
             {t.yearly}

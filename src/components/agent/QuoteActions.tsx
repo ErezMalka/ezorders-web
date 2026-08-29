@@ -131,7 +131,7 @@ export function QuoteActions({
         href={printUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="block w-full rounded-pill bg-brand-pink px-4 py-2.5 text-center text-sm font-semibold text-white transition-colors hover:bg-brand-pinkDark"
+        className="block w-full rounded-pill bg-brand-pinkStrong px-4 py-2.5 text-center text-sm font-semibold text-white transition-colors hover:bg-brand-pinkInk"
       >
         תצוגה מקדימה והורדה כ-PDF
       </a>

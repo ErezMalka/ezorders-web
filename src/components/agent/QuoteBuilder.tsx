@@ -253,7 +253,7 @@ export function QuoteBuilder({
                   key={tier.threshold}
                   className={`rounded-pill border px-3 py-1.5 text-xs tabular-nums ${
                     active
-                      ? "border-brand-pink bg-brand-pink font-bold text-white"
+                      ? "border-brand-pink bg-brand-pinkStrong font-bold text-white"
                       : "border-slate-200 text-brand-muted"
                   }`}
                 >
@@ -401,7 +401,7 @@ export function QuoteBuilder({
             <button
               type="submit"
               disabled={busy || !totals.hasAnyEnabled}
-              className="w-full rounded-pill bg-brand-pink px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-pinkDark disabled:cursor-not-allowed disabled:opacity-40"
+              className="w-full rounded-pill bg-brand-pinkStrong px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-pinkInk disabled:cursor-not-allowed disabled:opacity-40"
             >
               {busy
                 ? contractMode

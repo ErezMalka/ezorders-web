@@ -302,6 +302,8 @@ value: name,
 onChange: (e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value),
 placeholder: t.name,
 "aria-label": t.name,
+"aria-required": true,
+required: true,
 autoComplete: "name",
 className: inputClass,
 }),
@@ -312,6 +314,8 @@ value: email,
 onChange: (e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value),
 placeholder: t.email,
 "aria-label": t.email,
+"aria-required": true,
+required: true,
 autoComplete: "email",
 className: inputClass,
 }),
@@ -340,6 +344,8 @@ value: message,
 onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => setMessage(e.target.value),
 placeholder: t.message,
 "aria-label": t.message,
+"aria-required": true,
+required: true,
 rows: 4,
 className: inputClass,
 })
@@ -369,7 +375,7 @@ t.agree,
 " ",
 createElement(
 "a",
-{ href: privacyHref, className: "text-brand-pink underline" },
+{ href: privacyHref, className: "text-brand-pinkInk underline" },
 t.privacy
 )
 );
@@ -393,7 +399,7 @@ const submitBtn = createElement(
 type: "submit",
 disabled: status === "sending",
 className:
-"mt-5 w-full rounded-pill bg-brand-pink px-9 py-3 font-medium text-white transition hover:bg-brand-pinkDark disabled:opacity-60 sm:w-auto",
+"mt-5 w-full rounded-pill bg-brand-pinkStrong px-9 py-3 font-medium text-white transition hover:bg-brand-pinkInk disabled:opacity-60 sm:w-auto",
 },
 status === "sending" ? t.sending : t.submit
 );
@@ -403,7 +409,7 @@ return createElement(
 // p-5 on phones: this card sits inside another p-8 card, and the two together
 // ate 128px of a 320px screen — enough to push the grid column past the page.
 { className: "min-w-0 rounded-card bg-white p-5 shadow-lg sm:p-8", onSubmit: handleSubmit, noValidate: true },
-createElement("h3", { className: "mb-6 text-center text-2xl font-semibold" }, t.title),
+createElement("h2", { className: "mb-6 text-center text-2xl font-semibold" }, t.title),
 fields,
 honeypot,
 consent,

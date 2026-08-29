@@ -142,7 +142,7 @@ export function AdminPreview({ locale = "he" }: { locale?: Locale }) {
 
   return (
     <section dir={dir} className="mx-auto max-w-container px-6 py-20">
-      <p className="mb-2 text-sm font-medium text-brand-pink">{t.eyebrow}</p>
+      <p className="mb-2 text-sm font-medium text-brand-pinkInk">{t.eyebrow}</p>
       <h2 className="max-w-2xl text-4xl font-bold leading-tight md:text-5xl">{t.heading}</h2>
       <p className="mt-4 max-w-2xl text-lg text-brand-muted">{t.lead}</p>
 
@@ -211,7 +211,7 @@ export function AdminPreview({ locale = "he" }: { locale?: Locale }) {
                 </p>
               </div>
               <div className="shrink-0 text-end">
-                <p className="text-sm font-bold tabular-nums text-brand-pink">{money(r.total)}</p>
+                <p className="text-sm font-bold tabular-nums text-brand-pinkInk">{money(r.total)}</p>
                 <p className="mt-0.5 text-[11px] text-brand-muted">#{r.id}</p>
               </div>
             </li>
@@ -246,7 +246,7 @@ export function AdminPreview({ locale = "he" }: { locale?: Locale }) {
                   <td className="px-4 py-3 tabular-nums text-brand-muted">{r.time}</td>
                   <td className="px-4 py-3 font-bold tabular-nums text-brand-pink">{money(r.total)}</td>
                   <td className="px-4 py-3">
-                    <span className="inline-flex items-center gap-1.5 rounded-pill bg-brand-tint px-3 py-1 text-xs font-semibold text-brand-pink">
+                    <span className="inline-flex items-center gap-1.5 rounded-pill bg-brand-tint px-3 py-1 text-xs font-semibold text-brand-pinkInk">
                       <span className="h-1.5 w-1.5 rounded-full bg-brand-pink" aria-hidden="true" />
                       {t.status}
                     </span>

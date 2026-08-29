@@ -49,7 +49,7 @@ export function AgentShell({
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-container flex-wrap items-center gap-4 px-6 py-3">
           <Logo href="/he/agent" width={118} />
-          <span className="rounded-pill bg-brand-tint px-3 py-1 text-xs font-semibold text-brand-pink">
+          <span className="rounded-pill bg-brand-tint px-3 py-1 text-xs font-semibold text-brand-pinkInk">
             {ROLE_LABEL[session.role]}
           </span>
 
@@ -63,7 +63,7 @@ export function AgentShell({
                   aria-current={isActive ? "page" : undefined}
                   className={`rounded-pill px-4 py-2 text-sm font-semibold transition-colors ${
                     isActive
-                      ? "bg-brand-pink text-white"
+                      ? "bg-brand-pinkStrong text-white"
                       : "text-brand-muted hover:bg-brand-tint hover:text-brand-pink"
                   }`}
                 >

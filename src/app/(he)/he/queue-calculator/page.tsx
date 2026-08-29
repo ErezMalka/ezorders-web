@@ -16,7 +16,7 @@ export default function QueueCalculatorPage() {
       <section className="pb-20 pt-28">
         <div className="mx-auto max-w-container px-6">
           <div className="mx-auto mb-10 max-w-2xl text-center">
-            <span className="text-sm font-bold uppercase tracking-wide text-brand-pink">
+            <span className="text-sm font-bold uppercase tracking-wide text-brand-pinkInk">
               מחשבון חינם למסעדות
             </span>
             <h1 className="mt-3 text-3xl font-extrabold leading-tight text-brand-dark md:text-4xl">

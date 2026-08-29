@@ -188,7 +188,7 @@ export function QueueCalculator() {
             {status === "error" && (
               <p className="mt-4 text-sm font-medium text-red-600" role="alert">אנא מלאו שם וטלפון ונסו שוב.</p>
             )}
-            <button type="submit" disabled={status === "sending"} className="mt-5 w-full rounded-pill bg-brand-pink px-9 py-3 font-medium text-white transition hover:bg-brand-pinkDark disabled:opacity-60">
+            <button type="submit" disabled={status === "sending"} className="mt-5 w-full rounded-pill bg-brand-pinkStrong px-9 py-3 font-medium text-white transition hover:bg-brand-pinkInk disabled:opacity-60">
               {status === "sending" ? "שולח…" : "קבלו ניתוח חינם"}
             </button>
             <p className="mt-3 text-center text-xs text-brand-muted">ללא התחייבות · נחזור אליכם תוך יום עסקים</p>

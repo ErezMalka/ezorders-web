@@ -37,7 +37,7 @@ export default function SolutionsPage() {
       <section className="relative overflow-hidden pb-16 pt-36">
         <div className="mx-auto grid max-w-container items-center gap-10 px-6 md:grid-cols-2">
           <div>
-            <span className="mb-6 inline-block rounded-pill bg-brand-tint px-5 py-2 text-sm font-medium text-brand-pink">
+            <span className="mb-6 inline-block rounded-pill bg-brand-tint px-5 py-2 text-sm font-medium text-brand-pinkInk">
               Solutions
             </span>
             <h1 className="text-5xl font-bold leading-tight md:text-6xl">
@@ -76,7 +76,7 @@ export default function SolutionsPage() {
 
       {/* OUR SERVICES / TECHNOLOGIES */}
       <section id="technologies" className="mx-auto max-w-container px-6 py-20">
-        <p className="mb-2 text-sm font-medium text-brand-pink">
+        <p className="mb-2 text-sm font-medium text-brand-pinkInk">
           Our Technologies
         </p>
         <h2 className="text-4xl font-bold md:text-5xl">Our Services</h2>

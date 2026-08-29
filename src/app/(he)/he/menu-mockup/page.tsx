@@ -16,7 +16,7 @@ export default function MenuMockupPage() {
       <section className="pb-20 pt-28">
         <div className="mx-auto grid max-w-container items-start gap-10 px-6 md:grid-cols-2">
           <div>
-            <span className="text-sm font-bold uppercase tracking-wide text-brand-pink">
+            <span className="text-sm font-bold uppercase tracking-wide text-brand-pinkInk">
               הדמיה חינם
             </span>
             <h1 className="mt-3 text-3xl font-extrabold leading-tight text-brand-dark md:text-4xl">
