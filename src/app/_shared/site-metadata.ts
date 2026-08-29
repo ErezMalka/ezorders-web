@@ -76,6 +76,39 @@ export const organizationSchema = {
   image: "https://ezorders.com/images/logo.png",
   description: SITE_DESCRIPTION,
   telephone: "*4958",
+  /**
+   * Both numbers are real and they are not interchangeable: *4958 is the line
+   * the site advertises, and the mobile is the one that also takes WhatsApp,
+   * which is how a large share of Israeli business contact actually happens.
+   *
+   * Listing both here rather than forcing one of them to match the Facebook
+   * page keeps the entity consistent without throwing away a channel. Hours
+   * come from the published support answer in src/data/faq.ts, so the two
+   * cannot drift into contradicting each other unnoticed.
+   */
+  contactPoint: [
+    {
+      "@type": "ContactPoint",
+      contactType: "customer service",
+      telephone: "*4958",
+      email: "contact@ezorders.com",
+      availableLanguage: ["he", "en"],
+      areaServed: "IL",
+      hoursAvailable: {
+        "@type": "OpeningHoursSpecification",
+        dayOfWeek: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"],
+        opens: "10:00",
+        closes: "18:00",
+      },
+    },
+    {
+      "@type": "ContactPoint",
+      contactType: "sales",
+      telephone: "+972-50-838-4505",
+      availableLanguage: ["he", "en"],
+      areaServed: "IL",
+    },
+  ],
   email: "contact@ezorders.com",
   address: {
     "@type": "PostalAddress",
