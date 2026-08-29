@@ -44,6 +44,7 @@ const hebrewOnlyRoutes: { path: string; priority: number }[] = [
   { path: "/menu-mockup", priority: 0.7 },
   { path: "/integrations", priority: 0.8 },
   { path: "/commission-calculator", priority: 0.7 },
+  { path: "/glossary", priority: 0.6 },
 ];
 
 /**

@@ -31,7 +31,7 @@ function stripLocale(pathname: string): string {
  * to a page that does not exist — /he/kitchen-display offered /en/kitchen-display
  * and a visitor clicking EN landed on a 404.
  */
-const HEBREW_ONLY = ["/kitchen-display", "/qr-ordering", "/menu-mockup", "/queue-calculator", "/integrations", "/commission-calculator"];
+const HEBREW_ONLY = ["/kitchen-display", "/qr-ordering", "/menu-mockup", "/queue-calculator", "/integrations", "/commission-calculator", "/glossary"];
 
 function buildHref(basePath: string, target: Locale): string {
   // No counterpart in the target locale, so send them to that locale's home
