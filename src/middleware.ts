@@ -124,6 +124,11 @@ export const config = {
   matcher: [
     "/",
     "/about",
+    // Must be listed HERE as well as in LEGACY_EN_PATHS. This matcher decides
+    // whether the middleware runs at all; the other list only decides what it
+    // does once it has. Adding the path to one and not the other leaves the
+    // 404 exactly as it was, which is what happened on the first attempt.
+    "/blog",
     "/contact",
     "/digital-menus",
     "/kiosk-stands",
