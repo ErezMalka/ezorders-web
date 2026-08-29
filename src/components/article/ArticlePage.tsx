@@ -164,7 +164,9 @@ export function ArticlePage({ locale, slug }: { locale: Locale; slug: string }) 
         </div>
       </article>
 
-      <ContactBand />
+      {/* ContactBand defaults to English. Without this every Hebrew article
+          closed with "Let's Talk" and an English form, under an RTL page. */}
+      <ContactBand locale={locale} />
     </PageLayout>
   );
 }
