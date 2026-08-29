@@ -42,6 +42,7 @@ const hebrewOnlyRoutes: { path: string; priority: number }[] = [
   // earns its ranking rather than arguing for it.
   { path: "/queue-calculator", priority: 0.7 },
   { path: "/menu-mockup", priority: 0.7 },
+  { path: "/integrations", priority: 0.8 },
 ];
 
 /**
