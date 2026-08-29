@@ -15,12 +15,19 @@ export function Footer({ dictionary }: { dictionary?: Dictionary }) {
           createElement(
                     "div",
               {
-                          className:
-                                        "mx-auto grid max-w-container gap-10 px-6 py-14 md:grid-cols-4",
+                          // Five columns once a locale supplies the tools list,
+                          // four when it does not — English has no Hebrew-only
+                          // calculators to show.
+                          className: `mx-auto grid max-w-container gap-10 px-6 py-14 ${
+                            f.tools?.length ? "md:grid-cols-5" : "md:grid-cols-4"
+                          }`,
               },
                     createElement(Logo, { href: f.learnMore[0].href }),
                     FooterCol({ title: f.learnMoreTitle, links: f.learnMore }),
                     FooterCol({ title: f.solutionsTitle, links: f.solutions }),
+                    f.tools?.length && f.toolsTitle
+                      ? FooterCol({ title: f.toolsTitle, links: f.tools })
+                      : null,
                     createElement(
                                 "div",
                                 null,

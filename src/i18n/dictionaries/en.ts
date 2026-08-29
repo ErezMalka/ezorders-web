@@ -12,6 +12,14 @@ export type Dictionary = {
       agentPortal: { label: string; href: string };
       learnMore: { label: string; href: string }[];
       solutions: { label: string; href: string }[];
+      /**
+       * Optional because the interactive tools exist in Hebrew only — the
+       * commission rates and the delivery platforms they model are Israeli.
+       * The footer renders this column when a locale supplies it and keeps its
+       * existing shape when one does not.
+       */
+      toolsTitle?: string;
+      tools?: { label: string; href: string }[];
     };
 };
 

@@ -43,6 +43,7 @@ export const he: Dictionary = {
             { label: "אודות", href: "/he/about" },
             { label: "מחירים", href: "/he/price" },
             { label: "בלוג", href: "/he/blog" },
+            { label: "מילון מונחים", href: "/he/glossary" },
             { label: "צור קשר", href: "/he/contact" },
                 ],
           solutions: [
@@ -53,6 +54,22 @@ export const he: Dictionary = {
             { label: "קופה (POS)", href: "/he/pos" },
             { label: "מסך מטבח דיגיטלי (KDS)", href: "/he/kitchen-display" },
             { label: "הזמנה בסריקת QR", href: "/he/qr-ordering" },
+            { label: "חיבור לוולט ותן ביס", href: "/he/integrations" },
+                ],
+          /**
+           * The three interactive tools, in their own column.
+           *
+           * They were reachable only from whichever product page happened to
+           * link to them, and two of them from nowhere at all. A visitor
+           * browsing the site could not find a calculator that exists to
+           * generate leads. Kept apart from the product list because they are
+           * a different kind of thing: something to use, not something to buy.
+           */
+          toolsTitle: "כלים",
+          tools: [
+            { label: "מחשבון עמלות משלוחים", href: "/he/commission-calculator" },
+            { label: "מחשבון עלות התור", href: "/he/queue-calculator" },
+            { label: "הדמיית קיוסק מהתפריט שלכם", href: "/he/menu-mockup" },
                 ],
     },
 };
