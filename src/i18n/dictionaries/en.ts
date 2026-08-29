@@ -40,6 +40,7 @@ export const en: Dictionary = {
       { label: "The Platform", href: "/en/platform" },
       { label: "About", href: "/en/about" },
       { label: "Price", href: "/en/price" },
+      { label: "Blog", href: "/en/blog" },
       { label: "Contact", href: "/en/contact" },
         ],
     footer: {
@@ -54,6 +55,7 @@ export const en: Dictionary = {
             { label: "The Platform", href: "/en/platform" },
             { label: "About", href: "/en/about" },
             { label: "Price", href: "/en/price" },
+            { label: "Blog", href: "/en/blog" },
             { label: "Contact", href: "/en/contact" },
                 ],
           solutions: [
