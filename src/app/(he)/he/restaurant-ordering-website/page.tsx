@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { createElement } from "react";
 import { PageLayout } from "@/components/PageLayout";
+import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { FaqSection } from "@/components/sections/FaqSection";
 import { GENERAL_FAQ } from "@/data/faq";
 import { breadcrumbSchema } from "@/lib/seo/breadcrumbs";
@@ -20,7 +21,7 @@ const h2Style = { fontSize: "1.9rem", fontWeight: 700, marginBottom: "0.5rem" } 
 const introStyle = { color: "#555", lineHeight: 1.8, marginBottom: "1.75rem" } as const;
 const h3Style = { fontSize: "1.2rem", fontWeight: 600, marginBottom: "0.4rem" } as const;
 const bodyStyle = { color: "#555", lineHeight: 1.8, marginBottom: "1.5rem" } as const;
-const ctaWrapStyle = { marginTop: "3rem" } as const;
+const ctaWrapStyle = { marginTop: "3rem", display: "flex", flexWrap: "wrap", gap: "0.75rem", alignItems: "center" } as const;
 const ctaStyle = { display: "inline-block", background: "#D22F63", color: "#fff", padding: "0.9rem 2rem", borderRadius: "999px", fontWeight: 600, textDecoration: "none" } as const;
 const imgStyle = { width: "100%", height: "auto", borderRadius: "1rem", marginBottom: "2.5rem" } as const;
 
@@ -54,7 +55,7 @@ export default function HeOrderingWebsitePage() {
     createElement("p", { style: bodyStyle }, "הזמנה מהירה, נוחה וללא מגע, שזמינה מכל מכשיר בכל שעה. הלקוחות נהנים מתהליך פשוט וברור — וחוזרים."),
     createElement("h3", { style: h3Style }, "יותר מכירות"),
     createElement("p", { style: bodyStyle }, "תמונות מנות מושכות, המלצות חכמות ותהליך הזמנה חלק — כולם עובדים יחד כדי להגדיל את היקף ההזמנות ואת ההכנסה שלכם."),
-    createElement("div", { style: ctaWrapStyle }, createElement("a", { href: "/he/contact", style: ctaStyle }, "דברו איתנו ותתחילו היום"))
+    createElement("div", { style: ctaWrapStyle }, createElement("a", { href: "/he/contact", style: ctaStyle }, "דברו איתנו ותתחילו היום"), createElement(WhatsAppButton, { locale: "he" }))
     );
 
 return createElement(
