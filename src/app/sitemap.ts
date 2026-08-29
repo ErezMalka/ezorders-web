@@ -33,10 +33,16 @@ const hebrewOnlyRoutes: { path: string; priority: number }[] = [
   { path: "/qr-ordering", priority: 0.8 },
 ];
 
-/** Pages that exist only in English, outside the locale prefixes. */
-const rootOnlyRoutes: { path: string; priority: number }[] = [
-  { path: "/connected", priority: 0.4 },
-];
+/**
+ * Pages outside the locale prefixes.
+ *
+ * Empty on purpose. /connected used to be listed here, but it is a component
+ * preview that renders without PageLayout — no header, no footer, nothing to
+ * click. Submitting it asked Google to send strangers to a dead end, and a
+ * sitemap should only contain pages worth landing on. The page itself is
+ * unchanged and still reachable by anyone with the URL.
+ */
+const rootOnlyRoutes: { path: string; priority: number }[] = [];
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = new Date();
