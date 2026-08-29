@@ -15,7 +15,7 @@ function PosTerminal({ label, modules }: { label: string; modules: PosChip[] }) 
       <div className="p-6">
         <div className="flex items-center justify-between">
           <span className="text-lg font-bold text-brand-indigo">
-            EZ<span className="text-brand-pink">Orders</span>
+            EZ<span className="text-brand-pinkInk">Orders</span>
           </span>
           <span className="inline-flex items-center gap-2 rounded-pill bg-brand-tint px-3 py-1 text-xs font-medium text-brand-pinkInk">
             <span className="h-2 w-2 rounded-full bg-brand-pink" />

@@ -49,7 +49,7 @@ function DashboardMock({
       <div className="h-1.5 w-full bg-brand-pink" />
       <div className="p-6">
         <div className="flex items-center justify-between">
-          <span className="text-lg font-bold text-brand-indigo">EZ<span className="text-brand-pink">Orders</span></span>
+          <span className="text-lg font-bold text-brand-indigo">EZ<span className="text-brand-pinkInk">Orders</span></span>
           <span className="rounded-pill bg-brand-tint px-3 py-1 text-xs font-medium text-brand-pinkInk">
             {label}
           </span>
@@ -98,7 +98,7 @@ function ReportsMock({
       <div className="h-1.5 w-full bg-brand-pink" />
       <div className="p-6">
         <div className="flex items-center justify-between">
-          <span className="text-lg font-bold text-brand-indigo">EZ<span className="text-brand-pink">Orders</span></span>
+          <span className="text-lg font-bold text-brand-indigo">EZ<span className="text-brand-pinkInk">Orders</span></span>
           <span className="rounded-pill bg-brand-tint px-3 py-1 text-xs font-medium text-brand-pinkInk">
             {label}
           </span>

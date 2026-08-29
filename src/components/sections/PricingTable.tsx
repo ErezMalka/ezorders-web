@@ -54,7 +54,7 @@ export function PricingTable({ locale = "en" }: { locale?: Locale }) {
             )}
           >
             {plan.popular && (
-              <span className="mb-3 inline-block rounded-pill bg-brand-pink px-4 py-1 text-xs font-semibold">
+              <span className="mb-3 inline-block rounded-pill bg-brand-pinkStrong px-4 py-1 text-xs font-semibold">
                 {t.mostPopular}
               </span>
             )}

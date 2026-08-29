@@ -95,7 +95,7 @@ function PanelChrome({ locale }: { locale: Locale }) {
     <div className="border-b border-black/5 bg-white/80 px-4 py-3 backdrop-blur">
       <div className="flex items-center justify-between gap-4">
         <span className="text-sm font-bold text-brand-indigo">
-          EZ<span className="text-brand-pink">Orders.</span>
+          EZ<span className="text-brand-pinkInk">Orders.</span>
         </span>
         <nav className="hidden items-center gap-5 text-xs font-medium sm:flex">
           {items.map((item) => (
@@ -244,7 +244,7 @@ export function AdminPreview({ locale = "he" }: { locale?: Locale }) {
                     </span>
                   </td>
                   <td className="px-4 py-3 tabular-nums text-brand-muted">{r.time}</td>
-                  <td className="px-4 py-3 font-bold tabular-nums text-brand-pink">{money(r.total)}</td>
+                  <td className="px-4 py-3 font-bold tabular-nums text-brand-pinkInk">{money(r.total)}</td>
                   <td className="px-4 py-3">
                     <span className="inline-flex items-center gap-1.5 rounded-pill bg-brand-tint px-3 py-1 text-xs font-semibold text-brand-pinkInk">
                       <span className="h-1.5 w-1.5 rounded-full bg-brand-pink" aria-hidden="true" />

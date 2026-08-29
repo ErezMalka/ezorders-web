@@ -64,7 +64,7 @@ export function FaqSection({
               {item.q}
               <span
                 aria-hidden="true"
-                className="shrink-0 text-xl text-brand-pink transition-transform group-open:rotate-45"
+                className="shrink-0 text-xl text-brand-pinkInk transition-transform group-open:rotate-45"
               >
                 +
               </span>

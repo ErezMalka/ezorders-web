@@ -35,7 +35,7 @@ export function Footer({ dictionary }: { dictionary?: Dictionary }) {
                                         "border-t border-gray-100 py-6 text-center text-sm text-brand-muted",
               },
                     createElement("span", null, f.rights),
-                    createElement("span", { className: "mx-2 text-gray-300" }, "·"),
+                    createElement("span", { className: "mx-2 text-gray-500", "aria-hidden": true }, "·"),
                     // The agents' way back in. Deliberately plain and last: it is a
                     // staff door on a customer-facing page, so it should be findable
                     // by the five people who need it and invisible to everyone else.

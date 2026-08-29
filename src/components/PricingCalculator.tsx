@@ -121,7 +121,7 @@ function ProductRow({ id, label, note, txNote, setup, monthly, maxQty, icon, sta
 
           <div
             className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl ${
-              state.enabled ? "bg-white text-brand-pink" : "bg-slate-100 text-slate-400"
+              state.enabled ? "bg-white text-brand-pink" : "bg-slate-100 text-slate-500"
             }`}
           >
             <Icon name={icon} className="h-4.5 w-4.5 h-[18px] w-[18px]" />
@@ -146,12 +146,12 @@ function ProductRow({ id, label, note, txNote, setup, monthly, maxQty, icon, sta
               className={`h-8 w-8 rounded-md transition-colors sm:h-7 sm:w-7 ${
                 state.enabled && state.qty > 1
                   ? "bg-white text-brand-pink hover:bg-brand-pinkStrong hover:text-white"
-                  : "cursor-not-allowed bg-slate-100 text-slate-300"
+                  : "cursor-not-allowed bg-slate-100 text-slate-500"
               }`}
             >
               <Icon name="minus" className="mx-auto h-3.5 w-3.5" />
             </button>
-            <span className={`w-6 text-center text-sm font-bold sm:w-8 ${state.enabled ? "text-brand-dark" : "text-slate-400"}`}>
+            <span className={`w-6 text-center text-sm font-bold sm:w-8 ${state.enabled ? "text-brand-dark" : "text-slate-500"}`}>
               {state.qty}
             </span>
             <button
@@ -162,7 +162,7 @@ function ProductRow({ id, label, note, txNote, setup, monthly, maxQty, icon, sta
               className={`h-8 w-8 rounded-md transition-colors sm:h-7 sm:w-7 ${
                 state.enabled && state.qty < maxQty
                   ? "bg-white text-brand-pink hover:bg-brand-pinkStrong hover:text-white"
-                  : "cursor-not-allowed bg-slate-100 text-slate-300"
+                  : "cursor-not-allowed bg-slate-100 text-slate-500"
               }`}
             >
               <Icon name="plus" className="mx-auto h-3.5 w-3.5" />
@@ -174,14 +174,14 @@ function ProductRow({ id, label, note, txNote, setup, monthly, maxQty, icon, sta
 
         <div className="w-16 flex-shrink-0 text-center sm:w-20">
           <p className="text-xs text-brand-muted">הקמה</p>
-          <p className={`text-sm font-semibold ${state.enabled ? "text-brand-dark" : "text-slate-400"}`}>
-            {setup === 0 ? <span className="text-xs font-bold text-emerald-500">חינם</span> : fmt(setup)}
+          <p className={`text-sm font-semibold ${state.enabled ? "text-brand-dark" : "text-slate-500"}`}>
+            {setup === 0 ? <span className="text-xs font-bold text-emerald-700">חינם</span> : fmt(setup)}
           </p>
         </div>
 
         <div className="w-24 flex-shrink-0 text-center sm:w-28">
           <p className="text-xs text-brand-muted">חודשי</p>
-          <p className={`text-sm font-bold ${state.enabled ? "text-brand-pinkInk" : "text-slate-400"}`}>
+          <p className={`text-sm font-bold ${state.enabled ? "text-brand-pinkInk" : "text-slate-500"}`}>
             {state.enabled && maxQty > 1 && state.qty > 1 ? (
               <>
                 <span className="text-xs font-normal">
@@ -221,7 +221,7 @@ function SectionHeader({ title, subtitle, badge }: { title: string; subtitle?: s
         {subtitle ? <p className="mt-0.5 text-xs text-brand-muted">{subtitle}</p> : null}
       </div>
       {badge ? (
-        <span className="rounded-pill border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-600">
+        <span className="rounded-pill border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
           {badge}
         </span>
       ) : null}
@@ -253,7 +253,7 @@ function SummaryRow({
     <div className={`flex items-start justify-between py-1.5 ${divider ? "mt-1 border-t border-slate-200 pt-2.5" : ""}`}>
       <span
         className={`text-sm ${
-          muted ? "text-slate-400" : discount ? "font-semibold text-emerald-600" : highlight ? "font-bold text-brand-dark" : "text-brand-muted"
+          muted ? "text-slate-500" : discount ? "font-semibold text-emerald-700" : highlight ? "font-bold text-brand-dark" : "text-brand-muted"
         }`}
       >
         {label}
@@ -261,12 +261,12 @@ function SummaryRow({
       <div className="text-left">
         <span
           className={`text-sm font-semibold ${
-            discount ? "text-emerald-600" : muted ? "text-slate-400" : highlight ? "text-base font-bold text-brand-pink" : "text-brand-dark"
+            discount ? "text-emerald-700" : muted ? "text-slate-500" : highlight ? "text-base font-bold text-brand-pink" : "text-brand-dark"
           }`}
         >
           {value}
         </span>
-        {sub ? <p className="text-xs text-slate-400">{sub}</p> : null}
+        {sub ? <p className="text-xs text-slate-500">{sub}</p> : null}
       </div>
     </div>
   );
@@ -524,7 +524,7 @@ export function PricingCalculator({ catalogue = DEFAULT_CATALOGUE }: { catalogue
 
                 {discountAmt > 0 ? (
                   <div className="mt-3 flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2">
-                    <Icon name="percent" className="h-4 w-4 flex-shrink-0 text-emerald-500" />
+                    <Icon name="percent" className="h-4 w-4 flex-shrink-0 text-emerald-700" />
                     <p className="text-xs font-semibold text-emerald-700">
                       חיסכון של {fmt(discountAmt)} בכל חודש ({fmt(discountAmt * 12)} בשנה)
                     </p>
