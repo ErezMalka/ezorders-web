@@ -55,12 +55,29 @@ export function blogIndexMetadata(locale: Locale): Metadata {
 }
 
 /**
+ * Appends the brand only when the result still fits in a search result.
+ *
+ * Every other page on the site ends in " | EZOrders"; articles used to end in
+ * " - ezorders", which was both off-brand and long enough to push the English
+ * kiosk guide to 65 characters — past the point where Google truncates and the
+ * end of the headline turns into an ellipsis. A brand name nobody sees because
+ * it was cut off is worth less than a title that reads to the end, so when the
+ * suffix does not fit, the article's own title stands alone.
+ */
+const TITLE_BUDGET = 60;
+const BRAND = " | EZOrders";
+
+function withBrand(seoTitle: string): string {
+  return seoTitle.length + BRAND.length <= TITLE_BUDGET ? `${seoTitle}${BRAND}` : seoTitle;
+}
+
+/**
  * Metadata for one article. Returns a minimal not-found metadata object rather
  * than throwing, so a missing slug renders the 404 page cleanly.
  */
 export function articleMetadata(locale: Locale, slug: string): Metadata {
   const article = getArticle(locale, slug);
-  if (!article) return { title: "Not found - ezorders", robots: { index: false, follow: false } };
+  if (!article) return { title: `Not found${BRAND}`, robots: { index: false, follow: false } };
 
   const image = article.featuredImage ? `${SITE}${article.featuredImage}` : undefined;
 
@@ -75,7 +92,7 @@ export function articleMetadata(locale: Locale, slug: string): Metadata {
   const twImages = image ? { images: [image] } : {};
 
   return {
-    title: `${article.seoTitle} - ezorders`,
+    title: withBrand(article.seoTitle),
     description: article.seoDescription,
     authors: [{ name: article.author }],
     keywords: article.tags.length ? article.tags : undefined,

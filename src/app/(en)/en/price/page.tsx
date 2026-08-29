@@ -29,7 +29,7 @@ export default function PricePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareApplicationSchema("en")) }}
       />
       <div className="pt-28">
-        <PricingTable />
+        <PricingTable as="h1" />
       </div>
       <StatsStrip />
       <Testimonials />

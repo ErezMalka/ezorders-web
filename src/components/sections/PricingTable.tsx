@@ -5,7 +5,23 @@ import { clsx } from "clsx";
 import { getPricingContent, type Locale } from "@/data/pricingContent";
 import { CTAButton } from "@/components/CTAButton";
 
-export function PricingTable({ locale = "en" }: { locale?: Locale }) {
+/**
+ * `as` chooses the heading level for the section title.
+ *
+ * This component is both the whole of /en/price and one section among many
+ * inside ProductPageLayout. On the pricing page it is the page's subject and
+ * must be the h1 — without that, /en/price shipped with no h1 at all, which
+ * costs it the strongest on-page ranking signal there is and leaves screen
+ * reader users no landmark. Inside a product page the surrounding page already
+ * owns the h1, so h2 stays the default and the outline remains correct.
+ */
+export function PricingTable({
+  locale = "en",
+  as: Heading = "h2",
+}: {
+  locale?: Locale;
+  as?: "h1" | "h2";
+}) {
   const t = getPricingContent(locale);
   const [yearly, setYearly] = useState(false);
 
@@ -15,9 +31,9 @@ export function PricingTable({ locale = "en" }: { locale?: Locale }) {
         <p className="mb-2 inline-block rounded-pill bg-brand-tint px-5 py-1 text-sm font-medium text-brand-pinkInk">
           {t.badge}
         </p>
-        <h2 className="text-4xl font-bold md:text-5xl">
+        <Heading className="text-4xl font-bold md:text-5xl">
           <span className="text-brand-indigo">{t.titleAccent}</span>{t.titleRest}
-        </h2>
+        </Heading>
         <p className="mx-auto mt-3 max-w-xl text-brand-muted">
           {t.lead}
         </p>
