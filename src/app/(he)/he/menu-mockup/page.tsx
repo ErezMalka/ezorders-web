@@ -41,6 +41,45 @@ export default function MenuMockupPage() {
           <MenuMockup />
         </div>
       </section>
+
+      {/* The page was 116 words — the thinnest in the sitemap. A visitor asked
+          to upload their menu wants to know what they get back and what
+          happens to the file before they do it, and none of that was on the
+          page. It also had nothing for a search engine to rank. */}
+      <section className="pb-20" aria-labelledby="mockup-how">
+        <div className="mx-auto max-w-2xl px-6">
+          <h2 id="mockup-how" className="text-2xl font-bold text-brand-dark">
+            מה בדיוק תקבלו
+          </h2>
+          <p className="mt-4 leading-8 text-brand-muted">
+            אנחנו לוקחים את התפריט שאתם שולחים — צילום, PDF או קישור, מה שיש לכם —
+            ובונים ממנו מסך קיוסק אמיתי: הקטגוריות שלכם, השמות שלכם, המחירים שלכם.
+            לא תבנית עם תמונות מלאי, אלא איך המסעדה שלכם נראית בעמדה.
+          </p>
+          <p className="mt-4 leading-8 text-brand-muted">
+            הסיבה שזה שווה את הטרחה היא שרוב ההחלטות על קיוסק נתקעות באותה נקודה:
+            קשה לדמיין איך תפריט של ארבעים פריטים עם תוספות מתנהג על מסך מגע.
+            תפריט צפוף מדי דורש גלילה, קטגוריות לא ברורות מאטות את התור, ומנות עם
+            הרבה בחירות חובה נראות אחרת לגמרי כשמפרקים אותן לשלבים. את זה רואים
+            בהדמיה, לא בשיחה.
+          </p>
+
+          <h2 className="mt-10 text-2xl font-bold text-brand-dark">כמה זמן זה לוקח</h2>
+          <p className="mt-4 leading-8 text-brand-muted">
+            בדרך כלל יום עסקים אחד עד שניים, תלוי בגודל התפריט. נחזור אליכם עם
+            ההדמיה ועם ההערות שעלו תוך כדי — למשל אם יש קטגוריה שכדאי לפצל או
+            פריט שמוגדר בצורה שתקשה על הסועד לבחור.
+          </p>
+
+          <h2 className="mt-10 text-2xl font-bold text-brand-dark">
+            מה קורה לתפריט ששלחתם
+          </h2>
+          <p className="mt-4 leading-8 text-brand-muted">
+            הוא משמש לבניית ההדמיה ולשום דבר אחר. אין כאן התחייבות, אין תהליך
+            מכירה שנפתח אוטומטית, ואם תחליטו שלא — תגידו ונמחק אותו.
+          </p>
+        </div>
+      </section>
     </PageLayout>
   );
 }
