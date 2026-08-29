@@ -6,7 +6,7 @@ const en: ProductContent = {
   titleParts: ["Add your ", "restaurant", " to the Mobile world"],
   heroBody:
     "Revolutionize your restaurant business with our user-friendly ordering app. Effortlessly manage online orders, streamline operations, and boost customer satisfaction. Customize your menu, track orders and inventory, and gain valuable business insights. Elevate your restaurant to new heights by joining our app today and unlocking its full potential.",
-  heroImage: "/images/app-hero.png",
+  heroImage: "/images/app-hero.webp",
   featuresHeading: "Applications Features",
   featuresIntro:
     "Discover a range of powerful features with our all-in-one solution. From Order History to Scratch Coupons and personalized Push Notifications, our app has it all. Enhance customer engagement, boost loyalty, and elevate your business with our feature-rich solution.",
@@ -40,7 +40,7 @@ const he: ProductContent = {
   titleParts: ["הכניסו את המסעדה שלכם ל", "עולם המובייל", ""],
   heroBody:
     "אפליקציית הזמנות ידידותית שמאפשרת לכם לנהל הזמנות אונליין ללא מאמץ, לייעל את התפעול ולהגביר את שביעות רצון הלקוחות. התאימו את התפריט, עקבו אחר הזמנות ומלאי, וקבלו תובנות עסקיות חשובות — הכל ממקום אחד.",
-  heroImage: "/images/app-hero.png",
+  heroImage: "/images/app-hero.webp",
   featuresHeading: "יכולות האפליקציה",
   featuresIntro:
     "פתרון הכל-באחד שמעמיק את הקשר עם הלקוחות ומחזיר אותם שוב ושוב.",

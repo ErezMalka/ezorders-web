@@ -41,6 +41,9 @@ function Icon({ name, className }: { name: string; className?: string }) {
         src={`/icons/${brand}.svg`}
         alt=""
         aria-hidden="true"
+        // Without this React preloads one <link> per brand icon on /price.
+        // They sit inside the calculator, well below the fold.
+        loading="lazy"
         className={`${className ?? ""} object-contain`}
       />
     );

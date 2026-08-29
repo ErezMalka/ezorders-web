@@ -59,7 +59,7 @@ export default function SolutionsPage() {
             <div className="flex aspect-square w-full max-w-[420px] items-center justify-center rounded-full bg-brand-indigo">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/images/solutions-chef.png"
+                src="/images/solutions-chef.webp"
                 alt="Chef holding phone"
                 width={556}
                 height={595}

@@ -7,9 +7,9 @@ import { getHomeContent, type Locale } from "@/data/homeContent";
 // height. The carousel swaps images in place, and without them the frame
 // re-lays-out on every slide change as each new file reports its own size.
 const sampleApps = [
-  { name: "App 1", image: "/images/benefits-app.png", width: 558, height: 742 },
-  { name: "App 2", image: "/images/app-hero.png", width: 427, height: 439 },
-  { name: "App 3", image: "/images/website-hero.png", width: 906, height: 1065 },
+  { name: "App 1", image: "/images/benefits-app.webp", width: 558, height: 742 },
+  { name: "App 2", image: "/images/app-hero.webp", width: 427, height: 439 },
+  { name: "App 3", image: "/images/website-hero.webp", width: 906, height: 1065 },
 ];
 
 export function SampleApps({ locale = "en" }: { locale?: Locale }) {
@@ -48,6 +48,12 @@ export function SampleApps({ locale = "en" }: { locale?: Locale }) {
             alt={sampleApps[index].name}
             width={sampleApps[index].width}
             height={sampleApps[index].height}
+            // React emits <link rel="preload" as="image"> for any server-rendered
+            // <img> without this attribute. This carousel is the seventh section
+            // on the home page, so that preload only stole bandwidth from the
+            // hero — it was pulling the largest image on the site before anything
+            // above the fold had finished painting.
+            loading="lazy"
             decoding="async"
             className="max-h-[380px] w-auto"
           />
