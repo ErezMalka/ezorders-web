@@ -104,6 +104,26 @@ test("no heavy image is auto-preloaded from below the fold", () => {
   );
 });
 
+test("the hero animation does not carry uncompressed rasters", () => {
+  // hero.json was 698KB, of which 512KB was PNG inlined as base64 — and base64
+  // inflates already-compressed data by a third, so brotli could not recover
+  // any of it. It was the single heaviest asset on the site, larger than all
+  // the JavaScript combined, and invisible to any check that looks at images.
+  //
+  // The rasters are now WebP, chosen per asset: lossy for the photographic
+  // layers, lossless for the flat artwork. Exporting a fresh animation from
+  // After Effects or LottieFiles will reintroduce PNG, which is why this is a
+  // test rather than a note.
+  const file = fileURLToPath(new URL("../public/animations/hero.json", import.meta.url));
+  const source = readFileSync(file, "utf8");
+
+  const png = (source.match(/data:image\/png;base64,/g) || []).length;
+  assert.equal(png, 0, `${png} PNG rasters are inlined in hero.json — re-encode them as WebP`);
+
+  const kb = Math.round(statSync(file).size / 1024);
+  assert.ok(kb <= 300, `hero.json is ${kb}KB; it downloads on every home-page visit`);
+});
+
 test("the images the home page carries are all reasonably sized", () => {
   // The four PNG screenshots that used to sit here totalled 737KB and were
   // served unoptimised, because these are plain <img> tags rather than
