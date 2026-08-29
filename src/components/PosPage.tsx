@@ -2,6 +2,10 @@ import { PageLayout } from "@/components/PageLayout";
 import { CTAButton } from "@/components/CTAButton";
 import { AdminScreens } from "@/components/sections/AdminScreens";
 import { ContactBand } from "@/components/sections/ContactBand";
+import { FaqSection } from "@/components/sections/FaqSection";
+import { WhatsAppButton } from "@/components/WhatsAppButton";
+import { GENERAL_FAQ } from "@/data/faq";
+import { breadcrumbSchema } from "@/lib/seo/breadcrumbs";
 import { ModuleIcon } from "@/components/Icons";
 import { SIGNUP_URL } from "@/data/content";
 import { getHomeContent, type Locale } from "@/data/homeContent";
@@ -48,6 +52,17 @@ export function PosPage({ locale = "en" }: { locale?: Locale }) {
 
   return (
     <PageLayout locale={locale}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(
+            breadcrumbSchema(locale, {
+              name: locale === "he" ? "מערכת קופה" : "POS system",
+              path: "/pos",
+            }),
+          ),
+        }}
+      />
       {/* HERO */}
       <section className="relative overflow-hidden pb-16 pt-36">
         <div className="mx-auto grid max-w-container items-center gap-10 px-6 md:grid-cols-2">
@@ -126,12 +141,17 @@ export function PosPage({ locale = "en" }: { locale?: Locale }) {
             ? "המחירון המלא והמעודכן, כולל מחשבון אינטראקטיבי לבניית החבילה שלכם, נמצא בעמוד המחירים."
             : "Our full, up-to-date pricing — including an interactive package builder — lives on the pricing page."}
         </p>
-        <div className="mt-8">
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <CTAButton href={locale === "he" ? "/he/price" : "/en/price"}>
             {locale === "he" ? "למחירון המלא" : "See full pricing"}
           </CTAButton>
+          <WhatsAppButton locale={locale} />
         </div>
       </section>
+      {/* This page was the only product page without either of these, which is
+          the wrong one to leave out: "קופה למסעדה" is the term the business
+          most wants to rank for. */}
+      <FaqSection items={GENERAL_FAQ[locale]} locale={locale} />
       <ContactBand locale={locale} />
     </PageLayout>
   );

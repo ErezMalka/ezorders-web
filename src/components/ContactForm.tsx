@@ -122,7 +122,23 @@ const m = document.cookie.match(/(?:^|;\s*)_gcl_aw=GCL\.\d+\.([^;]+)/);
 return m ? m[1] : "";
 }
 
-export function ContactForm({ locale = "en" }: { locale?: Locale }) {
+/**
+ * `headingLevel: "none"` drops the form's own heading.
+ *
+ * Inside ContactBand the section already renders an h2 carrying the identical
+ * string — "בואו נדבר" appeared twice in a row on all twelve pages that use the
+ * band. A repeated heading is noise for a sighted reader and worse for a screen
+ * reader navigating by headings, since the second one promises a new section
+ * and delivers the same one. The form keeps an accessible name either way: when
+ * the heading is dropped, aria-label carries it instead.
+ */
+export function ContactForm({
+  locale = "en",
+  showHeading = true,
+}: {
+  locale?: Locale;
+  showHeading?: boolean;
+}) {
 const t = LABELS[locale];
 const privacyHref = locale === "he" ? "/he/privacy" : "/privacy";
 
@@ -408,8 +424,16 @@ return createElement(
 "form",
 // p-5 on phones: this card sits inside another p-8 card, and the two together
 // ate 128px of a 320px screen — enough to push the grid column past the page.
-{ className: "min-w-0 rounded-card bg-white p-5 shadow-lg sm:p-8", onSubmit: handleSubmit, noValidate: true },
-createElement("h2", { className: "mb-6 text-center text-2xl font-semibold" }, t.title),
+{
+className: "min-w-0 rounded-card bg-white p-5 shadow-lg sm:p-8",
+onSubmit: handleSubmit,
+noValidate: true,
+// Without a visible heading the form still needs a name of its own.
+"aria-label": showHeading ? undefined : t.title,
+},
+showHeading
+? createElement("h2", { className: "mb-6 text-center text-2xl font-semibold" }, t.title)
+: null,
 fields,
 honeypot,
 consent,
