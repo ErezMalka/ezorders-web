@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { createElement } from "react";
 import { PageLayout } from "@/components/PageLayout";
 import { ContactForm } from "@/components/ContactForm";
+import { WhatsAppButton } from "@/components/WhatsAppButton";
 
 export const metadata: Metadata = {
   title: "צור קשר — דמו למערכת הזמנות למסעדה | EZOrders",
@@ -53,7 +54,11 @@ export default function HeContactPage() {
         { href: "mailto:contact@ezorders.com", style: { color: "#e6007e", textDecoration: "none" } },
         "contact@ezorders.com"
         )
-      )
+      ),
+    // Offered beside the form, not instead of it. A restaurant owner deciding
+    // at 22:00 whether to change systems is far likelier to send a message than
+    // to fill in six fields, and this was the one channel the site never had.
+    createElement("div", { style: { marginTop: "1.75rem" } }, createElement(WhatsAppButton, { locale: "he" }))
     );
 
 const formCard = createElement(

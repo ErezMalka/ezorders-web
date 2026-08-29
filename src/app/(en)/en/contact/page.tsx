@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { PageLayout } from "@/components/PageLayout";
 import { ContactForm } from "@/components/ContactForm";
+import { WhatsAppButton } from "@/components/WhatsAppButton";
 
 export const metadata: Metadata = {
   alternates: {
@@ -52,6 +53,11 @@ export default function ContactPage() {
               Want to see EZOrders in action? Fill out the form and we\u2019ll
               get back to you shortly to schedule a live demo.
             </p>
+            {/* Offered beside the form, not instead of it — this was the one
+                contact channel the site never had. */}
+            <div className="mt-7">
+              <WhatsAppButton locale="en" />
+            </div>
           </div>
           <div className="min-w-0 rounded-card bg-brand-indigo p-5 sm:p-8 md:p-12">
             <ContactForm />
