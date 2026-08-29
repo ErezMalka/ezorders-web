@@ -85,6 +85,9 @@ export const organizationSchema = {
   },
   areaServed: { "@type": "Country", name: "Israel" },
   knowsLanguage: ["he", "en"],
-  // Empty until the real profile URLs are confirmed. See the note above.
-  sameAs: [] as string[],
+  // Checked while logged OUT before being added here. A logged-in check proves
+  // nothing: an unpublished page still renders for its own admin. The page also
+  // states the same street address and email as the fields above, which is the
+  // consistency the entity match depends on.
+  sameAs: ["https://www.facebook.com/profile.php?id=61591771392713"],
 };
