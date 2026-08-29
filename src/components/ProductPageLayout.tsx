@@ -4,6 +4,7 @@ import { FeatureCard } from "./FeatureCard";
 import { PricingTable } from "./sections/PricingTable";
 import { FaqSection } from "./sections/FaqSection";
 import { GENERAL_FAQ } from "@/data/faq";
+import { breadcrumbSchema } from "@/lib/seo/breadcrumbs";
 import { ContactBand } from "./sections/ContactBand";
 import { getHomeContent, type Locale } from "@/data/homeContent";
 import { ModuleIcon, type IconName } from "@/components/Icons";
@@ -25,9 +26,12 @@ export type ProductContent = {
 export function ProductPageLayout({
   content,
   locale = "en",
+  path,
 }: {
   content: ProductContent;
   locale?: Locale;
+  /** Locale-agnostic route, e.g. "/kiosk-stands". Omit to skip breadcrumbs. */
+  path?: string;
 }) {
   const home = getHomeContent(locale);
   const solutionsHref = locale === "he" ? "/he/solutions" : "/solutions";
@@ -36,6 +40,18 @@ export function ProductPageLayout({
 
   return (
     <PageLayout locale={locale}>
+      {/* Home > Solutions > this page. The article system has emitted this
+          since it was built; the marketing pages never did. */}
+      {path && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(
+              breadcrumbSchema(locale, { name: content.tag, path }),
+            ),
+          }}
+        />
+      )}
       {/* HERO */}
       <section className="relative overflow-hidden pb-16 pt-36">
         <div className="mx-auto grid max-w-container items-center gap-10 px-6 md:grid-cols-2">

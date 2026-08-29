@@ -18,6 +18,10 @@ import { createServerClient } from "@supabase/ssr";
 
 const LEGACY_EN_PATHS = [
   "/about",
+  // "/blog" was the one page missing from this list, so it 404'd while every
+  // sibling redirected. Search Console reported it as the site's only
+  // "Not found (404)".
+  "/blog",
   "/contact",
   "/digital-menus",
   "/kiosk-stands",

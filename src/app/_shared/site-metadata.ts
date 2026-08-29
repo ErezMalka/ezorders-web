@@ -50,12 +50,41 @@ export const baseMetadata: Metadata = {
     : {}),
 };
 
+/**
+ * Who EZOrders is, in the form a search engine and an AI assistant can verify.
+ *
+ * `sameAs` is the important field and the one still empty. It is how a search
+ * engine ties this domain to the same company mentioned elsewhere — the profile
+ * URLs are the evidence that an entity exists behind the site. Until it has
+ * real URLs in it, EZOrders is a domain rather than a known organisation.
+ *
+ * Add profiles here as they come; an empty array is honest, a fabricated one is
+ * not, and pointing at a page that does not exist is worse than pointing at
+ * nothing.
+ */
 export const organizationSchema = {
   "@context": "https://schema.org",
   "@type": "Organization",
+  "@id": "https://ezorders.com/#organization",
   name: "EZOrders",
+  legalName: "EZOrders",
   url: "https://ezorders.com",
+  logo: {
+    "@type": "ImageObject",
+    url: "https://ezorders.com/images/logo.png",
+  },
+  image: "https://ezorders.com/images/logo.png",
   description: SITE_DESCRIPTION,
   telephone: "*4958",
+  email: "contact@ezorders.com",
+  address: {
+    "@type": "PostalAddress",
+    streetAddress: "פל ים 2",
+    addressLocality: "חיפה",
+    addressCountry: "IL",
+  },
+  areaServed: { "@type": "Country", name: "Israel" },
+  knowsLanguage: ["he", "en"],
+  // Empty until the real profile URLs are confirmed. See the note above.
   sameAs: [] as string[],
 };
