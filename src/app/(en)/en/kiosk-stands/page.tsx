@@ -18,5 +18,5 @@ export const metadata: Metadata = {
 };
 
 export default function KioskStandsPage() {
-  return <ProductPageLayout content={kioskStandsContent.en} />;
+  return <ProductPageLayout content={kioskStandsContent.en}  path="/kiosk-stands" />;
 }
