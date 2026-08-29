@@ -12,7 +12,7 @@ export const metadata: Metadata = {
       "x-default": "/he/restaurant-ordering-website",
     },
   },
-  title: "Restaurant ordering website - ezorders",
+  title: "Restaurant Ordering Website — Delivery & Pickup | EZOrders",
   description:
     "A user-friendly restaurant ordering website to customize orders, make secure payments, and unlock your restaurant’s potential.",
 };

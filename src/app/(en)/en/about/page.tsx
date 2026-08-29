@@ -16,7 +16,7 @@ export const metadata: Metadata = {
       "x-default": "/he/about",
     },
   },
-  title: "About - ezorders",
+  title: "About EZOrders — Restaurant Ordering Systems in Israel",
   description:
     "Get to know EZOrders — we build mobile-first digital menus for restaurants that update in seconds and guide guests smoothly from browsing to ordering.",
 };

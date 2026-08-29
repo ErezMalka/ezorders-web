@@ -67,7 +67,7 @@ export type PlatformContent = {
 
 const en: PlatformContent = {
   meta: {
-    title: "The Platform - ezorders",
+    title: "Run the Whole Restaurant From One System | EZOrders",
     description:
       "One system to run your whole restaurant — POS, orders, digital menu, loyalty, couriers, staff and multi-branch management, with real-time reports and analytics.",
   },

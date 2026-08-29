@@ -16,7 +16,7 @@ const OG_LOCALE: Record<Locale, string> = { en: "en_US", he: "he_IL" };
 
 const INDEX_META: Record<Locale, { title: string; description: string }> = {
   en: {
-    title: "Blog - ezorders",
+    title: "Blog — Restaurant Operations and Ordering | EZOrders",
     description:
       "Practical guides for quick-service restaurant operators: online ordering, self-order kiosks, kitchen flow, and the numbers behind them.",
   },

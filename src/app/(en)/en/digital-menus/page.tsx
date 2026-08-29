@@ -12,7 +12,7 @@ export const metadata: Metadata = {
       "x-default": "/he/digital-menus",
     },
   },
-  title: "Digital Menus - ezorders",
+  title: "Digital Menu for Restaurants — QR & Allergens | EZOrders",
   description:
     "Modernize your menu experience with a responsive digital menu for restaurants — real-time edits, built-in upsells, and one-tap order links.",
 };

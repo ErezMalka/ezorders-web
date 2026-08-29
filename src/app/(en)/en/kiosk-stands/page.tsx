@@ -12,7 +12,7 @@ export const metadata: Metadata = {
       "x-default": "/he/kiosk-stands",
     },
   },
-  title: "Kiosk stands - ezorders",
+  title: "Self-Order Kiosks for Restaurants — Cut Queues | EZOrders",
   description:
     "A modern self-service restaurant kiosk that turns rush-hour bottlenecks into fast, accurate, high-conversion orders.",
 };

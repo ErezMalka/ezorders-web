@@ -19,7 +19,7 @@ export const metadata: Metadata = {
       "x-default": "/he",
     },
   },
-  title: "Home - ezorders",
+  title: "Restaurant Management System — POS, Kiosk, Menu | EZOrders",
   description:
     "EZorders turns offline to online — digital menus, online ordering, kiosk stands and apps for modern restaurants.",
 };

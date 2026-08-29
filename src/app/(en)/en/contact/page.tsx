@@ -12,7 +12,7 @@ export const metadata: Metadata = {
       "x-default": "/he/contact",
     },
   },
-  title: "Contact - ezorders",
+  title: "Contact — Book a Demo of the Restaurant System | EZOrders",
   description:
     "Our experts can answer your questions. Contact EZOrders today and let’s start building your success together.",
 };

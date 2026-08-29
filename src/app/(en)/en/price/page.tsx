@@ -16,7 +16,7 @@ export const metadata: Metadata = {
       "x-default": "/he/price",
     },
   },
-  title: "Price - ezorders",
+  title: "Pricing — Restaurant System Cost Calculator | EZOrders",
   description:
     "Plans & Pricing — whether your time-saving automation needs are large or small, EZOrders is here to help you scale.",
 };

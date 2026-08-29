@@ -15,7 +15,7 @@ export const metadata: Metadata = {
       "x-default": "/he/solutions",
     },
   },
-  title: "Solutions - ezorders",
+  title: "Restaurant Solutions — POS, Kiosk, Menu & Website | EZOrders",
   description:
     "Digitize your restaurant menu with endless options — digital menus, websites, membership clubs, kiosk stands, applications and an order management system.",
 };

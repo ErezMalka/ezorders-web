@@ -25,7 +25,7 @@ export type PosContent = {
 
 const en: PosContent = {
   meta: {
-    title: "POS – Point of Sale - ezorders",
+    title: "Restaurant POS — Orders, Payments & Reports | EZOrders",
     description:
       "A restaurant POS built for the pace of service — take orders, split bills, manage the cash drawer and close the day with X & Z reports, all connected to your menu and reports.",
   },

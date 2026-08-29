@@ -12,7 +12,7 @@ export const metadata: Metadata = {
       "x-default": "/he/restaurant-ordering-app",
     },
   },
-  title: "Restaurant ordering app - ezorders",
+  title: "Restaurant Ordering App — Branded, With Loyalty | EZOrders",
   description:
     "Revolutionize your restaurant with a user-friendly ordering app — manage online orders, track inventory, and gain business insights.",
 };
