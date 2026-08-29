@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import { PageLayout } from "@/components/PageLayout";
+import { FaqSection } from "@/components/sections/FaqSection";
+import { GENERAL_FAQ } from "@/data/faq";
+import { breadcrumbSchema } from "@/lib/seo/breadcrumbs";
 
 export const metadata: Metadata = {
   title: "מסך מטבח דיגיטלי KDS — כל ההזמנות במסך אחד | EZOrders",
@@ -95,6 +98,11 @@ export default function HeKitchenDisplayPage() {
           <a href="/he/contact" style={ctaStyle}>לתיאום הדגמה במטבח שלכם</a>
         </div>
       </section>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema("he", { name: "מסך מטבח דיגיטלי (KDS)", path: "/kitchen-display" })) }}
+      />
+      <FaqSection items={GENERAL_FAQ.he} locale="he" />
     </PageLayout>
   );
 }

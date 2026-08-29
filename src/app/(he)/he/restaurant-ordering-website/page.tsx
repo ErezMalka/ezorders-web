@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { createElement } from "react";
 import { PageLayout } from "@/components/PageLayout";
+import { FaqSection } from "@/components/sections/FaqSection";
+import { GENERAL_FAQ } from "@/data/faq";
+import { breadcrumbSchema } from "@/lib/seo/breadcrumbs";
 
 export const metadata: Metadata = {
   title: "אתר הזמנות למסעדה — משלוחים ואיסוף עצמי אונליין | EZOrders",
@@ -48,5 +51,14 @@ export default function HeOrderingWebsitePage() {
     createElement("div", { style: ctaWrapStyle }, createElement("a", { href: "/he/contact", style: ctaStyle }, "דברו איתנו ותתחילו היום"))
     );
 
-return createElement(PageLayout, { locale: "he" }, content);
+return createElement(
+  PageLayout,
+  { locale: "he" },
+  createElement("script", {
+    type: "application/ld+json",
+    dangerouslySetInnerHTML: { __html: JSON.stringify(breadcrumbSchema("he", { name: "אתר הזמנות למסעדה", path: "/restaurant-ordering-website" })) },
+  }),
+  content,
+  createElement(FaqSection, { items: GENERAL_FAQ.he, locale: "he" }),
+  );
 }

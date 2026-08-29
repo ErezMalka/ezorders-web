@@ -3,6 +3,9 @@ import { createElement } from "react";
 import { PageLayout } from "@/components/PageLayout";
 import { HardwareShowcase } from "@/components/sections/HardwareShowcase";
 import { loadHardwareShowcase } from "@/lib/agent/products";
+import { FaqSection } from "@/components/sections/FaqSection";
+import { GENERAL_FAQ } from "@/data/faq";
+import { breadcrumbSchema } from "@/lib/seo/breadcrumbs";
 
 export const metadata: Metadata = {
   title: "עמדות קיוסק למסעדות — הזמנה עצמית שמקצרת תורים | EZOrders",
@@ -65,7 +68,16 @@ export default async function HeKioskStandsPage() {
 return createElement(
     PageLayout,
     { locale: "he" },
+    createElement("script", {
+      type: "application/ld+json",
+      dangerouslySetInnerHTML: {
+        __html: JSON.stringify(
+          breadcrumbSchema("he", { name: "עמדות קיוסק", path: "/kiosk-stands" }),
+        ),
+      },
+    }),
     content,
-    createElement(HardwareShowcase, { items: hardware })
+    createElement(HardwareShowcase, { items: hardware }),
+    createElement(FaqSection, { items: GENERAL_FAQ.he, locale: "he" })
   );
 }

@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import { PageLayout } from "@/components/PageLayout";
+import { FaqSection } from "@/components/sections/FaqSection";
+import { GENERAL_FAQ } from "@/data/faq";
+import { breadcrumbSchema } from "@/lib/seo/breadcrumbs";
 
 export const metadata: Metadata = {
   title: "הזמנה בסריקת QR מהשולחן — בלי אפליקציה ובלי המתנה | EZOrders",
@@ -91,6 +94,11 @@ export default function HeQrOrderingPage() {
           <a href="/he/contact" style={ctaStyle}>רוצים QR על השולחנות? דברו איתנו</a>
         </div>
       </section>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema("he", { name: "הזמנה בסריקת QR", path: "/qr-ordering" })) }}
+      />
+      <FaqSection items={GENERAL_FAQ.he} locale="he" />
     </PageLayout>
   );
 }
