@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { createElement } from "react";
 import { PageLayout } from "@/components/PageLayout";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
+import { RelatedLinks } from "@/components/sections/RelatedLinks";
 import { HardwareShowcase } from "@/components/sections/HardwareShowcase";
 import { loadHardwareShowcase } from "@/lib/agent/products";
 import { FaqSection } from "@/components/sections/FaqSection";
@@ -79,6 +80,26 @@ return createElement(
     }),
     content,
     createElement(HardwareShowcase, { items: hardware }),
+    createElement(RelatedLinks, {
+      locale: "he",
+      items: [
+        {
+          href: "/he/queue-calculator",
+          title: "מחשבון: כמה עולה לכם התור?",
+          body: "הזינו כמה סועדים עוברים אצלכם בשעת שיא וכמה זמן לוקחת הזמנה, וקבלו הערכה של מה שהתור עולה לכם בפועל — בהזמנות שלא נסגרו ובסועדים שוויתרו.",
+        },
+        {
+          href: "/he/blog/self-order-kiosks-peak-hours",
+          title: "מה קיוסקים באמת משנים בשעות העומס",
+          body: "לא הבטחות שיווקיות אלא מה קורה למהירות השירות, לדיוק ההזמנות ולסל הממוצע דווקא ברגעים שבהם המסעדה הכי עמוסה.",
+        },
+        {
+          href: "/he/blog/restaurant-self-order-kiosk-software",
+          title: "תוכנת קיוסק להזמנה עצמית — מדריך למפעילים",
+          body: "איך התוכנה עובדת, מה לדרוש ממנה, ואיך נראה תהליך הטמעה שלא משבש לכם את השירות באמצע.",
+        },
+      ],
+    }),
     createElement(FaqSection, { items: GENERAL_FAQ.he, locale: "he" })
   );
 }

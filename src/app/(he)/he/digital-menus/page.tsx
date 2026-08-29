@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { createElement } from "react";
 import { PageLayout } from "@/components/PageLayout";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
+import { RelatedLinks } from "@/components/sections/RelatedLinks";
 import { FaqSection } from "@/components/sections/FaqSection";
 import { GENERAL_FAQ } from "@/data/faq";
 import { breadcrumbSchema } from "@/lib/seo/breadcrumbs";
@@ -66,6 +67,26 @@ return createElement(
     dangerouslySetInnerHTML: { __html: JSON.stringify(breadcrumbSchema("he", { name: "תפריטים דיגיטליים", path: "/digital-menus" })) },
   }),
   content,
+  createElement(RelatedLinks, {
+    locale: "he",
+    items: [
+      {
+        href: "/he/menu-mockup",
+        title: "שלחו תפריט, קבלו הדמיית קיוסק",
+        body: "העלו את התפריט הקיים שלכם וראו איך הוא נראה על מסך קיוסק — עם הקטגוריות, התמונות והתוספות שלכם, בלי להתחייב לכלום.",
+      },
+      {
+        href: "/he/qr-ordering",
+        title: "הזמנה בסריקת QR מהשולחן",
+        body: "אותו תפריט דיגיטלי, אבל הסועד גם מזמין ומשלם ממנו — בלי להוריד אפליקציה ובלי לחכות למלצר.",
+      },
+      {
+        href: "/he/blog/restaurant-self-order-kiosk-software",
+        title: "תוכנת קיוסק להזמנה עצמית — מדריך למפעילים",
+        body: "אם התפריט הדיגיטלי הוא הצעד הראשון, זה מה שכדאי לדעת לפני הצעד הבא.",
+      },
+    ],
+  }),
   createElement(FaqSection, { items: GENERAL_FAQ.he, locale: "he" }),
   );
 }

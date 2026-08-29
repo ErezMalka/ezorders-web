@@ -31,6 +31,17 @@ const sharedRoutes: { path: string; priority: number }[] = [
 const hebrewOnlyRoutes: { path: string; priority: number }[] = [
   { path: "/kitchen-display", priority: 0.8 },
   { path: "/qr-ordering", priority: 0.8 },
+  // The two interactive funnels. Both were live, indexable and reachable by
+  // nobody: absent from this file, from the navigation, and from every page
+  // body — the only mention of either anywhere in the source was the language
+  // switcher's list of paths that have no English counterpart.
+  //
+  // Left out deliberately would have meant `noindex`, which is how an ad-only
+  // landing page is marked. These carry no such tag, so the omission was an
+  // oversight, and an interactive calculator is exactly the sort of page that
+  // earns its ranking rather than arguing for it.
+  { path: "/queue-calculator", priority: 0.7 },
+  { path: "/menu-mockup", priority: 0.7 },
 ];
 
 /**
