@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { fmt } from "@/lib/pricing";
 import type { ContractLineRow, ContractStatus } from "@/lib/agent/contracts";
@@ -17,6 +17,12 @@ import type { ContractLineRow, ContractStatus } from "@/lib/agent/contracts";
  * Locked the moment there is a signature. Not greyed out and quietly ignored —
  * the fields disappear and what was signed is shown as text, because a form you
  * can type into but not save is a form that lies.
+ *
+ * Typed and not saved is the failure this page kept having: every contract so
+ * far was created and sent inside ten seconds, with the notes still empty. So
+ * the state of this form is reported upwards — the send button refuses to fire
+ * while there is unsaved text here, and the browser asks before the tab closes
+ * on it.
  */
 export function ContractNotes({
   id,
@@ -24,12 +30,19 @@ export function ContractNotes({
   lines,
   initialNotes,
   initialItemNotes,
+  quoteNotes,
+  onDirtyChange,
+  onNotesPresenceChange,
 }: {
   id: string;
   status: ContractStatus;
   lines: ContractLineRow[];
   initialNotes: string;
   initialItemNotes: Record<string, string>;
+  /** What the agent wrote on the quote. Offered, never copied silently. */
+  quoteNotes?: string | null;
+  onDirtyChange?: (dirty: boolean) => void;
+  onNotesPresenceChange?: (hasNotes: boolean) => void;
 }) {
   const router = useRouter();
   const [notes, setNotes] = useState(initialNotes);
@@ -44,6 +57,33 @@ export function ContractNotes({
   const dirty =
     notes !== initialNotes ||
     lines.some((line) => (itemNotes[line.component_key] ?? "") !== (initialItemNotes[line.component_key] ?? ""));
+
+  const hasSavedNotes =
+    Boolean(initialNotes.trim()) ||
+    lines.some((line) => Boolean((initialItemNotes[line.component_key] ?? "").trim()));
+
+  // The page above needs both of these to decide whether the send button may
+  // fire. Reported rather than recomputed there: this component is the only
+  // place that knows what is in the fields right now.
+  useEffect(() => {
+    onDirtyChange?.(locked ? false : dirty);
+  }, [dirty, locked, onDirtyChange]);
+
+  useEffect(() => {
+    onNotesPresenceChange?.(hasSavedNotes);
+  }, [hasSavedNotes, onNotesPresenceChange]);
+
+  // A note typed into a textarea and never saved is not in the document, and
+  // closing the tab is the commonest way to lose one.
+  useEffect(() => {
+    if (locked || !dirty) return;
+    const warn = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [dirty, locked]);
 
   const save = async () => {
     setBusy(true);
@@ -67,6 +107,16 @@ export function ContractNotes({
     } finally {
       setBusy(false);
     }
+  };
+
+  const appendQuoteNotes = () => {
+    const text = (quoteNotes ?? "").trim();
+    if (!text) return;
+    setNotes((current) => {
+      if (current.includes(text)) return current;
+      const joined = current.trim() ? `${current.trim()}\n${text}` : text;
+      return joined.slice(0, 4000);
+    });
   };
 
   if (locked) {
@@ -109,6 +159,28 @@ export function ContractNotes({
         <p role="alert" className="rounded-xl bg-red-50 px-4 py-2.5 text-sm font-medium text-red-700">
           {error}
         </p>
+      ) : null}
+
+      {quoteNotes?.trim() ? (
+        <div className="rounded-xl border border-slate-200 bg-brand-grey p-4">
+          <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
+            <p className="text-xs font-semibold text-brand-muted">מה שנכתב בהצעת המחיר</p>
+            <button
+              type="button"
+              onClick={appendQuoteNotes}
+              className="rounded-pill border border-slate-300 bg-white px-4 py-1.5 text-xs font-semibold text-brand-dark transition-colors hover:bg-white/60"
+            >
+              העתקה להערות ההסכם
+            </button>
+          </div>
+          <p className="whitespace-pre-line text-sm leading-relaxed text-brand-dark">
+            {quoteNotes.trim()}
+          </p>
+          <p className="mt-2 text-xs leading-relaxed text-brand-muted">
+            הטקסט הזה אינו חלק מההסכם. מה שצריך להופיע במסמך שהלקוח חותם עליו — העתיקו לשדה
+            שלמטה, וערכו לפני שמירה.
+          </p>
+        </div>
       ) : null}
 
       <div className="space-y-4">
@@ -180,6 +252,11 @@ export function ContractNotes({
         >
           {busy ? "שומר…" : "שמירת הערות"}
         </button>
+        {dirty ? (
+          <span className="text-sm font-medium text-amber-700">
+            יש הערות שלא נשמרו — הן לא בתוך המסמך עד שתשמרו.
+          </span>
+        ) : null}
         {saved && !dirty ? <span className="text-sm text-emerald-700">נשמר</span> : null}
       </div>
     </div>

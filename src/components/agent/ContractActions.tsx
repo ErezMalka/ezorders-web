@@ -17,19 +17,33 @@ export function ContractActions({
   status,
   token,
   siteUrl,
+  blockedReason = null,
+  notesAreEmpty = false,
 }: {
   id: string;
   status: ContractStatus;
   token: string;
   siteUrl: string;
+  /** Set while the notes form has text nobody has saved yet. Sending is refused. */
+  blockedReason?: string | null;
+  /** True when the contract carries no saved notes at all. Sending asks first. */
+  notesAreEmpty?: boolean;
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [confirmingEmpty, setConfirmingEmpty] = useState(false);
 
   const link = `${siteUrl.replace(/\/+$/, "")}/c/${token}`;
   const live = status === "sent" || status === "viewed" || status === "signed";
+
+  // The question is only live while the contract still has nothing written on
+  // it. An agent who reads the warning, scrolls up, writes a note and saves it
+  // has answered it — leaving the banner up and the button reading "send with
+  // no notes" over a contract that now has notes would be the page lying about
+  // what it is holding.
+  const askingEmpty = confirmingEmpty && notesAreEmpty;
 
   const act = async (action: "send" | "cancel") => {
     setBusy(true);
@@ -76,14 +90,38 @@ export function ContractActions({
           <p className="text-sm leading-relaxed text-brand-muted">
             ההסכם עדיין טיוטה. הלקוח לא יכול לפתוח אותו עד שתשלחו — הקישור לא קיים בשבילו.
           </p>
+          {blockedReason ? (
+            <p className="rounded-xl bg-amber-50 px-4 py-2.5 text-sm font-medium leading-relaxed text-amber-900">
+              {blockedReason}
+            </p>
+          ) : null}
+          {askingEmpty && !blockedReason ? (
+            <p className="rounded-xl bg-amber-50 px-4 py-2.5 text-sm font-medium leading-relaxed text-amber-900">
+              לא נוספו הערות להסכם הזה — המסמך שהלקוח יחתום עליו יכיל רק את הנוסח והמחירים.
+              לשלוח בכל זאת?
+            </p>
+          ) : null}
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
-              disabled={busy}
-              onClick={() => act("send")}
+              disabled={busy || Boolean(blockedReason)}
+              onClick={() => {
+                // Once, and only for a contract with nothing written on it: the
+                // whole reason notes kept ending up empty is that this button
+                // is the first thing an agent reaches on this page.
+                if (notesAreEmpty && !askingEmpty) {
+                  setConfirmingEmpty(true);
+                  return;
+                }
+                void act("send");
+              }}
               className="rounded-pill bg-brand-pink px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-pinkDark disabled:opacity-40"
             >
-              {busy ? "שולח…" : "שליחה ללקוח"}
+              {busy
+                ? "שולח…"
+                : askingEmpty
+                  ? "שליחה בלי הערות"
+                  : "שליחה ללקוח"}
             </button>
             <button
               type="button"
