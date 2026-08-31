@@ -46,6 +46,14 @@ export const PRICING_CONFIG = {
     { id: "loyalty", label: "מועדון לקוחות", note: "פר סניף", setup: 0, monthly: 350, maxQty: 1, icon: "users" },
     { id: "ezwallet", label: "EzWallet", note: "", setup: 0, monthly: 150, maxQty: 1, icon: "wallet" },
     { id: "feedback", label: "מודול פידבק", note: "", setup: 0, monthly: 150, maxQty: 1, icon: "chat" },
+    // The two screens sell as add-ons rather than core products: neither stands
+    // alone, since a KDS shows orders a POS took and a CDS faces the customer
+    // at one. addon_included is discountable and counts toward the tier
+    // threshold, which is what "נכלל בהנחות כמו היתר במדרגות" asks for —
+    // and it keeps them out of the AggregateOffer on /he/pos, which reads
+    // coreProducts alone and would otherwise advertise a ₪150 floor price.
+    { id: "kds", label: "מסך מטבח (KDS)", note: "המחיר פר מסך", setup: 250, monthly: 150, maxQty: 10, icon: "kds" },
+    { id: "cds", label: "מסך לקוח (CDS)", note: "המחיר פר עמדה", setup: 250, monthly: 150, maxQty: 20, icon: "cds" },
   ],
 
   addonsExcluded: [
