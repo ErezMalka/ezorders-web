@@ -20,11 +20,12 @@ import type { ProductRow } from "@/lib/agent/products";
  * that actually happens.
  */
 
-const GROUP_ORDER: ItemGroup[] = ["core", "addon_included", "addon_excluded", "mobile_app", "hardware"];
+const GROUP_ORDER: ItemGroup[] = ["core", "addon_included", "integrations", "addon_excluded", "mobile_app", "hardware"];
 
 const GROUP_HINT: Record<ItemGroup, string> = {
   core: "נכללים בחישוב ההנחה החודשית",
   addon_included: "מגדילים את מדרגת ההנחה",
+  integrations: "ממשקים לפלטפורמות — מגדילים את מדרגת ההנחה",
   addon_excluded: "נוספים לסה״כ במלוא המחיר",
   mobile_app: "ללא הנחה",
   hardware: "תשלום חד־פעמי בלבד — לא נכנס לחישוב ההנחה",

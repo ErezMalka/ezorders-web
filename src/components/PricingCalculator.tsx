@@ -64,6 +64,8 @@ function Icon({ name, className }: { name: string; className?: string }) {
     kds: <path d="M3 4h18v12H3zM3 20h18M8 8h8M8 12h5" />,
     // Customer display: a small screen on a stand, facing the other way.
     cds: <path d="M5 4h14v9H5zM12 13v5M8 21h8M9 8h6" />,
+    // Two plugs meeting: one system connected to another.
+    integration: <path d="M10 3v4M14 3v4M8 7h8v5a4 4 0 01-8 0zM12 16v5" />,
     settings: <path d="M12 9a3 3 0 100 6 3 3 0 000-6zM19 12l2-1-1-3-2.2.3-1.5-1.5L16.5 4l-3-1-1 2h-2l-1-2-3 1 .2 2.8L5.2 8.3 3 8l-1 3 2 1-2 1 1 3 2.2-.3 1.5 1.5L6.5 20l3 1 1-2h2l1 2 3-1-.2-2.8 1.5-1.5 2.2.3 1-3-2-1z" />,
     info: <path d="M12 3a9 9 0 100 18 9 9 0 000-18zM12 8h.01M12 11v5" />,
     reset: <path d="M4 10a8 8 0 118 8M4 10V4m0 6h6" />,
@@ -316,6 +318,7 @@ export function PricingCalculator({ catalogue = DEFAULT_CATALOGUE }: { catalogue
   // or fills is reflected here without a deploy.
   const coreProducts = itemsInGroup("core", catalogue);
   const addonsIncluded = itemsInGroup("addon_included", catalogue);
+  const integrations = itemsInGroup("integrations", catalogue);
   const addonsExcluded = itemsInGroup("addon_excluded", catalogue);
   const hardware = itemsInGroup("hardware", catalogue);
   const mobileApp = itemsInGroup("mobile_app", catalogue)[0];
@@ -341,6 +344,7 @@ export function PricingCalculator({ catalogue = DEFAULT_CATALOGUE }: { catalogue
     };
     addSection("מוצרים ראשיים", coreProducts);
     addSection("תוספות כלולות בהנחה", addonsIncluded);
+    addSection("ממשקים ואינטגרציות", integrations);
     addSection("תוספות לא כלולות בהנחה", addonsExcluded);
     addSection("מוצרים וחומרה", hardware);
     if (mobileApp && appState?.enabled) {
@@ -446,6 +450,23 @@ export function PricingCalculator({ catalogue = DEFAULT_CATALOGUE }: { catalogue
               ))}
             </div>
           </div>
+
+          {/* Platform integrations. Rendered only when the catalogue has any, so
+              an empty heading never appears if they are switched off in admin. */}
+          {integrations.length > 0 && (
+            <div className="rounded-card border border-slate-200 bg-white p-5 shadow-sm">
+              <SectionHeader
+                title="ממשקים ואינטגרציות"
+                subtitle="חיבור לפלטפורמות שאתם כבר מוכרים בהן — מחיר פר פלטפורמה"
+                badge="כולל הנחה"
+              />
+              <div className="space-y-2.5">
+                {integrations.map((p) => (
+                  <ProductRow key={p.id} {...p} state={calc[p.id]} onChange={update} />
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Add-ons excluded */}
           <div className="rounded-card border border-slate-200 bg-white p-5 shadow-sm">

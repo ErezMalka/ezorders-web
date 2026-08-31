@@ -45,9 +45,13 @@ for (const [id, name] of [["kds", "KDS"], ["cds", "CDS"]]) {
     // addon_included is in DISCOUNTABLE_GROUPS; core would be too, but core
     // also feeds the public AggregateOffer and would drop its floor to ₪150.
     assert.ok(item(id), `${id} must be in addonsIncluded, not addonsExcluded`);
+    // Membership, not the exact array. Pinning the literal made this fail the
+    // moment a third discountable group was added, which is a change it has no
+    // opinion about.
+    const groups = pricing.match(/DISCOUNTABLE_GROUPS: readonly ItemGroup\[\] = \[([^\]]*)\]/)[1];
     assert.match(
-      pricing,
-      /DISCOUNTABLE_GROUPS: readonly ItemGroup\[\] = \["core", "addon_included"\]/,
+      groups,
+      /"addon_included"/,
       "addon_included must stay discountable, or these two silently start billing at full price",
     );
   });
