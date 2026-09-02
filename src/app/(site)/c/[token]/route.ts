@@ -63,6 +63,13 @@ interface PublicContract {
   hardware_total: string | number | null;
   monthly_total: string | number;
   vat_percent: string | number;
+  /** Absent from payloads produced before 0025; the renderer treats that as layout 1. */
+  layout_version?: number | null;
+  base_setup?: string | number | null;
+  monthly_eligible?: string | number | null;
+  discount_percent?: string | number | null;
+  discount_amount?: string | number | null;
+  monthly_non_eligible?: string | number | null;
   items: Array<{
     label: string;
     note: string | null;
@@ -376,6 +383,13 @@ function toDocument(c: PublicContract, opts: { signed: boolean }): ContractDocum
     hardwareTotal: Number(c.hardware_total ?? 0),
     monthlyTotal: Number(c.monthly_total),
     vatPercent: Number(c.vat_percent),
+
+    layoutVersion: Number(c.layout_version ?? 1),
+    baseSetup: Number(c.base_setup ?? 0),
+    monthlyEligible: Number(c.monthly_eligible ?? 0),
+    discountPercent: Number(c.discount_percent ?? 0),
+    discountAmount: Number(c.discount_amount ?? 0),
+    monthlyNonEligible: Number(c.monthly_non_eligible ?? 0),
 
     ...(opts.signed
       ? {

@@ -139,6 +139,42 @@ direct-contract quote stays a draft forever, and without the extra clause it
 would stay editable underneath a document somebody had already signed. The rule
 now reads: a quote a live contract has been drawn from cannot change either.
 
+## The notes the agent writes
+
+**Six contracts in a row went out with `notes` null and `item_notes` empty**,
+each one created and sent inside ten seconds. Nothing was broken — the column,
+the RPC, the payload and the renderer all worked. The notes form simply sat two
+sections below the send button, and the send button is the first control an
+agent's thumb reaches when they land here from the quote. The order of the page
+was the bug.
+
+**So the page is ordered by what has to happen first.** `ContractEditor` owns
+both blocks and puts the notes above the actions while the contract is still a
+draft; once it is signed or cancelled there is nothing left to fill in, so the
+actions lead and the notes read as a record of what was agreed.
+
+**Sending is refused over unsaved text.** `ContractNotes` reports its dirty
+state upward — it is the only place that knows what is in the fields right now —
+and while the form holds text nobody has saved, the send button is disabled and
+says why. Text in a textarea is not in the document, and the document is the
+only thing the customer ever sees. The same state puts a `beforeunload` guard on
+the tab, because closing it is the commonest way to lose a note.
+
+**Sending with no notes at all asks once.** Not a block: plenty of deals carry
+nothing beyond the terms and the prices, and an agent who means that should be
+able to say so. The question is asked once, only for a contract with nothing
+saved on it, and it withdraws itself the moment notes exist — an agent who
+scrolls up and saves one has answered it, and a banner still reading "no notes
+were added" over a contract that now has them would be the page lying about what
+it is holding.
+
+**The quote's note is offered, never copied.** `getQuoteNotes` reads it and the
+form shows it beside the field with a button. The quote note is where an agent
+writes everything a deal needs — the arithmetic they did for themselves as much
+as what was promised to the customer — and only they know which half belongs in
+a document somebody signs. Copying it in silently would put the other half
+in front of the customer.
+
 ## Roles
 
 | role | sees | can also |

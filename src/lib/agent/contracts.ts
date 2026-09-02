@@ -155,6 +155,30 @@ export async function getContractLines(quoteId: string): Promise<ContractLineRow
 }
 
 /**
+ * What the agent already wrote on the quote.
+ *
+ * Not the contract's notes, and deliberately not copied into them: the quote's
+ * note field is where an agent writes everything the deal needs — including the
+ * arithmetic they did for themselves and the things they mean to try. Some of
+ * that belongs in a document somebody signs and some of it very much does not,
+ * and only the agent knows which is which.
+ *
+ * So it is shown beside the contract's own notes with a button, and the button
+ * is the decision.
+ */
+export async function getQuoteNotes(quoteId: string): Promise<string | null> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("quotes")
+    .select("notes")
+    .eq("id", quoteId)
+    .maybeSingle();
+
+  if (error) throw new Error(`Could not load the quote notes: ${error.message}`);
+  return ((data as { notes?: string | null } | null)?.notes ?? null) || null;
+}
+
+/**
  * Save the agent's notes — per line and on the deal.
  *
  * Refused once there is a signature, and the database is what refuses: the
