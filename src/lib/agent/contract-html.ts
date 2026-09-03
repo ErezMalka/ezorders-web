@@ -1,7 +1,7 @@
 import "server-only";
 
 import { LOGO_DATA_URI, LOGO_HEIGHT, LOGO_WIDTH } from "./brand";
-import { fmt, type ItemGroup } from "@/lib/pricing";
+import { BASE_SETUP_LABEL, fmt, type ItemGroup } from "@/lib/pricing";
 
 /**
  * The contract, as a standalone HTML string.
@@ -79,6 +79,28 @@ export interface ContractDocumentData {
   hardwareTotal: number;
   monthlyTotal: number;
   vatPercent: number;
+
+  /**
+   * Which rendering of the price table this contract uses.
+   *
+   * 1 — the original: product lines only, one total per column. No base fee
+   *     line, no discount.
+   * 2 — the base setup fee is a line of its own, and the monthly column is
+   *     reconciled: before discount, the discount, after discount.
+   *
+   * This exists because the document is hashed. A contract signed under layout
+   * 1 must render as layout 1 forever, or its stored fingerprint stops matching
+   * the stored fields. Defaults to 1 when absent, so a payload from before the
+   * column existed renders the way it always did.
+   */
+  layoutVersion?: number;
+  /** The mandatory base charge, as it was on the quote. Layout 2 only. */
+  baseSetup?: number;
+  /** The monthly figures behind monthlyTotal. Layout 2 only. */
+  monthlyEligible?: number;
+  discountPercent?: number;
+  discountAmount?: number;
+  monthlyNonEligible?: number;
 
   /** Present only once signed. Excluded from the hash. */
   signerName?: string | null;
@@ -174,6 +196,104 @@ const EVENT_LABEL: Record<string, string> = {
   cancelled: "בוטל",
 };
 
+/**
+ * The price table, second layout.
+ *
+ * Two things the first layout left out, and a customer noticed both:
+ *
+ *   - The base setup fee. The quote's setup_total includes it, so the column
+ *     summed to ₪1,950 more than the lines above it. Now it is the first line.
+ *   - The discount. monthly_total is the figure after the tier discount, so the
+ *     monthly column summed to more than its own total, and the customer was
+ *     never told they were getting anything. Now the column is reconciled:
+ *     lines, subtotal, discount, total.
+ *
+ * baseSetup is what the quote was priced with — derived by the database from
+ * the quote's own figures, never from today's price list — so an old contract
+ * keeps the fee it was issued with.
+ */
+function productsV2(data: ContractDocumentData, lines: string): string {
+  const baseSetup = data.baseSetup ?? 0;
+  const eligible = data.monthlyEligible ?? 0;
+  const nonEligible = data.monthlyNonEligible ?? 0;
+  const discountPercent = data.discountPercent ?? 0;
+  const discountAmount = data.discountAmount ?? 0;
+  const monthlyGross = eligible + nonEligible;
+  const hasHardware = data.hardwareTotal > 0;
+  const hasDiscount = discountAmount > 0;
+
+  const baseRow = `
+        <tr class="base">
+          <td>
+            ${escapeHtml(BASE_SETUP_LABEL)}
+            <div class="sub">דמי הקמה ראשוניים, חד־פעמי</div>
+          </td>
+          <td class="c">${num("1")}</td>
+          <td class="c">${num(fmt(baseSetup))}</td>
+          <td class="c">—</td>
+        </tr>`;
+
+  const summary = `
+        <tr class="sum">
+          <td colspan="2">סה״כ דמי הקמה (חד־פעמי)</td>
+          <td class="c">${num(fmt(data.setupTotal))}</td>
+          <td class="c"></td>
+        </tr>
+        ${
+          hasHardware
+            ? `
+        <tr class="sum">
+          <td colspan="2">מוצרים וחומרה (חד־פעמי, ללא הנחה)</td>
+          <td class="c">${num(fmt(data.hardwareTotal))}</td>
+          <td class="c"></td>
+        </tr>
+        <tr class="sum strong">
+          <td colspan="2">סה״כ לתשלום מיידי</td>
+          <td class="c">${num(fmt(data.setupTotal + data.hardwareTotal))}</td>
+          <td class="c"></td>
+        </tr>`
+            : ""
+        }
+        <tr class="sum gap">
+          <td colspan="2">סה״כ חודשי לפני הנחה</td>
+          <td class="c"></td>
+          <td class="c">${num(fmt(monthlyGross))}</td>
+        </tr>
+        ${
+          hasDiscount
+            ? `
+        <tr class="sum save">
+          <td colspan="2">
+            הנחה ${num(String(discountPercent) + "%")} על רכיבים זכאים
+            <div class="sub">מחושבת על ${num(fmt(eligible))} — מוצרים ראשיים ותוספות כלולות</div>
+          </td>
+          <td class="c"></td>
+          <td class="c">${num("−" + fmt(discountAmount))}</td>
+        </tr>`
+            : ""
+        }
+        <tr class="sum strong total">
+          <td colspan="2">סה״כ חודשי לתשלום${hasDiscount ? " (לאחר הנחה)" : ""}</td>
+          <td class="c"></td>
+          <td class="c">${num(fmt(data.monthlyTotal))}</td>
+        </tr>`;
+
+  return `
+    <table class="lines">
+      <thead>
+        <tr><th>שם המוצר</th><th class="c">כמות</th><th class="c">דמי הקמה</th><th class="c">תש׳ חודשי</th></tr>
+      </thead>
+      <tbody>${baseRow}${lines}</tbody>
+      <tfoot>${summary}</tfoot>
+    </table>
+    ${
+      hasDiscount
+        ? `<p class="saving">החיסכון שלכם: ${num(fmt(discountAmount))} בכל חודש — ${num(fmt(discountAmount * 12))} בשנה.</p>`
+        : ""
+    }
+    <p class="vat">** כל המחירים אינם כוללים מע״מ. התשלום החודשי בטבלה מוצג לפני הנחה; ההנחה מחושבת על המוצרים הראשיים והתוספות הכלולות בלבד.</p>`;
+}
+
 export function renderContractDocument(data: ContractDocumentData): string {
   const oneTime = data.setupTotal + data.hardwareTotal;
 
@@ -218,7 +338,7 @@ export function renderContractDocument(data: ContractDocumentData): string {
         )
         .join("");
 
-  const products = `
+  const products = (data.layoutVersion ?? 1) >= 2 ? productsV2(data, lines) : `
     <table class="lines">
       <thead>
         <tr><th>שם המוצר</th><th class="c">כמות</th><th class="c">דמי הקמה</th><th class="c">תש׳ חודשי</th></tr>
@@ -273,6 +393,21 @@ export function renderContractDocument(data: ContractDocumentData): string {
   </section>`;
 
   const signed = Boolean(data.signaturePng && data.signedAt);
+
+  // The stylesheet is inside the hashed bytes too, so layout 1 must not gain a
+  // single character of it. Layout 2 appends its own rules.
+  const v2Css = (data.layoutVersion ?? 1) < 2 ? "" : `
+  .lines tbody tr.base td { background: #FFF5F8; }
+  .lines tfoot tr.sum td { border-top: 0; padding: 6px 10px; font-weight: 500; color: #191D2A; font-size: 12.5px; }
+  .lines tfoot tr.sum:first-child td { border-top: 2px solid #191D2A; padding-top: 10px; }
+  .lines tfoot tr.gap td { border-top: 1px solid #e5e7eb; padding-top: 10px; }
+  .lines tfoot tr.strong td { font-weight: 700; }
+  .lines tfoot tr.total td { border-top: 1px solid #191D2A; border-bottom: 2px solid #F05D86; font-size: 13.5px; padding: 9px 10px; }
+  .lines tfoot tr.save td { color: #0F7A4F; }
+  .lines tfoot tr.save .sub { color: #0F7A4F; opacity: .8; font-weight: 400; }
+  .saving { margin: 12px 0 0; padding: 9px 14px; background: #E6F5EE; border-radius: 8px;
+            color: #0F7A4F; font-weight: 600; font-size: 12px; text-align: center; }
+`;
 
   const signatures = `
   <section class="signrow">
@@ -400,7 +535,7 @@ export function renderContractDocument(data: ContractDocumentData): string {
   .muted-cell { color: #9aa0ad; text-align: center; padding: 14px; }
   .num { unicode-bidi: isolate; }
   .vat { margin: 10px 0 0; font-size: 11.5px; color: #5F6575; text-align: center; }
-
+${v2Css}
   .block { margin-top: 28px; }
   .block h2 { font-size: 14px; margin: 0 0 10px; padding-bottom: 5px; border-bottom: 1px solid #eef1f5; }
   .clause { display: flex; gap: 10px; margin-bottom: 7px; align-items: baseline; }

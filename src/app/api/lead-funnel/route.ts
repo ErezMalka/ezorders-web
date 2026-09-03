@@ -14,8 +14,23 @@ const WEB_LEAD_URL =
   process.env.WEB_LEAD_URL ||
   "https://xequjtoslbhxggmtvjwo.supabase.co/functions/v1/web-lead";
 
+// Meta Conversions API, via the same Supabase relay /api/contact uses: the Meta
+// token stays in Supabase, only the forwarding secret lives here. Paid social
+// traffic lands on these pages, so the server-side Lead is what keeps the
+// conversion reported when the browser Pixel is blocked. Deduplicated against
+// the browser event by the shared `eventId`.
+const META_CAPI_RELAY_URL =
+  process.env.META_CAPI_RELAY_URL ||
+  "https://xequjtoslbhxggmtvjwo.supabase.co/functions/v1/meta-capi";
+
 function s(v: unknown): string {
   return typeof v === "string" ? v.trim() : "";
+}
+
+function clientIp(request: Request): string {
+  const forwarded = request.headers.get("x-forwarded-for");
+  if (forwarded) return forwarded.split(",")[0].trim();
+  return request.headers.get("x-real-ip") || "unknown";
 }
 
 export async function POST(request: Request) {
@@ -50,6 +65,8 @@ export async function POST(request: Request) {
   }
 
   const gclid = s(data.gclid);
+  const eventId = s(data.eventId);
+  const pagePath = s(data.pagePath);
   const submittedAt = new Date().toISOString();
 
   try {
@@ -66,8 +83,9 @@ export async function POST(request: Request) {
         source_form: `EZ Funnel: ${funnel}`,
         gclid,
         is_google: Boolean(gclid),
+        eventId,
         referrer: request.headers.get("referer"),
-        pagePath: s(data.pagePath),
+        pagePath,
         utm: data.utm ?? null,
         userAgent: request.headers.get("user-agent"),
         fields,
@@ -77,6 +95,29 @@ export async function POST(request: Request) {
   } catch (err) {
     // Never block the user on a downstream hiccup — the lead UX must succeed.
     console.error("[lead-funnel] web-lead forward failed", err);
+  }
+
+  // Server-side Lead for Meta. Only when the page supplied an event id, so the
+  // browser Pixel event and this one collapse into a single conversion.
+  if (eventId) {
+    try {
+      await fetch(META_CAPI_RELAY_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-forward-secret": secret },
+        body: JSON.stringify({
+          email,
+          phone,
+          eventId,
+          eventSourceUrl:
+            request.headers.get("referer") ||
+            (pagePath ? `https://ezorders.com${pagePath}` : "https://ezorders.com"),
+          clientIp: clientIp(request),
+          userAgent: request.headers.get("user-agent"),
+        }),
+      });
+    } catch (err) {
+      console.error("[lead-funnel] Meta CAPI relay failed", err);
+    }
   }
 
   return NextResponse.json({ ok: true });

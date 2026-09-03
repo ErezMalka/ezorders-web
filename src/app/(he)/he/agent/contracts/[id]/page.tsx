@@ -3,13 +3,13 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { AgentShell } from "@/components/agent/AgentShell";
-import { ContractActions } from "@/components/agent/ContractActions";
-import { ContractNotes } from "@/components/agent/ContractNotes";
+import { ContractEditor } from "@/components/agent/ContractEditor";
 import {
   CONTRACT_STATUS_LABEL,
   getContract,
   getContractEvents,
   getContractLines,
+  getQuoteNotes,
 } from "@/lib/agent/contracts";
 import { requireAgentSession } from "@/lib/agent/session";
 
@@ -46,9 +46,10 @@ export default async function AgentContractPage({
   const contract = await getContract(id);
   if (!contract) notFound();
 
-  const [events, lines] = await Promise.all([
+  const [events, lines, quoteNotes] = await Promise.all([
     getContractEvents(id),
     getContractLines(contract.quote_id),
+    getQuoteNotes(contract.quote_id),
   ]);
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://ezorders.com";
 
@@ -60,14 +61,16 @@ export default async function AgentContractPage({
       lead={`${contract.customer_name} · ${CONTRACT_STATUS_LABEL[contract.status]}`}
     >
       <div className="space-y-5">
-        <section className="rounded-card border border-slate-200 bg-white p-5 shadow-sm">
-          <ContractActions
-            id={contract.id}
-            status={contract.status}
-            token={contract.public_token}
-            siteUrl={siteUrl}
-          />
-        </section>
+        <ContractEditor
+          id={contract.id}
+          status={contract.status}
+          token={contract.public_token}
+          siteUrl={siteUrl}
+          lines={lines}
+          initialNotes={contract.notes ?? ""}
+          initialItemNotes={contract.item_notes ?? {}}
+          quoteNotes={quoteNotes}
+        />
 
         <section className="rounded-card border border-slate-200 bg-white p-5 shadow-sm">
           <h2 className="mb-4 text-base font-bold text-brand-dark">פרטים</h2>
@@ -84,21 +87,6 @@ export default async function AgentContractPage({
               mono
             />
           </dl>
-        </section>
-
-        <section className="rounded-card border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 className="text-base font-bold text-brand-dark">הערות</h2>
-          <p className="mb-4 mt-1 text-xs leading-relaxed text-brand-muted">
-            הערה לכל שורה, והערות כלליות לכל ההסכם. שתיהן מודפסות בתוך ההסכם שהלקוח חותם עליו
-            ונכללות בטביעת המסמך.
-          </p>
-          <ContractNotes
-            id={contract.id}
-            status={contract.status}
-            lines={lines}
-            initialNotes={contract.notes ?? ""}
-            initialItemNotes={contract.item_notes ?? {}}
-          />
         </section>
 
         {contract.status === "signed" ? (
