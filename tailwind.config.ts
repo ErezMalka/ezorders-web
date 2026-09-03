@@ -28,6 +28,10 @@ const config: Config = {
       },
       fontFamily: {
         sans: ["var(--font-poppins)", "sans-serif"],
+        // Hebrew pages set this on <body>. Rubik leads because it covers both
+        // scripts, so a mixed string like "קופה (POS)" does not change face
+        // mid-line; Poppins stays behind it for anything Rubik lacks.
+        he: ["var(--font-rubik)", "var(--font-poppins)", "sans-serif"],
       },
       borderRadius: {
         pill: "50px",

@@ -23,6 +23,19 @@ export type LandingContent = {
   sub: string;
   heroBullets: string[];
   heroFootnote: string;
+  /**
+   * The product shot beside the hero. One per page, matched to what the ad
+   * promised — a page bought on "קופה חכמה" should show a register, not a
+   * generic restaurant.
+   *
+   * The page had no imagery at all before this: 3,168 pixels of copy selling
+   * kiosks, screens and terminals without once showing one. Sizes are carried
+   * so the box is reserved before the file lands, which matters more here than
+   * anywhere else on the site — this traffic is paid for.
+   */
+  heroImage: { src: string; alt: string; width: number; height: number };
+  /** A second real screenshot, shown beside the benefits. */
+  proofImage?: { src: string; alt: string; width: number; height: number };
   formTitle: string;
   formSubtitle: string;
   formCta: string;
@@ -62,6 +75,8 @@ export const posLanding: LandingContent = {
     "התקנה והדרכה מלאה של הצוות שלנו",
   ],
   heroFootnote: "השאירו פרטים ונחזור אליכם עם דמו של המערכת על התפריט שלכם.",
+  heroImage: { src: "/images/admin/03-pos.webp", alt: "מסך הקופה של EZOrders — הזמנה פתוחה עם תוספות ומחירים", width: 395, height: 754 },
+  proofImage: { src: "/images/admin/05-report.webp", alt: "דוח מכירות יומי במערכת EZOrders, לפי שעה ולפי מוצר", width: 405, height: 758 },
   formTitle: "רוצים לראות דמו?",
   formSubtitle: "נראה לכם את הקופה עובדת על התפריט והמחירים שלכם — 20 דקות, בלי התחייבות.",
   formCta: "קבעו דמו",
@@ -124,6 +139,8 @@ export const ordersLanding: LandingContent = {
     "עמדת קיוסק בסניף לאותו תפריט בדיוק",
   ],
   heroFootnote: "השאירו פרטים ונראה לכם איך זה נראה עם התפריט שלכם.",
+  heroImage: { src: "/images/ai/ezorders-online-ordering-laptop.webp", alt: "אתר הזמנות של מסעדה על מסך לפטופ — תפריט, סל ותשלום", width: 1024, height: 1024 },
+  proofImage: { src: "/images/admin/04-orders.webp", alt: "רשימת ההזמנות הנכנסות במערכת, מכל הערוצים באותו מסך", width: 407, height: 757 },
   formTitle: "רוצים ערוץ הזמנות משלכם?",
   formSubtitle: "נראה לכם דמו על התפריט שלכם ונעבור על המספרים — כמה משלמים היום בעמלות.",
   formCta: "קבעו דמו",
@@ -189,6 +206,8 @@ export const foodtruckLanding: LandingContent = {
     "דוח מכירות לכל אירוע או מיקום בנפרד",
   ],
   heroFootnote: "השאירו פרטים ונבנה איתכם את המערכת שמתאימה לגודל של העסק.",
+  heroImage: { src: "/images/ai/ezorders-contactless-payment.webp", alt: "תשלום ללא מגע בעמדה ניידת של עסק מזון", width: 1376, height: 768 },
+  proofImage: { src: "/images/admin/03-pos.webp", alt: "מסך הקופה — אותה מערכת, גם בעמדה ניידת", width: 395, height: 754 },
   formTitle: "מתאים לעסק שלכם?",
   formSubtitle: "שיחה קצרה, נבין איפה אתם עומדים ומה צריך — בלי התחייבות.",
   formCta: "דברו איתי",
@@ -254,6 +273,8 @@ export const switchLanding: LandingContent = {
     "מערכת אחת במקום ספק לכל ערוץ",
   ],
   heroFootnote: "השאירו פרטים ונעשה השוואה למה שיש לכם היום.",
+  heroImage: { src: "/images/admin/05-report.webp", alt: "דוח מכירות במערכת EZOrders — פדיון לפי שעה, מוצר וסניף", width: 405, height: 758 },
+  proofImage: { src: "/images/admin/02-branch.webp", alt: "ניהול סניפים במערכת — תפריט ומחירים לכל סניף", width: 411, height: 771 },
   formTitle: "בדיקת התאמה",
   formSubtitle: "ספרו לנו מה יש לכם היום ומה מפריע — ונגיד לכם בכנות אם המעבר שווה את זה.",
   formCta: "בדקו התאמה",

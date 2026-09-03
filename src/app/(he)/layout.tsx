@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { poppins } from "@/app/_shared/fonts";
+import { poppins, rubik } from "@/app/_shared/fonts";
 import { localeMetadata } from "@/app/_shared/locale-metadata";
 import SiteScripts from "@/app/_shared/SiteScripts";
 import { localeDirection } from "@/i18n/config";
@@ -13,8 +13,11 @@ export const metadata: Metadata = localeMetadata("he");
 
 export default function HeRootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="he" dir={localeDirection.he} className={poppins.variable}>
-      <body>
+    <html lang="he" dir={localeDirection.he} className={`${poppins.variable} ${rubik.variable}`}>
+      {/* Rubik carries the Hebrew. Poppins has no Hebrew glyphs, so before this
+          every Hebrew word on the site was drawn by whatever the operating
+          system picked. */}
+      <body className="font-he">
         <SiteScripts />
         {children}
       </body>
