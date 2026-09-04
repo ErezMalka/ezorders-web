@@ -8,7 +8,10 @@ import type { ShowcaseItem } from "@/lib/agent/products";
  * No client JavaScript: it is a list of objects and their prices, and every
  * interactive version of that is a worse version of that.
  */
-export function HardwareGrid({ items }: { items: ShowcaseItem[] }) {
+type Locale = "he" | "en";
+
+export function HardwareGrid({ items, locale = "he" }: { items: ShowcaseItem[]; locale?: Locale }) {
+  const en = locale === "en";
   return (
     <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
       {items.map((item) => (
@@ -27,7 +30,7 @@ export function HardwareGrid({ items }: { items: ShowcaseItem[] }) {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={item.image}
-                alt={item.label}
+                alt={en ? item.labelEn ?? item.label : item.label}
                 loading="lazy"
                 className="max-h-full max-w-full object-contain"
               />
@@ -38,12 +41,12 @@ export function HardwareGrid({ items }: { items: ShowcaseItem[] }) {
               item.image ? "border-t border-slate-100" : ""
             }`}
           >
-            <h3 className="text-base font-bold text-brand-dark">{item.label}</h3>
-            {item.note ? (
-              <p className="mt-1 text-sm leading-relaxed text-brand-muted">{item.note}</p>
+            <h3 className="text-base font-bold text-brand-dark">{en ? item.labelEn ?? item.label : item.label}</h3>
+            {(en ? item.noteEn : item.note) ? (
+              <p className="mt-1 text-sm leading-relaxed text-brand-muted">{en ? item.noteEn : item.note}</p>
             ) : null}
             <p className="mt-4 text-xl font-bold text-brand-indigo">{fmt(item.setup)}</p>
-            <p className="text-xs text-brand-muted">תשלום חד־פעמי, לא כולל מע״מ</p>
+            <p className="text-xs text-brand-muted">{en ? "One-time payment, before VAT" : "תשלום חד־פעמי, לא כולל מע״מ"}</p>
           </div>
         </li>
       ))}
@@ -70,11 +73,12 @@ export function groupByCategory(items: ShowcaseItem[]): Array<[string, ShowcaseI
 }
 
 /** The line that has to appear under every price on the site. */
-export function HardwareFootnote() {
+export function HardwareFootnote({ locale = "he" }: { locale?: Locale }) {
   return (
     <p className="text-sm leading-relaxed text-brand-muted">
-      המחירים אינם כוללים מע״מ. הובלה למרכז הארץ ₪385 והתקנה ₪385, ומחוץ למרכז לפי מיקום.
-      עמדה מסוימת שאינה מופיעה כאן? כנראה שיש לנו אותה — דברו איתנו.
+      {locale === "en"
+        ? "Prices are before VAT. Delivery within central Israel ₪385 and installation ₪385; elsewhere by location. Looking for a station that is not listed? We probably have it — talk to us."
+        : "המחירים אינם כוללים מע״מ. הובלה למרכז הארץ ₪385 והתקנה ₪385, ומחוץ למרכז לפי מיקום. עמדה מסוימת שאינה מופיעה כאן? כנראה שיש לנו אותה — דברו איתנו."}
     </p>
   );
 }

@@ -26,6 +26,7 @@ const sharedRoutes: { path: string; priority: number }[] = [
   { path: "/blog", priority: 0.7 },
   { path: "/privacy", priority: 0.3 },
   { path: "/accessibility", priority: 0.3 },
+  { path: "/terms", priority: 0.3 },
 ];
 
 /** Pages that exist only in Hebrew. */

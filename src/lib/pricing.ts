@@ -219,6 +219,9 @@ export const GROUP_LABELS: Record<ItemGroup, string> = {
  */
 export interface CatalogueItem extends PricingItem {
   group: ItemGroup;
+  /** English name, from products.label_en (0027). Null = not translated; the site falls back to label. */
+  labelEn?: string | null;
+  noteEn?: string | null;
   /** Who makes it. Carried so a long hardware list can be filtered; never priced on. */
   supplier?: string | null;
   /** What kind of thing it is. Merchandising — item_group is what decides the money. */

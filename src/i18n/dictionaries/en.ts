@@ -66,6 +66,8 @@ export const en: Dictionary = {
             { label: "Blog", href: "/en/blog" },
             { label: "Contact", href: "/en/contact" },
             { label: "Accessibility", href: "/en/accessibility" },
+            { label: "Privacy policy", href: "/en/privacy" },
+            { label: "Terms of use", href: "/en/terms" },
                 ],
           solutions: [
             { label: "Restaurant ordering website", href: "/en/restaurant-ordering-website" },

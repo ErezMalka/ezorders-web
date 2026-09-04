@@ -21,20 +21,49 @@ import type { ShowcaseItem } from "@/lib/agent/products";
  * look at a kiosk.
  */
 
-const SOFTWARE = "תוכנה";
+type Locale = "he" | "en";
+
+const COPY = {
+  he: {
+    software: "תוכנה",
+    other: "ציוד נוסף",
+    ariaTabs: "מה מתמחר",
+    installed: "כל עמדה מגיעה מותקנת ומחוברת למערכת ההזמנות — לא ארגז שמגיע במשלוח.",
+    talk: "דברו איתנו על עמדה",
+    contactHref: "/he/contact",
+  },
+  en: {
+    software: "Software",
+    other: "Other equipment",
+    ariaTabs: "What is being priced",
+    installed: "Every station arrives installed and connected to the ordering system — not a crate in the post.",
+    talk: "Talk to us about a station",
+    contactHref: "/en/contact",
+  },
+} as const;
+
+/** The family a hardware item is shown under, in the page's language. */
+function familyOf(item: ShowcaseItem, locale: Locale, other: string): string {
+  if (locale === "en") return item.categoryEn ?? item.category ?? other;
+  return item.category ?? other;
+}
 
 export function PriceTabs({
   hardware,
+  locale = "he",
   children,
 }: {
   hardware: ShowcaseItem[];
+  locale?: Locale;
   /** The calculator. Rendered by the server page and handed in whole. */
   children: React.ReactNode;
 }) {
+  const t = COPY[locale];
+  const SOFTWARE = t.software;
   const families: Array<[string, ShowcaseItem[]]> = [];
   const seen = new Map<string, ShowcaseItem[]>();
   for (const item of hardware) {
-    const key = item.category ?? "ציוד נוסף";
+    const key = familyOf(item, locale, t.other);
     const bucket = seen.get(key);
     if (bucket) bucket.push(item);
     else {
@@ -45,17 +74,17 @@ export function PriceTabs({
   }
 
   const tabs = [SOFTWARE, ...families.map(([name]) => name)];
-  const [active, setActive] = useState(SOFTWARE);
+  const [active, setActive] = useState<string>(SOFTWARE);
 
   // One tab is not a tab bar. With no hardware the page is what it always was.
   if (families.length === 0) return <>{children}</>;
 
   return (
-    <div dir="rtl">
+    <div dir={locale === "he" ? "rtl" : "ltr"}>
       <div className="mx-auto max-w-container px-6">
         <div
           role="tablist"
-          aria-label="מה מתמחר"
+          aria-label={t.ariaTabs}
           className="flex flex-wrap gap-2 border-b border-slate-200 pb-4"
         >
           {tabs.map((tab) => {
@@ -102,18 +131,18 @@ export function PriceTabs({
         >
           <h2 className="mb-2 text-2xl font-bold text-brand-dark sm:text-3xl">{name}</h2>
           <p className="mb-8 max-w-2xl leading-relaxed text-brand-muted">
-            כל עמדה מגיעה מותקנת ומחוברת למערכת ההזמנות — לא ארגז שמגיע במשלוח.
+            {t.installed}
           </p>
 
-          <HardwareGrid items={items} />
+          <HardwareGrid items={items} locale={locale} />
 
           <div className="mt-10 rounded-card border border-slate-200 bg-white px-6 py-5">
-            <HardwareFootnote />
+            <HardwareFootnote locale={locale} />
             <a
-              href="/he/contact"
+              href={t.contactHref}
               className="mt-4 inline-block rounded-pill bg-brand-pinkStrong px-7 py-3 font-semibold text-white transition-colors hover:bg-brand-pinkInk"
             >
-              דברו איתנו על עמדה
+              {t.talk}
             </a>
           </div>
         </div>

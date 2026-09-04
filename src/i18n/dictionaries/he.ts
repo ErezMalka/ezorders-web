@@ -46,6 +46,8 @@ export const he: Dictionary = {
             { label: "מילון מונחים", href: "/he/glossary" },
             { label: "צור קשר", href: "/he/contact" },
             { label: "הצהרת נגישות", href: "/he/accessibility" },
+            { label: "מדיניות פרטיות", href: "/he/privacy" },
+            { label: "תנאי שימוש", href: "/he/terms" },
                 ],
           solutions: [
             { label: "אתר הזמנות למסעדה", href: "/he/restaurant-ordering-website" },

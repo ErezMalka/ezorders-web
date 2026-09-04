@@ -33,6 +33,7 @@ const LEGACY_EN_PATHS = [
   "/restaurant-ordering-app",
   "/restaurant-ordering-website",
   "/solutions",
+  "/terms",
 ];
 
 const AGENT_PREFIX = "/he/agent";
@@ -141,6 +142,7 @@ export const config = {
     "/restaurant-ordering-app",
     "/restaurant-ordering-website",
     "/solutions",
+    "/terms",
     "/he/agent/:path*",
   ],
 };

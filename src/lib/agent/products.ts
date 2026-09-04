@@ -27,7 +27,9 @@ import { isPortalConfigured } from "@/lib/supabase/env";
 interface CatalogueRow {
   key: string;
   label: string;
+  labelEn?: string | null;
   note: string | null;
+  noteEn?: string | null;
   txNote: string | null;
   group: ItemGroup;
   supplier: string | null;
@@ -59,7 +61,9 @@ function toCatalogue(payload: CataloguePayload | null): Catalogue | null {
   const items: CatalogueItem[] = payload.items.map((row) => ({
     id: row.key,
     label: row.label,
+    labelEn: row.labelEn ?? null,
     note: row.note ?? "",
+    noteEn: row.noteEn ?? null,
     txNote: row.txNote ?? "",
     group: row.group,
     supplier: row.supplier ?? null,
@@ -130,8 +134,11 @@ export function loadAgentCatalogue(): Promise<Catalogue> {
 export interface ShowcaseItem {
   key: string;
   label: string;
+  labelEn: string | null;
   note: string | null;
+  noteEn: string | null;
   category: string | null;
+  categoryEn: string | null;
   image: string | null;
   setup: number;
 }
@@ -152,8 +159,11 @@ export async function loadHardwareShowcase(): Promise<ShowcaseItem[]> {
       .map((row) => ({
         key: String(row.key ?? ""),
         label: String(row.label ?? ""),
+        labelEn: row.labelEn == null ? null : String(row.labelEn),
         note: row.note == null ? null : String(row.note),
+        noteEn: row.noteEn == null ? null : String(row.noteEn),
         category: row.category == null ? null : String(row.category),
+        categoryEn: row.categoryEn == null ? null : String(row.categoryEn),
         image: row.image == null ? null : String(row.image),
         // Numerics arrive as strings. A stray string here would concatenate
         // into a nonsense price on a public page.
@@ -173,7 +183,9 @@ export interface ProductRow {
   id: string;
   key: string;
   label: string;
+  label_en: string | null;
   note: string | null;
+  note_en: string | null;
   tx_note: string | null;
   item_group: ItemGroup;
   supplier: string | null;
@@ -213,6 +225,8 @@ export interface ProductInput {
   note?: string | null;
   txNote?: string | null;
   group?: ItemGroup;
+  labelEn?: string | null;
+  noteEn?: string | null;
   supplier?: string | null;
   category?: string | null;
   image?: string | null;
@@ -259,6 +273,9 @@ function normalize(input: ProductInput, forCreate: boolean) {
   }
 
   if (input.note !== undefined) row.note = String(input.note ?? "").trim().slice(0, 200) || null;
+  // English names (0027). Empty clears to null, which the site reads as "show the Hebrew".
+  if (input.labelEn !== undefined) row.label_en = String(input.labelEn ?? "").trim().slice(0, 120) || null;
+  if (input.noteEn !== undefined) row.note_en = String(input.noteEn ?? "").trim().slice(0, 200) || null;
   if (input.txNote !== undefined) row.tx_note = String(input.txNote ?? "").trim().slice(0, 200) || null;
   if (input.icon !== undefined) row.icon = String(input.icon ?? "box").trim().slice(0, 40) || "box";
 
