@@ -24,6 +24,7 @@ const REPO = fileURLToPath(new URL("..", import.meta.url));
 /** Files whose preload is deliberate: the image is the first thing on screen. */
 const ABOVE_THE_FOLD = new Set([
   "src/app/(he)/he/solutions/page.tsx", // page hero
+  "src/app/(he)/he/about/page.tsx", // page hero; the four pillar images below it are lazy
   "src/components/article/ArticlePage.tsx", // featured image, top of article
   "src/components/ProductPageLayout.tsx", // product hero
   "src/components/sections/Services.tsx", // section 2, four small icons
