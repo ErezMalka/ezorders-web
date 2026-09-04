@@ -1,4 +1,5 @@
 import Script from "next/script";
+import { A11yBootstrap } from "./A11yBootstrap";
 import { organizationSchema } from "./site-metadata";
 
 // The <body> chrome shared by every root layout: Google Tag Manager (no-op when
@@ -33,6 +34,7 @@ const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID;
 export default function SiteScripts() {
   return (
     <>
+      <A11yBootstrap />
       {GTM_ID && (
         <>
           <Script id="gtm-base" strategy="lazyOnload">

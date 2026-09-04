@@ -235,3 +235,97 @@ body {
 main:focus {
   outline: none;
 }
+
+/* ---------------------------------------------------------------------------
+   Accessibility widget
+   Every toggle in AccessibilityWidget.tsx is one class on <html>; this block
+   is the whole implementation. The font scale is a custom property applied to
+   the root font size, so every rem-based measurement on the site grows with
+   it and the layout reflows instead of overflowing.
+   --------------------------------------------------------------------------- */
+html {
+  font-size: calc(100% * var(--a11y-font-scale, 1));
+}
+
+/* High contrast: near-black text on white, brand colours pushed to their
+   darkest legible variants, images left alone. */
+html.a11y-contrast body {
+  background: #ffffff;
+  color: #000000;
+}
+html.a11y-contrast :where(p, li, span, h1, h2, h3, h4, label, td, th, figcaption) {
+  color: #000000 !important;
+}
+html.a11y-contrast :where(.text-brand-muted, .text-slate-500, .text-slate-400) {
+  color: #1a1a1a !important;
+}
+html.a11y-contrast :where(.bg-brand-grey, .bg-brand-tint, .bg-slate-100, .bg-slate-50) {
+  background-color: #ffffff !important;
+  outline: 1px solid #000000;
+}
+html.a11y-contrast :where(.bg-brand-indigo, .bg-brand-pinkStrong, .bg-brand-pink, .bg-brand-dark) {
+  background-color: #000000 !important;
+}
+html.a11y-contrast :where(.bg-brand-indigo, .bg-brand-pinkStrong, .bg-brand-pink, .bg-brand-dark) :where(p, span, h1, h2, h3, a, label) {
+  color: #ffffff !important;
+}
+html.a11y-contrast :where(.text-brand-pink, .text-brand-pinkInk, .text-brand-indigo) {
+  color: #000000 !important;
+}
+html.a11y-contrast :where(.border-slate-200, .border-slate-100, .border-gray-100) {
+  border-color: #000000 !important;
+}
+html.a11y-contrast :where(a, button):focus-visible {
+  outline: 4px solid #000000;
+  outline-offset: 3px;
+}
+
+/* Highlight links: every link in the content is underlined and boxed. */
+html.a11y-links main a,
+html.a11y-links footer a {
+  text-decoration: underline !important;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+  outline: 2px solid #3b33c8;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Readable font: a plain system sans instead of the brand face. */
+html.a11y-font,
+html.a11y-font body,
+html.a11y-font * {
+  font-family: Arial, Helvetica, "Segoe UI", sans-serif !important;
+  letter-spacing: 0.02em;
+}
+
+/* Line spacing */
+html.a11y-line-height :where(p, li, dd, td, figcaption, label) {
+  line-height: 2 !important;
+}
+
+/* Stop animations and transitions everywhere. */
+html.a11y-no-motion *,
+html.a11y-no-motion *::before,
+html.a11y-no-motion *::after {
+  animation: none !important;
+  transition: none !important;
+  scroll-behavior: auto !important;
+}
+
+/* Large cursor. An SVG cursor works in every current browser; the fallback is
+   the plain arrow, never nothing. */
+html.a11y-cursor,
+html.a11y-cursor * {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24"><path d="M4 2l16 12h-8l-3 8z" fill="black" stroke="white" stroke-width="1.5"/></svg>') 4 2, auto !important;
+}
+html.a11y-cursor :where(a, button, [role="button"], input[type="checkbox"], label) {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24"><path d="M9 2v9H7l3 4v7h4v-7l3-4h-2V2z" fill="black" stroke="white" stroke-width="1.5"/></svg>') 12 2, pointer !important;
+}
+
+/* The widget itself keeps its own look under every mode so it stays usable
+   for undoing whatever was chosen. */
+html.a11y-contrast .a11y-fab {
+  background: #000000 !important;
+  color: #ffffff !important;
+}
