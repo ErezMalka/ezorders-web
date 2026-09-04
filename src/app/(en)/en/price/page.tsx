@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { PageLayout } from "@/components/PageLayout";
+import { PriceTabs } from "@/components/PriceTabs";
 import { PricingCalculator } from "@/components/PricingCalculator";
-import { loadPublicCatalogue } from "@/lib/agent/products";
+import { loadHardwareShowcase, loadPublicCatalogue } from "@/lib/agent/products";
 import { ContactBand } from "@/components/sections/ContactBand";
 import { softwareApplicationSchema } from "@/lib/seo/product-schema";
 
@@ -29,7 +30,7 @@ export const metadata: Metadata = {
 export const revalidate = 60;
 
 export default async function PricePage() {
-  const catalogue = await loadPublicCatalogue();
+  const [catalogue, hardware] = await Promise.all([loadPublicCatalogue(), loadHardwareShowcase()]);
 
   return (
     <PageLayout>
@@ -38,7 +39,9 @@ export default async function PricePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareApplicationSchema("en")) }}
       />
       <div className="pt-28">
-        <PricingCalculator catalogue={catalogue} locale="en" />
+        <PriceTabs hardware={hardware} locale="en">
+          <PricingCalculator catalogue={catalogue} locale="en" />
+        </PriceTabs>
       </div>
       <ContactBand />
     </PageLayout>

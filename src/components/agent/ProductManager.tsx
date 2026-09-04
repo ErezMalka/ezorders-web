@@ -332,6 +332,17 @@ export function ProductManager({ products }: { products: ProductRow[] }) {
                               quote builder groups each section by family now, and a
                               product with no family stands under a heading it shares
                               with nobody. */}
+                          {/* English name for /en (0027). Empty = the site shows the Hebrew. */}
+                          <TagCell
+                            prefix="EN"
+                            value={product.label_en}
+                            listId="label-en-values"
+                            offerWhenEmpty
+                            busy={busy === product.id}
+                            onSave={(v) =>
+                              patch(product.id, { labelEn: v }, `${product.label}: שם באנגלית עודכן`)
+                            }
+                          />
                           <TagCell
                             prefix="סוג"
                             value={product.category}
@@ -429,6 +440,8 @@ export function ProductManager({ products }: { products: ProductRow[] }) {
           <option key={v} value={v} />
         ))}
       </datalist>
+      {/* Free text; an empty list keeps the input's datalist reference valid. */}
+      <datalist id="label-en-values" />
 
       <p className="px-1 text-xs leading-relaxed text-brand-muted">
         מוצר שהוצא ממכירה לא נמחק ולא ייעלם מהצעות ישנות. הצעה ששמורה במערכת מחזיקה את השם

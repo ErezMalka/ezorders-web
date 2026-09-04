@@ -182,11 +182,17 @@ const EN_LABELS: Record<string, { label: string; note?: string; txNote?: string 
   app: { label: "Branded mobile app" },
 };
 
-function localizeItem<T extends { id: string; label: string; note?: string; txNote?: string }>(item: T, locale: CalcLocale): T {
+function localizeItem<
+  T extends { id: string; label: string; note?: string; txNote?: string; labelEn?: string | null; noteEn?: string | null },
+>(item: T, locale: CalcLocale): T {
   if (locale === "he") return item;
+  // The database's English name (products.label_en, 0027) wins; the map below
+  // is the fallback for a catalogue read that predates it or a shipped list.
   const en = EN_LABELS[item.id];
-  if (!en) return item;
-  return { ...item, label: en.label, note: en.note ?? "", txNote: item.txNote ? en.txNote ?? item.txNote : item.txNote };
+  const label = item.labelEn || en?.label || item.label;
+  const note = item.labelEn ? item.noteEn ?? "" : en?.note ?? item.note ?? "";
+  const txNote = item.txNote ? en?.txNote ?? item.txNote : item.txNote;
+  return { ...item, label, note, txNote };
 }
 
 // ============================================================

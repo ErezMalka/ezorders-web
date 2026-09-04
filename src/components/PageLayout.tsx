@@ -3,6 +3,7 @@ import { Header } from "./Header";
 import { Footer } from "./Footer";
 import { SkipLink } from "./SkipLink";
 import { AccessibilityWidget } from "./AccessibilityWidget";
+import { CookieBanner } from "./CookieBanner";
 import { getDictionary } from "@/i18n/getDictionary";
 import { defaultLocale, type Locale } from "@/i18n/config";
 
@@ -24,8 +25,9 @@ return createElement(
     // tabIndex -1 so following the skip link actually moves focus here, not
     // just the scroll position — without it the next Tab returns to the nav.
     createElement("main", { id: "main", tabIndex: -1 }, children),
-    createElement(Footer, { dictionary }),
+    createElement(Footer, { dictionary, locale }),
     // Last in the DOM: a floating control, reached after the page content.
-    createElement(AccessibilityWidget, { locale })
+    createElement(AccessibilityWidget, { locale }),
+    createElement(CookieBanner, { locale })
     );
 }

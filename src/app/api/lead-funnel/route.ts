@@ -99,7 +99,8 @@ export async function POST(request: Request) {
 
   // Server-side Lead for Meta. Only when the page supplied an event id, so the
   // browser Pixel event and this one collapse into a single conversion.
-  if (eventId) {
+  // And only with the visitor's marketing consent (src/lib/consent.ts).
+  if (eventId && data.marketingConsent === true) {
     try {
       await fetch(META_CAPI_RELAY_URL, {
         method: "POST",

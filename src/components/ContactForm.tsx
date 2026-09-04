@@ -1,6 +1,7 @@
 "use client";
 
 import { createElement, useEffect, useRef, useState } from "react";
+import { hasMarketingConsent } from "@/lib/consent";
 import { VISUALLY_HIDDEN } from "@/lib/visually-hidden";
 
 type Locale = "en" | "he";
@@ -54,6 +55,7 @@ errorRequired: string;
 errorEmail: string;
 errorAgree: string;
 errorCaptcha: string;
+marketing: string;
 };
 
 const LABELS: Record<Locale, Labels> = {
@@ -74,6 +76,7 @@ errorRequired: "Please fill in your name, email and message.",
 errorEmail: "Please enter a valid email address.",
 errorAgree: "Please approve the privacy policy to continue.",
 errorCaptcha: "Please complete the verification and try again.",
+marketing: "I\u2019d like to receive updates and offers from EZOrders by email or WhatsApp (optional, you can opt out any time).",
 },
 he: {
 title: "\u05d1\u05d5\u05d0\u05d5 \u05e0\u05d3\u05d1\u05e8",
@@ -92,6 +95,7 @@ errorRequired: "\u05d0\u05e0\u05d0 \u05de\u05dc\u05d0\u05d5 \u05e9\u05dd, \u05d0
 errorEmail: "\u05d0\u05e0\u05d0 \u05d4\u05d6\u05d9\u05e0\u05d5 \u05db\u05ea\u05d5\u05d1\u05ea \u05d0\u05d9\u05de\u05d9\u05d9\u05dc \u05ea\u05e7\u05d9\u05e0\u05d4.",
 errorAgree: "\u05d0\u05e0\u05d0 \u05d0\u05e9\u05e8\u05d5 \u05d0\u05ea \u05de\u05d3\u05d9\u05e0\u05d9\u05d5\u05ea \u05d4\u05e4\u05e8\u05d8\u05d9\u05d5\u05ea \u05db\u05d3\u05d9 \u05dc\u05d4\u05de\u05e9\u05d9\u05da.",
 errorCaptcha: "\u05d0\u05e0\u05d0 \u05d4\u05e9\u05dc\u05d9\u05de\u05d5 \u05d0\u05ea \u05d0\u05d9\u05de\u05d5\u05ea \u05d4\u05d0\u05d1\u05d8\u05d7\u05d4 \u05d5\u05e0\u05e1\u05d5 \u05e9\u05d5\u05d1.",
+marketing: "אשמח לקבל עדכונים והצעות מ-EZOrders במייל או בוואטסאפ (לא חובה, אפשר להסיר בכל עת).",
 },
 };
 
@@ -149,6 +153,10 @@ const [business, setBusiness] = useState("");
 const [message, setMessage] = useState("");
 const [companyUrl, setCompanyUrl] = useState("");
 const [agree, setAgree] = useState(false);
+// Marketing opt-in. Unticked by default and separate from the privacy
+// acknowledgement above: the Spam Law (s. 30A) and Amendment 13 both require
+// an explicit, distinct yes before anyone is added to a mailing list.
+const [marketingOptIn, setMarketingOptIn] = useState(false);
 const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
 const [errorMsg, setErrorMsg] = useState("");
 const [captchaToken, setCaptchaToken] = useState("");
@@ -242,6 +250,11 @@ eventId,
 pagePath: typeof window !== "undefined" ? window.location.pathname : null,
 utm: getUtm(),
 gclid: getGclid(),
+// Whether the visitor allowed marketing tracking. The server only forwards the
+// lead to Meta's Conversions API when this is true — a server-side event is
+// tracking too, and the banner's "necessary only" has to mean it.
+marketingConsent: hasMarketingConsent(),
+marketingOptIn,
 }),
 });
 let json: { ok?: boolean } | null = null;
@@ -396,6 +409,18 @@ t.privacy
 )
 );
 
+const marketingConsentBox = createElement(
+"label",
+{ className: "mt-2 flex min-h-11 cursor-pointer items-start gap-2.5 text-sm text-brand-muted" },
+createElement("input", {
+type: "checkbox",
+checked: marketingOptIn,
+onChange: (e: React.ChangeEvent<HTMLInputElement>) => setMarketingOptIn(e.target.checked),
+className: "mt-0.5 h-6 w-6 flex-shrink-0 accent-brand-pink",
+}),
+t.marketing
+);
+
 const captchaWidget = TURNSTILE_SITE_KEY
 ? createElement("div", { ref: captchaRef, className: "mt-4" })
 : null;
@@ -437,6 +462,7 @@ showHeading
 fields,
 honeypot,
 consent,
+marketingConsentBox,
 captchaWidget,
 errorBanner,
 submitBtn

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { hasMarketingConsent } from "@/lib/consent";
 import { VISUALLY_HIDDEN } from "@/lib/visually-hidden";
 
 // Lead form for the paid-traffic landing pages. Same pipe as the funnels
@@ -105,6 +106,7 @@ export function LandingLeadForm({
           company_url: companyUrl,
           eventId,
           gclid: getGclid(),
+          marketingConsent: hasMarketingConsent(),
           utm: getUtm(),
           pagePath: typeof window !== "undefined" ? window.location.pathname : null,
           fields: select && choice ? { [select.name]: choice } : null,

@@ -54,6 +54,8 @@ type ContactPayload = {
   turnstileToken?: unknown;
   eventId?: unknown;
   gclid?: unknown;
+  marketingConsent?: unknown;
+  marketingOptIn?: unknown;
 };
 
 // --- Meta Conversions API (server-side, via Supabase relay) ---
@@ -218,6 +220,7 @@ export async function POST(request: Request) {
   }
 
   const submittedAt = new Date().toISOString();
+  const marketingOptIn = data.marketingOptIn === true;
   const utmSummary = utm
     ? Object.entries(utm)
         .filter(([, v]) => typeof v === "string" && v)
@@ -237,6 +240,9 @@ export async function POST(request: Request) {
     "שפה: " + (locale || "-"),
     "עמוד: " + (pagePath || "-"),
     "נשלח בתאריך: " + submittedAt,
+    // Recorded on every lead so the team knows who may be mailed. The Spam
+    // Law puts the burden of proving consent on the sender.
+    "הסכמה לדיוור שיווקי: " + (marketingOptIn ? "כן" : "לא"),
   ];
   if (utmSummary) textLines.push("UTM: " + utmSummary);
 
@@ -266,6 +272,7 @@ export async function POST(request: Request) {
     brand: "ezorders",
     gclid,
     is_google: Boolean(gclid),
+    marketing_opt_in: marketingOptIn,
     eventId,
     referrer: request.headers.get("referer"),
     pagePath,
@@ -276,7 +283,9 @@ export async function POST(request: Request) {
 
   // Report the conversion to Meta server-side (deduplicated with the browser
   // Pixel via eventId). No-op unless META_PIXEL_ID + META_CAPI_TOKEN are set.
-  if (eventId) {
+  // Only with the visitor's marketing consent (see src/lib/consent.ts): a
+  // server-side Meta event is tracking exactly as the pixel is.
+  if (eventId && data.marketingConsent === true) {
     await sendMetaCapi({
       email,
       phone,
