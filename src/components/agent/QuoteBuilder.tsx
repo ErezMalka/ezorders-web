@@ -12,25 +12,31 @@ import {
   PRICING_CONFIG,
   amountToNextTier,
   buildInitialState,
+  cleanPrice,
   computeQuote,
   fmt,
   itemsInGroup,
   nextTier,
+  unitPrices,
   withMoney,
   type Catalogue,
   type CalcState,
   type ItemState,
   type CatalogueItem,
+  type PriceOverrides,
 } from "@/lib/pricing";
 
 /**
  * Build a package, capture the customer, create the quote.
  *
  * Every figure shown here comes from computeQuote in @/lib/pricing — the same
- * function behind /he/price. What gets POSTed is the SELECTION, never a price:
- * the server re-derives the money from the same config, so the totals on screen
- * are a preview and the server's answer is the real one. That means a tampered
- * request can order a different package but never buy the same one cheaper.
+ * function behind /he/price. What gets POSTed is the SELECTION plus any price
+ * the agent set by hand; everything else is priced by the server from the
+ * catalogue, and the totals on screen are a preview of the server's answer.
+ *
+ * A hand-set price is a visible act. The field turns pink, the list price
+ * stays printed beside it, the summary says "מחיר ידני", and the owner is
+ * mailed when the quote goes out. Nothing stops the agent; nothing hides it.
  */
 
 interface Section {
@@ -73,9 +79,14 @@ function byCategory(
 function applyDraft(state: CalcState, draft?: QuoteDraft): CalcState {
   if (!draft) return state;
   const next: CalcState = { ...state };
-  for (const [id, qty] of Object.entries(draft.selection)) {
+  for (const [id, sel] of Object.entries(draft.selection)) {
     if (!next[id]) continue;
-    next[id] = { enabled: true, qty };
+    next[id] = {
+      enabled: true,
+      qty: sel.qty,
+      ...(sel.setupUnit !== undefined ? { setupUnit: sel.setupUnit } : {}),
+      ...(sel.monthlyUnit !== undefined ? { monthlyUnit: sel.monthlyUnit } : {}),
+    };
   }
   return next;
 }
@@ -84,8 +95,10 @@ function applyDraft(state: CalcState, draft?: QuoteDraft): CalcState {
 export interface QuoteDraft {
   id: string;
   customer: { name: string; contact: string; phone: string; email: string; taxId: string };
-  /** Which components, how many. Prices are not carried: the server re-derives them. */
-  selection: Record<string, number>;
+  /** Which components, how many, and — only where the agent set one — at what price. */
+  selection: Record<string, { qty: number; setupUnit?: number; monthlyUnit?: number }>;
+  /** The base fee and discount the agent set by hand, if any. */
+  overrides?: PriceOverrides;
   validDays: number;
   notes: string;
 }
@@ -111,6 +124,7 @@ export function QuoteBuilder({
 }) {
   const router = useRouter();
   const [calc, setCalc] = useState<CalcState>(() => applyDraft(buildInitialState(catalogue), draft));
+  const [overrides, setOverrides] = useState<PriceOverrides>(draft?.overrides ?? {});
   // Not asked for any more, and not chosen per deal. VAT is whatever the law
   // says on the day of the invoice, and every price we quote is before it; the
   // term is gone because there is no commitment to state. Both are still
@@ -130,7 +144,7 @@ export function QuoteBuilder({
   }, []);
 
   const contractMode = mode === "contract";
-  const totals = computeQuote(calc, catalogue);
+  const totals = computeQuote(calc, catalogue, overrides);
   const money = withMoney(totals, vatPercent, termMonths);
   const upcoming = nextTier(totals.eligibleMonthlySubtotal);
 
@@ -181,7 +195,7 @@ export function QuoteBuilder({
       const response = await fetch(endpoint, {
         method: draft && !contractMode ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ customer, calc, vatPercent, termMonths, validDays, notes }),
+        body: JSON.stringify({ customer, calc, overrides, vatPercent, termMonths, validDays, notes }),
       });
 
       const payload = (await response.json()) as { id?: string; error?: string };
@@ -211,9 +225,19 @@ export function QuoteBuilder({
               <p className="text-sm font-bold text-brand-dark">{BASE_SETUP_LABEL}</p>
               <p className="text-xs text-brand-muted">חד פעמי — נכלל תמיד בכל חבילה</p>
             </div>
-            <p className="text-sm font-bold tabular-nums text-brand-dark">
-              {fmt(catalogue.baseSetup)}
-            </p>
+            <PriceInput
+              label="דמי הקמה"
+              listPrice={catalogue.baseSetup}
+              value={overrides.baseSetup}
+              onChange={(v) =>
+                setOverrides((prev) => {
+                  const next = { ...prev };
+                  if (v === undefined || v === catalogue.baseSetup) delete next.baseSetup;
+                  else next.baseSetup = v;
+                  return next;
+                })
+              }
+            />
           </div>
         </section>
 
@@ -263,12 +287,71 @@ export function QuoteBuilder({
               );
             })}
           </div>
-          {upcoming && totals.eligibleMonthlySubtotal > 0 ? (
+          {upcoming && totals.eligibleMonthlySubtotal > 0 && overrides.discountPct === undefined ? (
             <p className="mt-3 rounded-xl bg-brand-tint px-4 py-2.5 text-xs font-semibold text-brand-pinkDark">
               עוד {fmt(amountToNextTier(totals.eligibleMonthlySubtotal, upcoming))} בחודשי הזכאי — ותעלו להנחת{" "}
               {upcoming.pct}%
             </p>
           ) : null}
+
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4">
+            <div>
+              <p className="text-sm font-semibold text-brand-dark">הנחה ידנית</p>
+              <p className="text-xs text-brand-muted">
+                {overrides.discountPct === undefined
+                  ? `לפי המדרגות: ${totals.listDiscountPct}% על החודשי הזכאי`
+                  : `במקום ${totals.listDiscountPct}% לפי המדרגות`}
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="relative">
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  min={0}
+                  max={100}
+                  step={1}
+                  placeholder={String(totals.listDiscountPct)}
+                  value={overrides.discountPct ?? ""}
+                  onChange={(e) => {
+                    const raw = e.target.value;
+                    setOverrides((prev) => {
+                      const next = { ...prev };
+                      const n = Number(raw);
+                      if (raw === "" || !Number.isFinite(n) || n < 0 || n > 100) delete next.discountPct;
+                      else next.discountPct = Math.round(n * 100) / 100;
+                      return next;
+                    });
+                  }}
+                  aria-label="אחוז הנחה ידני"
+                  dir="ltr"
+                  className={`w-24 rounded-xl border py-2 pe-7 ps-3 text-right text-sm font-bold tabular-nums outline-none focus:ring-2 focus:ring-brand-pink/20 ${
+                    overrides.discountPct !== undefined
+                      ? "border-brand-pink bg-brand-tint text-brand-pinkDark"
+                      : "border-slate-200 text-brand-dark"
+                  }`}
+                />
+                <span className="pointer-events-none absolute inset-y-0 end-2.5 flex items-center text-xs text-brand-muted">
+                  %
+                </span>
+              </div>
+              {overrides.discountPct !== undefined ? (
+                <button
+                  type="button"
+                  onClick={() =>
+                    setOverrides((prev) => {
+                      const next = { ...prev };
+                      delete next.discountPct;
+                      return next;
+                    })
+                  }
+                  className="text-xs font-semibold text-brand-muted underline-offset-2 hover:text-brand-pink hover:underline"
+                >
+                  חזרה לאוטומטי
+                </button>
+              ) : null}
+            </div>
+          </div>
         </section>
 
         {/* ── customer ── */}
@@ -353,7 +436,15 @@ export function QuoteBuilder({
           </div>
 
           <div className="px-5 py-4 text-sm">
-            <Row label="הקמה ראשונית" value={fmt(totals.initialSetupAmt)} />
+            {totals.priceOverridden ? (
+              <p className="mb-3 rounded-xl border border-brand-pink/40 bg-brand-tint px-3 py-2 text-center text-xs font-semibold text-brand-pinkDark">
+                מחיר ידני — ההצעה תסומן ותישלח התראה למנהל בשליחה ללקוח
+              </p>
+            ) : null}
+            <Row
+              label={overrides.baseSetup !== undefined ? "הקמה ראשונית (ידני)" : "הקמה ראשונית"}
+              value={fmt(totals.initialSetupAmt)}
+            />
             {totals.productSetupSubtotal + totals.addonSetupSubtotal + totals.appSetup > 0 ? (
               <Row
                 label="הקמת מוצרים ותוספות"
@@ -375,7 +466,11 @@ export function QuoteBuilder({
 
             <Row label="חודשי זכאי להנחה" value={fmt(totals.eligibleMonthlySubtotal)} />
             {totals.discountPct > 0 ? (
-              <Row label={`הנחה ${totals.discountPct}%`} value={`−${fmt(totals.discountAmt)}`} good />
+              <Row
+                label={`הנחה ${totals.discountPct}%${overrides.discountPct !== undefined ? " (ידני)" : ""}`}
+                value={`−${fmt(totals.discountAmt)}`}
+                good
+              />
             ) : null}
             {totals.nonDiscountableMonthly > 0 ? (
               <Row label="רכיבים ללא הנחה" value={`+${fmt(totals.nonDiscountableMonthly)}`} faint />
@@ -444,6 +539,8 @@ function ComponentRow({
 }) {
   const enabled = state?.enabled ?? false;
   const qty = state?.qty ?? 1;
+  const unit = unitPrices(item, state);
+  const overridden = unit.setup !== item.setup || unit.monthly !== item.monthly;
 
   // The row is a price list before it is a subtotal. It used to print ₪0 for
   // anything not ticked, which made the branded app read as free at a glance
@@ -452,84 +549,183 @@ function ComponentRow({
   //
   // A product with no monthly charge shows what it costs once instead of ₪0 a
   // month, which is the only honest thing to say about a kiosk or a screen.
-  const oneTimeOnly = item.monthly === 0;
-  const lineAmount = (oneTimeOnly ? item.setup : item.monthly) * qty;
+  const oneTimeOnly = item.monthly === 0 && unit.monthly === 0;
+  const lineAmount = (oneTimeOnly ? unit.setup : unit.monthly) * qty;
+
+  // Set a per-unit price; an empty field or the list price means "as listed".
+  const setUnit = (field: "setupUnit" | "monthlyUnit", listPrice: number) => (v: number | undefined) => {
+    onChange(item.id, { [field]: v === undefined || v === listPrice ? undefined : v });
+  };
 
   return (
     <div
-      className={`flex flex-wrap items-center gap-3 rounded-2xl border px-4 py-3 transition-all ${
-        enabled ? "border-brand-pink/40 bg-brand-tint shadow-sm" : "border-slate-200 bg-white opacity-70"
+      className={`rounded-2xl border px-4 py-3 transition-all ${
+        enabled
+          ? overridden
+            ? "border-brand-pink bg-brand-tint shadow-sm"
+            : "border-brand-pink/40 bg-brand-tint shadow-sm"
+          : "border-slate-200 bg-white opacity-70"
       }`}
     >
-      <input
-        type="checkbox"
-        checked={enabled}
-        onChange={(e) => onChange(item.id, { enabled: e.target.checked })}
-        aria-label={item.label}
-        className="h-5 w-5 flex-shrink-0 cursor-pointer accent-brand-pink"
-      />
-
-      {item.image ? (
-        // Where the picture earns its place: fourteen kiosk models whose names
-        // differ by one number, being chosen from by someone on the phone with
-        // a customer. eslint wants next/image; this is a fixed-size thumbnail
-        // of a file that ships with the site.
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={item.image}
-          alt=""
-          width={40}
-          height={56}
-          className="h-14 w-10 flex-shrink-0 rounded-lg border border-slate-200 bg-white object-contain p-0.5"
+      <div className="flex flex-wrap items-center gap-3">
+        <input
+          type="checkbox"
+          checked={enabled}
+          onChange={(e) => onChange(item.id, { enabled: e.target.checked })}
+          aria-label={item.label}
+          className="h-5 w-5 flex-shrink-0 cursor-pointer accent-brand-pink"
         />
-      ) : null}
 
-      <div className="min-w-0 flex-1">
-        <p className={`text-sm font-semibold ${enabled ? "text-brand-dark" : "text-brand-muted"}`}>
-          {item.label}
-        </p>
-        <p className="text-xs text-brand-muted">
-          {item.supplier ? `${item.supplier} · ` : ""}
-          {item.note ? `${item.note} · ` : ""}הקמה {fmt(item.setup)}
-          {item.txNote ? ` · ${item.txNote}` : ""}
-        </p>
+        {item.image ? (
+          // Where the picture earns its place: fourteen kiosk models whose names
+          // differ by one number, being chosen from by someone on the phone with
+          // a customer. eslint wants next/image; this is a fixed-size thumbnail
+          // of a file that ships with the site.
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={item.image}
+            alt=""
+            width={40}
+            height={56}
+            className="h-14 w-10 flex-shrink-0 rounded-lg border border-slate-200 bg-white object-contain p-0.5"
+          />
+        ) : null}
+
+        <div className="min-w-0 flex-1">
+          <p className={`text-sm font-semibold ${enabled ? "text-brand-dark" : "text-brand-muted"}`}>
+            {item.label}
+            {overridden && enabled ? (
+              <span className="ms-2 rounded-pill bg-brand-pinkStrong px-2 py-0.5 text-[10px] font-bold text-white align-middle">
+                מחיר ידני
+              </span>
+            ) : null}
+          </p>
+          <p className="text-xs text-brand-muted">
+            {item.supplier ? `${item.supplier} · ` : ""}
+            {item.note ? `${item.note} · ` : ""}מחירון: הקמה {fmt(item.setup)}
+            {item.monthly > 0 ? ` · ${fmt(item.monthly)} לחודש` : ""}
+            {item.txNote ? ` · ${item.txNote}` : ""}
+          </p>
+        </div>
+
+        {item.maxQty > 1 ? (
+          <div className="flex flex-shrink-0 items-center overflow-hidden rounded-pill border border-slate-200 bg-white">
+            <button
+              type="button"
+              onClick={() => onChange(item.id, { qty: Math.max(1, qty - 1) })}
+              disabled={!enabled || qty <= 1}
+              aria-label={`הפחת כמות ${item.label}`}
+              className="h-7 w-7 text-brand-muted transition-colors hover:bg-brand-tint hover:text-brand-pink disabled:opacity-30"
+            >
+              −
+            </button>
+            <span className="w-8 text-center text-sm font-bold tabular-nums">{qty}</span>
+            <button
+              type="button"
+              onClick={() => onChange(item.id, { qty: Math.min(item.maxQty, qty + 1) })}
+              disabled={!enabled || qty >= item.maxQty}
+              aria-label={`הוסף כמות ${item.label}`}
+              className="h-7 w-7 text-brand-muted transition-colors hover:bg-brand-tint hover:text-brand-pink disabled:opacity-30"
+            >
+              +
+            </button>
+          </div>
+        ) : null}
+
+        <div className="w-24 flex-shrink-0 text-left">
+          <p
+            className={`text-sm font-bold tabular-nums ${
+              enabled ? "text-brand-dark" : "text-brand-muted"
+            }`}
+          >
+            {fmt(lineAmount)}
+          </p>
+          <p className="text-[11px] text-brand-muted">{oneTimeOnly ? "חד־פעמי" : "לחודש"}</p>
+        </div>
       </div>
 
-      {item.maxQty > 1 ? (
-        <div className="flex flex-shrink-0 items-center overflow-hidden rounded-pill border border-slate-200 bg-white">
-          <button
-            type="button"
-            onClick={() => onChange(item.id, { qty: Math.max(1, qty - 1) })}
-            disabled={!enabled || qty <= 1}
-            aria-label={`הפחת כמות ${item.label}`}
-            className="h-7 w-7 text-brand-muted transition-colors hover:bg-brand-tint hover:text-brand-pink disabled:opacity-30"
-          >
-            −
-          </button>
-          <span className="w-8 text-center text-sm font-bold tabular-nums">{qty}</span>
-          <button
-            type="button"
-            onClick={() => onChange(item.id, { qty: Math.min(item.maxQty, qty + 1) })}
-            disabled={!enabled || qty >= item.maxQty}
-            aria-label={`הוסף כמות ${item.label}`}
-            className="h-7 w-7 text-brand-muted transition-colors hover:bg-brand-tint hover:text-brand-pink disabled:opacity-30"
-          >
-            +
-          </button>
+      {/* The agent's prices, per unit. Only once the line is in the package:
+          a price field on a line nobody selected is a field nobody meant. */}
+      {enabled ? (
+        <div className="mt-2.5 flex flex-wrap items-center justify-end gap-x-5 gap-y-2 border-t border-brand-pink/15 pt-2.5">
+          <PriceInput
+            label="הקמה ליח׳"
+            listPrice={item.setup}
+            value={state?.setupUnit}
+            onChange={setUnit("setupUnit", item.setup)}
+            compact
+          />
+          {item.group !== "hardware" ? (
+            <PriceInput
+              label="לחודש ליח׳"
+              listPrice={item.monthly}
+              value={state?.monthlyUnit}
+              onChange={setUnit("monthlyUnit", item.monthly)}
+              compact
+            />
+          ) : null}
         </div>
       ) : null}
-
-      <div className="w-24 flex-shrink-0 text-left">
-        <p
-          className={`text-sm font-bold tabular-nums ${
-            enabled ? "text-brand-dark" : "text-brand-muted"
-          }`}
-        >
-          {fmt(lineAmount)}
-        </p>
-        <p className="text-[11px] text-brand-muted">{oneTimeOnly ? "חד־פעמי" : "לחודש"}</p>
-      </div>
     </div>
+  );
+}
+
+/**
+ * A shekel field that knows what the list says.
+ *
+ * Empty means "the list price", and the list price is the placeholder, so an
+ * agent who has not touched it sees the right number and one who has sees
+ * theirs in pink with the list beside it. Typing the list price back clears
+ * the override rather than storing a no-op.
+ */
+function PriceInput({
+  label,
+  listPrice,
+  value,
+  onChange,
+  compact,
+}: {
+  label: string;
+  listPrice: number;
+  value: number | undefined;
+  onChange: (value: number | undefined) => void;
+  compact?: boolean;
+}) {
+  const overridden = value !== undefined && value !== listPrice;
+  return (
+    <label className="flex items-center gap-2 text-xs text-brand-muted">
+      <span className="whitespace-nowrap">{label}</span>
+      <span className="relative">
+        <span className="pointer-events-none absolute inset-y-0 start-2.5 flex items-center text-xs text-brand-muted">
+          ₪
+        </span>
+        <input
+          type="number"
+          inputMode="numeric"
+          min={0}
+          step={1}
+          placeholder={String(listPrice)}
+          value={value ?? ""}
+          onChange={(e) => onChange(cleanPrice(e.target.value))}
+          dir="ltr"
+          className={`${compact ? "w-24 py-1.5" : "w-28 py-2"} rounded-xl border pe-3 ps-6 text-right text-sm font-bold tabular-nums outline-none focus:ring-2 focus:ring-brand-pink/20 ${
+            overridden
+              ? "border-brand-pink bg-white text-brand-pinkDark"
+              : "border-slate-200 bg-white text-brand-dark"
+          }`}
+        />
+      </span>
+      {overridden ? (
+        <button
+          type="button"
+          onClick={() => onChange(undefined)}
+          title={`חזרה למחירון: ${fmt(listPrice)}`}
+          className="whitespace-nowrap text-[11px] font-semibold text-brand-muted underline-offset-2 hover:text-brand-pink hover:underline"
+        >
+          מחירון {fmt(listPrice)}
+        </button>
+      ) : null}
+    </label>
   );
 }
 

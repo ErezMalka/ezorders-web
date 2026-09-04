@@ -3,10 +3,15 @@ import { NextResponse } from "next/server";
 import {
   ContractError,
   cancelContract,
+  getContract,
   sendContract,
   setContractNotes,
 } from "@/lib/agent/contracts";
+import { sendPriceAlert } from "@/lib/agent/price-alert-email";
+import { loadAgentCatalogue } from "@/lib/agent/products";
+import { getQuote } from "@/lib/agent/quotes";
 import { getAgentSession } from "@/lib/agent/session";
+import { getDiscount } from "@/lib/pricing";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -24,6 +29,40 @@ export const dynamic = "force-dynamic";
  * they are added rather than substituted, and the database refuses them the
  * moment there is a signature.
  */
+/**
+ * A contract drawn straight from a package never had its quote "sent", so the
+ * owner's alert about hand-set prices fires here instead — once, when the
+ * contract goes out. For a contract that came from a sent quote the alert has
+ * already gone and price_alert_sent_at says so. Best-effort, after the send.
+ */
+async function alertIfHandPriced(
+  contractId: string,
+  session: NonNullable<Awaited<ReturnType<typeof getAgentSession>>>,
+  request: Request
+): Promise<void> {
+  try {
+    const contract = await getContract(contractId);
+    if (!contract) return;
+    const quote = await getQuote(contract.quote_id);
+    if (!quote || !quote.price_overridden || quote.price_alert_sent_at) return;
+
+    const origin = (process.env.NEXT_PUBLIC_SITE_URL ?? new URL(request.url).origin).replace(/\/$/, "");
+    const catalogue = await loadAgentCatalogue();
+    await sendPriceAlert({
+      quote,
+      agentName: session.fullName,
+      agentEmail: session.email ?? null,
+      channel: "contract",
+      quoteUrl: `${origin}/c/${contract.public_token}`,
+      portalUrl: `${origin}/he/agent/contracts/${contractId}`,
+      listBaseSetup: catalogue.baseSetup,
+      listDiscountPct: getDiscount(Number(quote.monthly_eligible)),
+    });
+  } catch (error) {
+    console.error("[agent/contracts] price alert failed", error);
+  }
+}
+
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await getAgentSession();
   if (!session) return NextResponse.json({ error: "לא מחובר" }, { status: 401 });
@@ -42,6 +81,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   try {
     if (action === "send") {
       const { token } = await sendContract(id);
+      await alertIfHandPriced(id, session, request);
       return NextResponse.json({ ok: true, token });
     }
     if (action === "cancel") {

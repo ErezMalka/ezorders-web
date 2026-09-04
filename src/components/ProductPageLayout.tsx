@@ -1,7 +1,7 @@
 import { PageLayout } from "./PageLayout";
 import { CTAButton } from "./CTAButton";
 import { FeatureCard } from "./FeatureCard";
-import { PricingTable } from "./sections/PricingTable";
+import { PricingTeaser } from "./sections/PricingTeaser";
 import { FaqSection } from "./sections/FaqSection";
 import { GENERAL_FAQ } from "@/data/faq";
 import { breadcrumbSchema } from "@/lib/seo/breadcrumbs";
@@ -128,7 +128,7 @@ export function ProductPageLayout({
       </section>
 
       {/* PRICING */}
-      <PricingTable locale={locale} />
+      <PricingTeaser locale={locale} />
 
       {/* FAQ. Only questions that have an answer: the shipped list carried four
           keyword-shaped ones ("What is digital ordering?") with nothing behind

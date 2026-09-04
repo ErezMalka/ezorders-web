@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 
+import { baseSetupOf } from "@/lib/agent/quote-document";
 import { renderQuoteDocument } from "@/lib/agent/quote-html";
 import {
   renderExpiredPanel,
@@ -8,7 +9,7 @@ import {
   withResponsePanel,
 } from "@/lib/agent/quote-response-html";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
-import { DEFAULT_CATALOGUE, type ItemGroup } from "@/lib/pricing";
+import { type ItemGroup } from "@/lib/pricing";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -57,6 +58,10 @@ interface PublicQuote {
   response: "accepted" | "rejected" | null;
   responded_at: string | null;
   order_number: string | null;
+  /** Absent from payloads produced before 0026; the renderer treats that as layout 1. */
+  layout_version?: number | null;
+  base_setup_override?: string | number | null;
+  list_base_setup?: string | number | null;
   items: Array<{
     label: string;
     note: string | null;
@@ -66,6 +71,8 @@ interface PublicQuote {
     setup_unit: string | number;
     setup_total: string | number;
     monthly_total: string | number;
+    list_setup_unit?: string | number | null;
+    list_monthly_unit?: string | number | null;
   }>;
 }
 
@@ -234,8 +241,17 @@ function renderDocument(quote: PublicQuote): string {
       setup_unit: Number(item.setup_unit),
       setup_total: Number(item.setup_total),
       monthly_total: Number(item.monthly_total),
+      ...(item.list_setup_unit != null ? { list_setup_unit: Number(item.list_setup_unit) } : {}),
+      ...(item.list_monthly_unit != null ? { list_monthly_unit: Number(item.list_monthly_unit) } : {}),
     })),
-    baseSetup: DEFAULT_CATALOGUE.baseSetup,
+    layoutVersion: Number(quote.layout_version ?? 1),
+    ...(quote.list_base_setup != null ? { listBaseSetup: Number(quote.list_base_setup) } : {}),
+    // Derived, not looked up: setup_total minus the software lines is exactly
+    // the base fee this quote was priced with — the list's, or the agent's.
+    baseSetup: baseSetupOf(
+      Number(quote.setup_total),
+      quote.items.map((i) => ({ item_group: i.item_group, setup_total: Number(i.setup_total) }))
+    ),
     setupTotal: Number(quote.setup_total),
     hardwareTotal: Number(quote.hardware_total ?? 0),
     monthlyEligible: Number(quote.monthly_eligible),

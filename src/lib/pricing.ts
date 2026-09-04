@@ -104,8 +104,57 @@ export const PRICING_CONFIG = {
 export interface ItemState {
   enabled: boolean;
   qty: number;
+  /**
+   * The agent's price for this line, per unit, when it differs from the
+   * catalogue. Absent means "the list price". See PriceOverrides.
+   */
+  setupUnit?: number;
+  monthlyUnit?: number;
 }
 export type CalcState = Record<string, ItemState>;
+
+/**
+ * What an agent changed by hand on a quote.
+ *
+ * The catalogue is still the price list; this is the deal. Every figure here is
+ * optional and absent means "as listed" — so a quote with no overrides prices
+ * exactly as it always did, and one with overrides says precisely which
+ * numbers were a person's decision. That distinction is what the audit trail
+ * and the manager's alert are built on, so it is kept explicit rather than
+ * baked into the catalogue the quote was priced from.
+ */
+export interface PriceOverrides {
+  /** Replaces the mandatory base setup fee. */
+  baseSetup?: number;
+  /** Replaces the tier discount. 0 is a valid override (no discount). */
+  discountPct?: number;
+}
+
+/** The largest figure an agent may type. A typo with one zero too many is caught here. */
+export const MAX_OVERRIDE_PRICE = 100_000;
+
+/** A finite, non-negative shekel figure, rounded to whole shekels; undefined otherwise. */
+export function cleanPrice(value: unknown): number | undefined {
+  if (value === null || value === undefined || value === "") return undefined;
+  const n = Number(value);
+  if (!Number.isFinite(n) || n < 0 || n > MAX_OVERRIDE_PRICE) return undefined;
+  return Math.round(n);
+}
+
+/** Sanitise overrides from a request body or a stored row. Unknown keys are dropped. */
+export function sanitizeOverrides(input: unknown): PriceOverrides {
+  if (!input || typeof input !== "object") return {};
+  const raw = input as Record<string, unknown>;
+  const out: PriceOverrides = {};
+  const base = cleanPrice(raw.baseSetup);
+  if (base !== undefined) out.baseSetup = base;
+  const pct = Number(raw.discountPct);
+  if (raw.discountPct !== null && raw.discountPct !== undefined && raw.discountPct !== "" &&
+      Number.isFinite(pct) && pct >= 0 && pct <= 100) {
+    out.discountPct = Math.round(pct * 100) / 100;
+  }
+  return out;
+}
 
 /** A priceable component, in the shape the config declares it. */
 export interface PricingItem {
@@ -292,14 +341,37 @@ export function sanitizeState(input: unknown, catalogue: Catalogue = DEFAULT_CAT
   for (const item of catalogue.items) {
     const entry = raw[item.id];
     if (!entry || typeof entry !== "object") continue;
-    const e = entry as { enabled?: unknown; qty?: unknown };
+    const e = entry as { enabled?: unknown; qty?: unknown; setupUnit?: unknown; monthlyUnit?: unknown };
     const qty = Number(e.qty);
-    state[item.id] = {
+    const next: ItemState = {
       enabled: e.enabled === true,
       qty: Number.isFinite(qty) ? Math.min(item.maxQty, Math.max(1, Math.floor(qty))) : 1,
     };
+    // An override equal to the list price is not an override. Dropping it here
+    // means "agent typed the same number back" leaves no trace, which is right.
+    const setupUnit = cleanPrice(e.setupUnit);
+    if (setupUnit !== undefined && setupUnit !== item.setup) next.setupUnit = setupUnit;
+    const monthlyUnit = cleanPrice(e.monthlyUnit);
+    if (monthlyUnit !== undefined && monthlyUnit !== item.monthly) next.monthlyUnit = monthlyUnit;
+    state[item.id] = next;
   }
   return state;
+}
+
+/** The unit prices a line is priced at: the agent's if set, the catalogue's otherwise. */
+export function unitPrices(item: CatalogueItem, state: ItemState | undefined): { setup: number; monthly: number } {
+  return {
+    setup: state?.setupUnit ?? item.setup,
+    monthly: state?.monthlyUnit ?? item.monthly,
+  };
+}
+
+/** True when anything on this quote departs from the price list. */
+export function hasPriceOverrides(calc: CalcState, overrides: PriceOverrides = {}): boolean {
+  if (overrides.baseSetup !== undefined || overrides.discountPct !== undefined) return true;
+  return Object.values(calc).some(
+    (s) => s.enabled && (s.setupUnit !== undefined || s.monthlyUnit !== undefined)
+  );
 }
 
 // ============================================================
@@ -314,8 +386,13 @@ export interface SelectedLine {
   /** Frozen with the line: what the customer was shown, not what the catalogue holds today. */
   image: string | null;
   qty: number;
+  /** What the line is priced at — the agent's figure when there is one. */
   setupUnit: number;
   monthlyUnit: number;
+  /** What the catalogue said on the day. Equal to the above unless overridden. */
+  listSetupUnit: number;
+  listMonthlyUnit: number;
+  priceOverridden: boolean;
   setupTotal: number;
   monthlyTotal: number;
   discountable: boolean;
@@ -334,6 +411,7 @@ export function selectedLines(calc: CalcState, catalogue: Catalogue = DEFAULT_CA
     if (!state?.enabled) continue;
     const qty = state.qty;
     const group = item.group;
+    const unit = unitPrices(item, state);
     lines.push({
       componentKey: item.id,
       group,
@@ -342,10 +420,13 @@ export function selectedLines(calc: CalcState, catalogue: Catalogue = DEFAULT_CA
       txNote: item.txNote ?? "",
       qty,
       image: item.image ?? null,
-      setupUnit: item.setup,
-      monthlyUnit: item.monthly,
-      setupTotal: item.setup * qty,
-      monthlyTotal: item.monthly * qty,
+      setupUnit: unit.setup,
+      monthlyUnit: unit.monthly,
+      listSetupUnit: item.setup,
+      listMonthlyUnit: item.monthly,
+      priceOverridden: unit.setup !== item.setup || unit.monthly !== item.monthly,
+      setupTotal: unit.setup * qty,
+      monthlyTotal: unit.monthly * qty,
       discountable: isDiscountableGroup(group),
     });
   }
@@ -379,8 +460,10 @@ export interface QuoteTotals {
 
   /** Monthly charge from discountable components, before the discount. */
   eligibleMonthlySubtotal: number;
-  /** The tier earned by `eligibleMonthlySubtotal`: 0, 20, 25, 30 or 40. */
+  /** The discount applied: the agent's override when there is one, else the tier. */
   discountPct: number;
+  /** The tier `eligibleMonthlySubtotal` earns on its own: 0, 20, 25, 30 or 40. */
+  listDiscountPct: number;
   /** Shekels off the monthly charge, rounded to the nearest whole shekel. */
   discountAmt: number;
   /** `eligibleMonthlySubtotal` less `discountAmt`. */
@@ -392,6 +475,8 @@ export interface QuoteTotals {
 
   /** True when at least one optional component is selected. */
   hasAnyEnabled: boolean;
+  /** True when any figure on this package was set by hand rather than by the list. */
+  priceOverridden: boolean;
 }
 
 /**
@@ -401,23 +486,27 @@ export interface QuoteTotals {
  * full precision, because that is the figure the customer is shown and the one
  * that must reconcile against the monthly total on the PDF.
  */
-export function computeQuote(calc: CalcState, catalogue: Catalogue = DEFAULT_CATALOGUE): QuoteTotals {
+export function computeQuote(
+  calc: CalcState,
+  catalogue: Catalogue = DEFAULT_CATALOGUE,
+  overrides: PriceOverrides = {}
+): QuoteTotals {
   const inGroups = (...groups: ItemGroup[]) =>
     catalogue.items.filter((item) => groups.includes(item.group));
 
-  const setupOf = (items: readonly { id: string; setup: number }[]) =>
+  const setupOf = (items: readonly CatalogueItem[]) =>
     items.reduce((acc, p) => {
       const s = calc[p.id];
-      return s?.enabled ? acc + p.setup * s.qty : acc;
+      return s?.enabled ? acc + unitPrices(p, s).setup * s.qty : acc;
     }, 0);
 
-  const monthlyOf = (items: readonly { id: string; monthly: number }[]) =>
+  const monthlyOf = (items: readonly CatalogueItem[]) =>
     items.reduce((acc, p) => {
       const s = calc[p.id];
-      return s?.enabled ? acc + p.monthly * s.qty : acc;
+      return s?.enabled ? acc + unitPrices(p, s).monthly * s.qty : acc;
     }, 0);
 
-  const initialSetupAmt = catalogue.baseSetup;
+  const initialSetupAmt = overrides.baseSetup ?? catalogue.baseSetup;
   const productSetupSubtotal = setupOf(inGroups("core"));
   // Everything that carries a setup fee and is not a core product, an app or
   // hardware. Listed by exclusion rather than by name: spelling the groups out
@@ -444,7 +533,8 @@ export function computeQuote(calc: CalcState, catalogue: Catalogue = DEFAULT_CAT
   // here meant a group could be discountable everywhere except in the one
   // function that decides the money.
   const eligibleMonthlySubtotal = monthlyOf(inGroups(...DISCOUNTABLE_GROUPS));
-  const discountPct = getDiscount(eligibleMonthlySubtotal);
+  const listDiscountPct = getDiscount(eligibleMonthlySubtotal);
+  const discountPct = overrides.discountPct ?? listDiscountPct;
   const discountAmt = Math.round((eligibleMonthlySubtotal * discountPct) / 100);
   const eligibleAfterDiscount = eligibleMonthlySubtotal - discountAmt;
   // The complement of the discountable set, minus the two groups accounted for
@@ -469,11 +559,13 @@ export function computeQuote(calc: CalcState, catalogue: Catalogue = DEFAULT_CAT
     oneTimeTotal: finalSetupTotal + hardwareTotal,
     eligibleMonthlySubtotal,
     discountPct,
+    listDiscountPct,
     discountAmt,
     eligibleAfterDiscount,
     nonDiscountableMonthly,
     finalMonthlyTotal,
     hasAnyEnabled: Object.values(calc).some((s) => s.enabled),
+    priceOverridden: hasPriceOverrides(calc, overrides),
   };
 }
 

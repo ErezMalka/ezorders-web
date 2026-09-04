@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import { PageLayout } from "@/components/PageLayout";
 import { CTAButton } from "@/components/CTAButton";
-import { StatsStrip } from "@/components/sections/StatsStrip";
-import { Testimonials } from "@/components/sections/Testimonials";
 import { ContactBand } from "@/components/sections/ContactBand";
 import { SIGNUP_URL } from "@/data/content";
 
@@ -70,8 +68,6 @@ export default function HeAboutPage() {
         </div>
       </section>
 
-      <StatsStrip locale="he" />
-      <Testimonials locale="he" />
       <ContactBand locale="he" />
     </PageLayout>
   );

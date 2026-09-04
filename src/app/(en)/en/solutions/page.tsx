@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { PageLayout } from "@/components/PageLayout";
 import { CTAButton } from "@/components/CTAButton";
-import { Testimonials } from "@/components/sections/Testimonials";
 import { ContactBand } from "@/components/sections/ContactBand";
 
 export const metadata: Metadata = {
@@ -115,7 +114,6 @@ export default function SolutionsPage() {
         </div>
       </section>
 
-      <Testimonials />
       <ContactBand />
     </PageLayout>
   );

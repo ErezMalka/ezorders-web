@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 
+import { sendPriceAlert } from "@/lib/agent/price-alert-email";
+import { loadAgentCatalogue } from "@/lib/agent/products";
 import { getQuote, markQuoteSent } from "@/lib/agent/quotes";
 import { getAgentSession } from "@/lib/agent/session";
-import { fmt } from "@/lib/pricing";
+import { fmt, getDiscount } from "@/lib/pricing";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -40,6 +42,37 @@ function toWhatsappNumber(raw: string | null): string | null {
   if (digits.startsWith("972")) return digits;
   if (digits.startsWith("0")) return `972${digits.slice(1)}`;
   return digits;
+}
+
+/**
+ * The owner hears about a hand-priced quote when it goes out, once.
+ *
+ * After markQuoteSent, never before: an alert about a quote that then failed
+ * to send would be an alert about nothing. Best-effort — the customer already
+ * has the quote by the time this runs.
+ */
+async function alertIfHandPriced(
+  quote: NonNullable<Awaited<ReturnType<typeof getQuote>>>,
+  session: NonNullable<Awaited<ReturnType<typeof getAgentSession>>>,
+  channel: string,
+  origin: string
+): Promise<void> {
+  if (!quote.price_overridden || quote.price_alert_sent_at) return;
+  try {
+    const catalogue = await loadAgentCatalogue();
+    await sendPriceAlert({
+      quote,
+      agentName: session.fullName,
+      agentEmail: session.email ?? null,
+      channel,
+      quoteUrl: `${origin}/q/${quote.public_token}`,
+      portalUrl: `${origin}/he/agent/quotes/${quote.id}`,
+      listBaseSetup: catalogue.baseSetup,
+      listDiscountPct: getDiscount(Number(quote.monthly_eligible)),
+    });
+  } catch (error) {
+    console.error("[agent/quotes/send] price alert failed", error);
+  }
 }
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -85,6 +118,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     // Mark sent before returning: the agent is about to send it, and a quote
     // stuck on "draft" would keep its own customer link closed.
     await markQuoteSent(id, "whatsapp", session.id);
+    await alertIfHandPriced(quote, session, "whatsapp", siteOrigin(request));
 
     return NextResponse.json({
       ok: true,
@@ -144,5 +178,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   }
 
   await markQuoteSent(id, "email", session.id);
+  await alertIfHandPriced(quote, session, "email", siteOrigin(request));
   return NextResponse.json({ ok: true });
 }

@@ -10,3 +10,17 @@
 next-env.d.ts
 # Machine-local Claude Code settings (launch.json is shared on purpose)
 .claude/settings.local.json
+
+# Local publishing tooling and scratch — lives on the machine, not in the repo
+/PUBLISH.bat
+/FIX-MERGE.bat
+/CLEANUP.bat
+/_msg.txt
+/_staged.txt
+/git-log.txt
+/fix-merge-log.txt
+/_merge/
+/_images/
+/*.patch
+/src.zip
+/.claude/

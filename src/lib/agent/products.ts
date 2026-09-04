@@ -191,7 +191,7 @@ export interface ProductRow {
 
 export class ProductError extends Error {}
 
-const GROUPS: ItemGroup[] = ["core", "addon_included", "addon_excluded", "mobile_app", "hardware"];
+const GROUPS: ItemGroup[] = ["core", "addon_included", "addon_excluded", "integrations", "mobile_app", "hardware"];
 
 /** Every product including retired ones. RLS lets any agent read; only an admin writes. */
 export async function listProducts(): Promise<ProductRow[]> {
