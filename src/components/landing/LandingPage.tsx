@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import { LandingLeadForm } from "@/components/landing/LandingLeadForm";
 import { Reveal } from "@/components/landing/Reveal";
+import { ModuleIcon } from "@/components/Icons";
 import type { LandingContent } from "@/data/landingPages";
 
 /**
@@ -38,6 +39,20 @@ const PHONE = "*4958";
  * logos: using their marks would need permission this page does not have.
  */
 const PLATFORMS = ["וולט", "תן ביס", "סיבוס", "משלוחה", "וולט דרייב", "HAAT"];
+
+/**
+ * The three channels an order can arrive through, shown rather than listed.
+ *
+ * Every one of these pages argues that one system covers every channel, and
+ * that argument is easier to see than to read. Resized to 760px square from
+ * 1024px originals: at the size they render, the full-size files were 280KB of
+ * pictures nobody sees above the fold, on traffic paid for by the click.
+ */
+const CHANNELS = [
+  { src: "/images/lp/channel-kiosk.webp", title: "מהקיוסק", text: "הסועד מזמין ומשלם בעצמו, בלי תור בדלפק." },
+  { src: "/images/lp/channel-qr.webp", title: "מהשולחן", text: "סריקת QR, תפריט בטלפון, הזמנה ותשלום במקום." },
+  { src: "/images/lp/channel-web.webp", title: "מהאתר", text: "ערוץ ההזמנות שלכם — בלי עמלה לאף אחד." },
+];
 
 export function LandingPage({ content }: { content: LandingContent }) {
   const formProps = {
@@ -181,6 +196,11 @@ export function LandingPage({ content }: { content: LandingContent }) {
             {content.pains.map((p, i) => (
               <Reveal key={p.title} delay={i * 70}>
                 <article className="h-full rounded-2xl border border-black/5 bg-white p-6 shadow-[0_1px_2px_rgba(20,19,43,.04),0_12px_32px_-24px_rgba(20,19,43,.4)]">
+                  {/* Muted here on purpose: this is the section about what
+                      hurts, so the icons should not look like features. */}
+                  <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-brand-grey text-brand-muted">
+                    <ModuleIcon name={p.icon} className="h-5 w-5" />
+                  </div>
                   <h3 className="mb-2 text-lg font-bold text-brand-dark">{p.title}</h3>
                   <p className="leading-7 text-brand-muted">{p.text}</p>
                 </article>
@@ -206,9 +226,14 @@ export function LandingPage({ content }: { content: LandingContent }) {
             <div className="grid gap-4 sm:grid-cols-2">
               {content.benefits.map((b, i) => (
                 <Reveal key={b.title} delay={i * 60}>
-                  <div className="flex h-full gap-3 rounded-2xl border border-black/5 bg-white p-5">
-                    <Check className="mt-0.5 text-brand-pinkInk" />
-                    <div>
+                  <div className="flex h-full gap-4 rounded-2xl border border-black/5 bg-white p-5 transition-shadow hover:shadow-[0_1px_2px_rgba(20,19,43,.04),0_16px_40px_-28px_rgba(59,51,200,.7)]">
+                    {/* The benefits are the product, so these carry the brand
+                        colour — the tint keeps them from shouting over the
+                        headline. */}
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-tint text-brand-indigo">
+                      <ModuleIcon name={b.icon} className="h-5 w-5" />
+                    </div>
+                    <div className="min-w-0">
                       <h3 className="mb-1 font-bold text-brand-dark">{b.title}</h3>
                       <p className="text-sm leading-6 text-brand-muted">{b.text}</p>
                     </div>
@@ -240,6 +265,44 @@ export function LandingPage({ content }: { content: LandingContent }) {
         </div>
       </section>
 
+      {/* ── THE CHANNELS, SHOWN ──────────────────────────────────────────
+          Every one of these pages argues that one system covers every channel.
+          Three pictures make that case faster than three more paragraphs. */}
+      <section className="bg-brand-dark py-16 md:py-20">
+        <div className="mx-auto max-w-container px-6">
+          <Reveal>
+            <h2 className="mb-3 text-center text-2xl font-extrabold tracking-tight text-white md:text-[2rem]">
+              הזמנה אחת, שלוש דרכים להגיע
+            </h2>
+            <p className="mx-auto mb-12 max-w-xl text-center leading-7 text-white/75">
+              מכל אחד מהערוצים ההזמנה נוחתת באותה קופה, על אותו מסך מטבח, ובאותו דוח בסוף היום.
+            </p>
+          </Reveal>
+          <div className="grid gap-5 sm:grid-cols-3">
+            {CHANNELS.map((c, i) => (
+              <Reveal key={c.title} delay={i * 80}>
+                <figure className="h-full overflow-hidden rounded-2xl bg-white/5 ring-1 ring-white/10">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={c.src}
+                    alt=""
+                    width={760}
+                    height={760}
+                    className="aspect-square w-full object-cover"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                  <figcaption className="p-5">
+                    <h3 className="mb-1 font-bold text-white">{c.title}</h3>
+                    <p className="text-sm leading-6 text-white/75">{c.text}</p>
+                  </figcaption>
+                </figure>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── HOW IT WORKS ─────────────────────────────────────────────────
           A connected sequence rather than three loose cards. The steps happen
           in order, so the rail between them says so. */}
@@ -258,8 +321,15 @@ export function LandingPage({ content }: { content: LandingContent }) {
             {content.steps.map((s, i) => (
               <Reveal key={s.title} delay={i * 90}>
                 <li className="relative h-full rounded-2xl bg-white p-6 shadow-[0_1px_2px_rgba(20,19,43,.04),0_12px_32px_-24px_rgba(20,19,43,.4)]">
-                  <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-brand-indigo text-sm font-bold text-white ring-4 ring-brand-tint">
-                    {i + 1}
+                  {/* The number stays on the rail; the icon sits beside it and
+                      says what the step is about. */}
+                  <div className="mb-4 flex items-center gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-indigo text-sm font-bold text-white ring-4 ring-brand-tint">
+                      {i + 1}
+                    </div>
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-tint text-brand-indigo">
+                      <ModuleIcon name={s.icon} className="h-5 w-5" />
+                    </div>
                   </div>
                   <h3 className="mb-1 font-bold text-brand-dark">{s.title}</h3>
                   <p className="text-sm leading-6 text-brand-muted">{s.text}</p>

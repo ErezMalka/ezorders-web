@@ -27,6 +27,12 @@ const ABOVE_THE_FOLD = new Set([
   "src/components/article/ArticlePage.tsx", // featured image, top of article
   "src/components/ProductPageLayout.tsx", // product hero
   "src/components/sections/Services.tsx", // section 2, four small icons
+  // Paid-traffic landing pages. The hero shot is genuinely the first thing on
+  // screen and is deliberately eager. Its src comes from the page's content
+  // object rather than a literal, so the scan below cannot tell which asset the
+  // eager tag names and falls back to reporting every asset in the file — the
+  // channel strip included, which is already lazy.
+  "src/components/landing/LandingPage.tsx",
 ]);
 
 /**
@@ -54,13 +60,14 @@ const rel = (f) => relative(REPO, f).replace(/\\/g, "/");
 function imageTags(source) {
   const tags = [];
   for (const m of source.matchAll(/<img\b[\s\S]*?\/>/g)) {
-    tags.push({ lazy: /loading=\{?["']lazy/.test(m[0]) });
+    tags.push({ text: m[0], lazy: /loading=\{?["']lazy/.test(m[0]) });
   }
   for (const m of source.matchAll(/createElement\(\s*"img"\s*,\s*\{[^}]*\}/g)) {
-    tags.push({ lazy: /loading:\s*"lazy"/.test(m[0]) });
+    tags.push({ text: m[0], lazy: /loading:\s*"lazy"/.test(m[0]) });
   }
   return tags;
 }
+
 
 /**
  * Asset paths named anywhere in the file.
