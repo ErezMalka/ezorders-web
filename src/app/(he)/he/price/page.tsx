@@ -4,8 +4,6 @@ import { PriceTabs } from "@/components/PriceTabs";
 import { PricingCalculator } from "@/components/PricingCalculator";
 import { loadHardwareShowcase, loadPublicCatalogue } from "@/lib/agent/products";
 import { softwareApplicationSchema } from "@/lib/seo/product-schema";
-import { StatsStrip } from "@/components/sections/StatsStrip";
-import { Testimonials } from "@/components/sections/Testimonials";
 import { ContactBand } from "@/components/sections/ContactBand";
 
 export const metadata: Metadata = {
@@ -53,8 +51,6 @@ export default async function HePricePage() {
     <PricingCalculator catalogue={catalogue} />
     </PriceTabs>
     </div>
-    <StatsStrip locale="he" />
-    <Testimonials locale="he" />
     <ContactBand locale="he" />
     </PageLayout>
     );

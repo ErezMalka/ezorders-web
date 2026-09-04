@@ -1,5 +1,0 @@
-﻿=== scrape started 08/24/2026 22:13:00 ===
-powershell 5.1.20348.4294
-page bytes: 1773552
-found: 40
-=== done 08/24/2026 22:13:26 ===

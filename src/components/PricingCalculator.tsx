@@ -18,6 +18,176 @@ import {
 } from "@/lib/pricing";
 
 // ============================================================
+//  Strings — the calculator renders under /he and /en
+// ============================================================
+export type CalcLocale = "he" | "en";
+
+const STRINGS = {
+  he: {
+    badge: "מחירון",
+    title: "בנו את החבילה שלכם",
+    lead: "סמנו את המוצרים שמתאימים למסעדה שלכם וראו את המחיר בזמן אמת — ככל שמוסיפים יותר, ההנחה החודשית גדלה, עד 40%.",
+    perBranch: "החישוב מתייחס לסניף בודד — ברשת עם מספר סניפים, כל סניף מחויב ומחושב בנפרד.",
+    baseSetup: "הקמת מערכת ראשונית",
+    baseSetupSub: "חד פעמי — נכלל תמיד בכל חבילה",
+    setup: "הקמה",
+    monthly: "חודשי",
+    free: "חינם",
+    alwaysIncluded: "נכלל תמיד",
+    withDiscount: "כולל הנחה",
+    core: "מוצרים ראשיים",
+    coreSub: "כלולים בחישוב ההנחה החודשית",
+    addonsIncluded: "תוספות — כלולות בהנחה",
+    addonsIncludedSub: "נכללות בחישוב ההנחה החודשית",
+    integrations: "ממשקים ואינטגרציות",
+    integrationsSub: "חיבור לפלטפורמות שאתם כבר מוכרים בהן — מחיר פר פלטפורמה",
+    addonsExcluded: "תוספות — לא כלולות בהנחה",
+    addonsExcludedSub: "מחויבות במחיר קבוע ללא הנחה",
+    app: "אפליקציה ממותגת",
+    appSub: "מחוץ לכל ההנחות — הקמה וחודשי במחיר מלא",
+    hardware: "מוצרים וחומרה",
+    hardwareSub: "תשלום חד־פעמי — לא נכנס לחישוב ההנחה",
+    tiers: "מדרגות הנחה חודשית",
+    tiersSub: "ההנחה מחושבת על הסכום החודשי הזכאי בלבד",
+    above: (amount: string) => `מעל ${amount} לחודש`,
+    summary: "סיכום הצעה",
+    pickSomething: "סמנו מוצרים כדי לראות את החישוב",
+    initialSetup: "הקמה ראשונית",
+    componentSetup: "הקמת מוצרים ותוספות",
+    totalSetup: "סה״כ הקמה (חד פעמי)",
+    hardwareOneTime: "מוצרים וחומרה (חד פעמי)",
+    eligibleMonthly: "חודשי זכאי להנחה",
+    discount: (pct: number) => `הנחה ${pct}%`,
+    nonDiscountable: "רכיבים ללא הנחה",
+    totalMonthly: "סה״כ חודשי",
+    saving: (month: string, year: string) => `חיסכון של ${month} בכל חודש (${year} בשנה)`,
+    nextTier: (amount: string, pct: number) => `עוד ${amount} בחודשי הזכאי — ותעלו להנחת ${pct}%`,
+    reset: "איפוס",
+    copy: "העתק הצעה",
+    copied: "הועתק!",
+    talk: "דברו איתנו על ההצעה",
+    contactHref: "/he/contact",
+    decrease: "הפחת כמות",
+    increase: "הוסף כמות",
+    threeDs: (threshold: number) => `אימות ניתן להפעלה רק מעל עסקאות של ₪${threshold} ומעלה`,
+    // Plain-text quote (clipboard)
+    q: {
+      head: "=== הצעת מחיר EzOrders ===",
+      initial: "הקמה ראשונית",
+      line: (setup: string, monthly: string) => `הקמה ${setup}, חודשי ${monthly}`,
+      addonsExcluded: "תוספות לא כלולות בהנחה",
+      summary: "=== סיכום ===",
+      totalSetup: "סה״כ הקמה",
+      eligibleBefore: "חודשי זכאי לפני הנחה",
+      eligibleAfter: "חודשי זכאי לאחר הנחה",
+      nonDiscounted: "חודשי לא מוזל",
+      totalMonthly: "סה״כ חודשי",
+      saving: "חיסכון חודשי",
+      footnote: "* המחיר מתייחס לסניף בודד — ברשת, כל סניף מחויב בנפרד.",
+    },
+  },
+  en: {
+    badge: "Pricing",
+    title: "Build your package",
+    lead: "Tick the products that fit your restaurant and watch the price update live — the more you add, the bigger the monthly discount, up to 40%.",
+    perBranch: "Prices are per location — a chain is billed and calculated separately for each branch.",
+    baseSetup: "Initial system setup",
+    baseSetupSub: "One-time — always included in every package",
+    setup: "Setup",
+    monthly: "Monthly",
+    free: "Free",
+    alwaysIncluded: "Always included",
+    withDiscount: "Discountable",
+    core: "Core products",
+    coreSub: "Count toward the monthly discount",
+    addonsIncluded: "Add-ons — discountable",
+    addonsIncludedSub: "Count toward the monthly discount",
+    integrations: "Platform integrations",
+    integrationsSub: "Connect the platforms you already sell on — priced per platform",
+    addonsExcluded: "Add-ons — not discounted",
+    addonsExcludedSub: "Billed at a fixed price, no discount",
+    app: "Branded mobile app",
+    appSub: "Outside every discount — setup and monthly at full price",
+    hardware: "Hardware",
+    hardwareSub: "One-time payment — not part of the discount calculation",
+    tiers: "Monthly discount tiers",
+    tiersSub: "The discount applies to the eligible monthly amount only",
+    above: (amount: string) => `Above ${amount} / month`,
+    summary: "Quote summary",
+    pickSomething: "Tick some products to see the numbers",
+    initialSetup: "Initial setup",
+    componentSetup: "Product & add-on setup",
+    totalSetup: "Total setup (one-time)",
+    hardwareOneTime: "Hardware (one-time)",
+    eligibleMonthly: "Discountable monthly",
+    discount: (pct: number) => `Discount ${pct}%`,
+    nonDiscountable: "Non-discounted items",
+    totalMonthly: "Total monthly",
+    saving: (month: string, year: string) => `You save ${month} every month (${year} a year)`,
+    nextTier: (amount: string, pct: number) => `Add ${amount} of discountable monthly to reach the ${pct}% tier`,
+    reset: "Reset",
+    copy: "Copy quote",
+    copied: "Copied!",
+    talk: "Talk to us about this quote",
+    contactHref: "/en/contact",
+    decrease: "Decrease quantity",
+    increase: "Increase quantity",
+    threeDs: (threshold: number) => `Authentication can be enabled only for transactions of ₪${threshold} and above`,
+    q: {
+      head: "=== EzOrders quote ===",
+      initial: "Initial setup",
+      line: (setup: string, monthly: string) => `setup ${setup}, monthly ${monthly}`,
+      addonsExcluded: "Add-ons — not discounted",
+      summary: "=== Summary ===",
+      totalSetup: "Total setup",
+      eligibleBefore: "Discountable monthly before discount",
+      eligibleAfter: "Discountable monthly after discount",
+      nonDiscounted: "Non-discounted monthly",
+      totalMonthly: "Total monthly",
+      saving: "Monthly saving",
+      footnote: "* Prices are per location — a chain is billed separately for each branch.",
+    },
+  },
+} as const;
+type Strings = (typeof STRINGS)[CalcLocale];
+
+/**
+ * The catalogue's labels are Hebrew — they are written by an admin in
+ * /he/agent/products, and the database has one label column. English names
+ * for the software products live here, keyed by product key; anything without
+ * one keeps its Hebrew label. Hardware has no English names at all (they are
+ * Israeli-supplied kiosks and printers sold with installation), so /en/price
+ * does not show it.
+ */
+const EN_LABELS: Record<string, { label: string; note?: string; txNote?: string }> = {
+  pos: { label: "Point of sale (POS)", note: "per till" },
+  website: { label: "Ordering website", note: "per branch" },
+  kiosk: { label: "Self-service kiosk", note: "per station" },
+  loyalty: { label: "Loyalty club", note: "per branch" },
+  ezwallet: { label: "EzWallet" },
+  feedback: { label: "Feedback module" },
+  kds: { label: "Kitchen display (KDS)", note: "per screen" },
+  cds: { label: "Customer display (CDS)", note: "per station" },
+  bit: { label: "Bit payments" },
+  applepay: { label: "Apple Pay / Google Pay" },
+  secure3d: { label: "3D Secure", txNote: "+ ₪0.90 per authenticated transaction (not included in the total)" },
+  tenbis: { label: "Tenbis", note: "ordering interface" },
+  cibus: { label: "Cibus", note: "payment interface" },
+  mishloha: { label: "Mishloha", note: "ordering interface" },
+  wolt: { label: "Wolt", note: "ordering interface" },
+  wolt_drive: { label: "Wolt Drive", note: "delivery interface" },
+  haat: { label: "HAAT", note: "ordering interface" },
+  app: { label: "Branded mobile app" },
+};
+
+function localizeItem<T extends { id: string; label: string; note?: string; txNote?: string }>(item: T, locale: CalcLocale): T {
+  if (locale === "he") return item;
+  const en = EN_LABELS[item.id];
+  if (!en) return item;
+  return { ...item, label: en.label, note: en.note ?? "", txNote: item.txNote ? en.txNote ?? item.txNote : item.txNote };
+}
+
+// ============================================================
 //  Inline icons (no external deps)
 // ============================================================
 const BRAND_ICONS: Record<string, string> = {
@@ -107,9 +277,10 @@ interface ProductRowProps {
   icon: string;
   state: ItemState;
   onChange: (id: string, patch: Partial<ItemState>) => void;
+  t: Strings;
 }
 
-function ProductRow({ id, label, note, txNote, setup, monthly, maxQty, icon, state, onChange }: ProductRowProps) {
+function ProductRow({ id, label, note, txNote, setup, monthly, maxQty, icon, state, onChange, t }: ProductRowProps) {
   const totalMonthly = state.enabled ? monthly * state.qty : 0;
 
   return (
@@ -153,7 +324,7 @@ function ProductRow({ id, label, note, txNote, setup, monthly, maxQty, icon, sta
               type="button"
               onClick={() => onChange(id, { qty: Math.max(1, state.qty - 1) })}
               disabled={!state.enabled || state.qty <= 1}
-              aria-label="הפחת כמות"
+              aria-label={t.decrease}
               className={`h-8 w-8 rounded-md transition-colors sm:h-7 sm:w-7 ${
                 state.enabled && state.qty > 1
                   ? "bg-white text-brand-pink hover:bg-brand-pinkStrong hover:text-white"
@@ -169,7 +340,7 @@ function ProductRow({ id, label, note, txNote, setup, monthly, maxQty, icon, sta
               type="button"
               onClick={() => onChange(id, { qty: Math.min(maxQty, state.qty + 1) })}
               disabled={!state.enabled || state.qty >= maxQty}
-              aria-label="הוסף כמות"
+              aria-label={t.increase}
               className={`h-8 w-8 rounded-md transition-colors sm:h-7 sm:w-7 ${
                 state.enabled && state.qty < maxQty
                   ? "bg-white text-brand-pink hover:bg-brand-pinkStrong hover:text-white"
@@ -184,14 +355,14 @@ function ProductRow({ id, label, note, txNote, setup, monthly, maxQty, icon, sta
         )}
 
         <div className="w-16 flex-shrink-0 text-center sm:w-20">
-          <p className="text-xs text-brand-muted">הקמה</p>
+          <p className="text-xs text-brand-muted">{t.setup}</p>
           <p className={`text-sm font-semibold ${state.enabled ? "text-brand-dark" : "text-slate-500"}`}>
-            {setup === 0 ? <span className="text-xs font-bold text-emerald-700">חינם</span> : fmt(setup)}
+            {setup === 0 ? <span className="text-xs font-bold text-emerald-700">{t.free}</span> : fmt(setup)}
           </p>
         </div>
 
         <div className="w-24 flex-shrink-0 text-center sm:w-28">
-          <p className="text-xs text-brand-muted">חודשי</p>
+          <p className="text-xs text-brand-muted">{t.monthly}</p>
           <p className={`text-sm font-bold ${state.enabled ? "text-brand-pinkInk" : "text-slate-500"}`}>
             {state.enabled && maxQty > 1 && state.qty > 1 ? (
               <>
@@ -213,7 +384,7 @@ function ProductRow({ id, label, note, txNote, setup, monthly, maxQty, icon, sta
           <Icon name="info" className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-amber-500" />
           <div className="space-y-0.5 text-xs text-amber-700">
             <p>{txNote}</p>
-            <p>אימות ניתן להפעלה רק מעל עסקאות של ₪{PRICING_CONFIG.auth3dsThreshold} ומעלה</p>
+            <p>{t.threeDs(PRICING_CONFIG.auth3dsThreshold)}</p>
           </div>
         </div>
       ) : null}
@@ -269,7 +440,7 @@ function SummaryRow({
       >
         {label}
       </span>
-      <div className="text-left">
+      <div className="text-end">
         <span
           className={`text-sm font-semibold ${
             discount ? "text-emerald-700" : muted ? "text-slate-500" : highlight ? "text-base font-bold text-brand-pink" : "text-brand-dark"
@@ -286,7 +457,14 @@ function SummaryRow({
 // ============================================================
 //  PricingCalculator
 // ============================================================
-export function PricingCalculator({ catalogue = DEFAULT_CATALOGUE }: { catalogue?: Catalogue }) {
+export function PricingCalculator({
+  catalogue = DEFAULT_CATALOGUE,
+  locale = "he",
+}: {
+  catalogue?: Catalogue;
+  locale?: CalcLocale;
+}) {
+  const t = STRINGS[locale];
   const [calc, setCalc] = useState<CalcState>(() => buildInitialState(catalogue));
   const [copied, setCopied] = useState(false);
 
@@ -316,18 +494,20 @@ export function PricingCalculator({ catalogue = DEFAULT_CATALOGUE }: { catalogue
 
   // Read from the catalogue rather than the config, so a group an admin empties
   // or fills is reflected here without a deploy.
-  const coreProducts = itemsInGroup("core", catalogue);
-  const addonsIncluded = itemsInGroup("addon_included", catalogue);
-  const integrations = itemsInGroup("integrations", catalogue);
-  const addonsExcluded = itemsInGroup("addon_excluded", catalogue);
-  const hardware = itemsInGroup("hardware", catalogue);
-  const mobileApp = itemsInGroup("mobile_app", catalogue)[0];
+  const group = (g: Parameters<typeof itemsInGroup>[0]) => itemsInGroup(g, catalogue).map((p) => localizeItem(p, locale));
+  const coreProducts = group("core");
+  const addonsIncluded = group("addon_included");
+  const integrations = group("integrations");
+  const addonsExcluded = group("addon_excluded");
+  // See EN_LABELS: hardware has Hebrew names only.
+  const hardware = locale === "he" ? group("hardware") : [];
+  const mobileApp = group("mobile_app")[0];
 
   const appState = mobileApp ? calc[mobileApp.id] : undefined;
 
   const generateQuoteText = () => {
-    const lines: string[] = ["=== הצעת מחיר EzOrders ===", ""];
-    lines.push(`הקמה ראשונית: ${fmt(initialSetupAmt)}`);
+    const lines: string[] = [t.q.head, ""];
+    lines.push(`${t.q.initial}: ${fmt(initialSetupAmt)}`);
     lines.push("");
     const addSection = (
       title: string,
@@ -338,37 +518,35 @@ export function PricingCalculator({ catalogue = DEFAULT_CATALOGUE }: { catalogue
       lines.push(`--- ${title} ---`);
       for (const p of active) {
         const s = calc[p.id];
-        lines.push(`${p.label} × ${s.qty}: הקמה ${fmt(p.setup * s.qty)}, חודשי ${fmt(p.monthly * s.qty)}`);
+        lines.push(`${p.label} × ${s.qty}: ${t.q.line(fmt(p.setup * s.qty), fmt(p.monthly * s.qty))}`);
       }
       lines.push("");
     };
-    addSection("מוצרים ראשיים", coreProducts);
-    addSection("תוספות כלולות בהנחה", addonsIncluded);
-    addSection("ממשקים ואינטגרציות", integrations);
-    addSection("תוספות לא כלולות בהנחה", addonsExcluded);
-    addSection("מוצרים וחומרה", hardware);
+    addSection(t.core, coreProducts);
+    addSection(t.addonsIncluded, addonsIncluded);
+    addSection(t.integrations, integrations);
+    addSection(t.q.addonsExcluded, addonsExcluded);
+    addSection(t.hardware, hardware);
     if (mobileApp && appState?.enabled) {
-      lines.push("--- אפליקציה ---");
-      lines.push(
-        `${mobileApp.label}: הקמה ${fmt(mobileApp.setup)}, חודשי ${fmt(mobileApp.monthly)}`
-      );
+      lines.push(`--- ${t.app} ---`);
+      lines.push(`${mobileApp.label}: ${t.q.line(fmt(mobileApp.setup), fmt(mobileApp.monthly))}`);
       lines.push("");
     }
-    lines.push("=== סיכום ===");
-    lines.push(`סה״כ הקמה: ${fmt(finalSetupTotal)}`);
-    if (hardwareTotal > 0) lines.push(`מוצרים וחומרה: ${fmt(hardwareTotal)}`);
-    lines.push(`חודשי זכאי לפני הנחה: ${fmt(eligibleMonthlySubtotal)}`);
+    lines.push(t.q.summary);
+    lines.push(`${t.q.totalSetup}: ${fmt(finalSetupTotal)}`);
+    if (hardwareTotal > 0) lines.push(`${t.hardware}: ${fmt(hardwareTotal)}`);
+    lines.push(`${t.q.eligibleBefore}: ${fmt(eligibleMonthlySubtotal)}`);
     if (discountPct > 0) {
-      lines.push(`הנחה ${discountPct}%: -${fmt(discountAmt)}`);
-      lines.push(`חודשי זכאי לאחר הנחה: ${fmt(eligibleAfterDiscount)}`);
+      lines.push(`${t.discount(discountPct)}: -${fmt(discountAmt)}`);
+      lines.push(`${t.q.eligibleAfter}: ${fmt(eligibleAfterDiscount)}`);
     }
     if (nonDiscountableMonthly > 0) {
-      lines.push(`חודשי לא מוזל: +${fmt(nonDiscountableMonthly)}`);
+      lines.push(`${t.q.nonDiscounted}: +${fmt(nonDiscountableMonthly)}`);
     }
-    lines.push(`סה״כ חודשי: ${fmt(finalMonthlyTotal)}`);
-    if (discountAmt > 0) lines.push(`חיסכון חודשי: ${fmt(discountAmt)}`);
+    lines.push(`${t.q.totalMonthly}: ${fmt(finalMonthlyTotal)}`);
+    if (discountAmt > 0) lines.push(`${t.q.saving}: ${fmt(discountAmt)}`);
     lines.push("");
-    lines.push("* המחיר מתייחס לסניף בודד — ברשת, כל סניף מחויב בנפרד.");
+    lines.push(t.q.footnote);
     return lines.join("\n");
   };
 
@@ -385,18 +563,16 @@ export function PricingCalculator({ catalogue = DEFAULT_CATALOGUE }: { catalogue
   const nextTier = nextTierFor(eligibleMonthlySubtotal);
 
   return (
-    <section dir="rtl" className="mx-auto max-w-container px-6">
+    <section dir={locale === "he" ? "rtl" : "ltr"} className="mx-auto max-w-container px-6">
       {/* Heading */}
       <div className="mb-10 text-center">
         <span className="mb-4 inline-block rounded-pill bg-brand-tint px-6 py-2 text-sm font-medium text-brand-pinkInk">
-          מחירון
+          {t.badge}
         </span>
-        <h1 className="text-4xl font-bold leading-tight text-brand-dark md:text-5xl">בנו את החבילה שלכם</h1>
-        <p className="mx-auto mt-4 max-w-2xl text-lg text-brand-muted">
-          סמנו את המוצרים שמתאימים למסעדה שלכם וראו את המחיר בזמן אמת — ככל שמוסיפים יותר, ההנחה החודשית גדלה, עד 40%.
-        </p>
+        <h1 className="text-4xl font-bold leading-tight text-brand-dark md:text-5xl">{t.title}</h1>
+        <p className="mx-auto mt-4 max-w-2xl text-lg text-brand-muted">{t.lead}</p>
         <p className="mx-auto mt-3 max-w-2xl rounded-xl bg-brand-tint px-4 py-2 text-sm font-medium text-brand-pinkInk">
-          החישוב מתייחס לסניף בודד — ברשת עם מספר סניפים, כל סניף מחויב ומחושב בנפרד.
+          {t.perBranch}
         </p>
       </div>
 
@@ -415,17 +591,17 @@ export function PricingCalculator({ catalogue = DEFAULT_CATALOGUE }: { catalogue
                   <Icon name="settings" className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-brand-dark">{BASE_SETUP_LABEL}</p>
-                  <p className="text-xs text-brand-muted">חד פעמי — נכלל תמיד בכל חבילה</p>
+                  <p className="text-sm font-bold text-brand-dark">{locale === "he" ? BASE_SETUP_LABEL : t.baseSetup}</p>
+                  <p className="text-xs text-brand-muted">{t.baseSetupSub}</p>
                 </div>
               </div>
               <div className="flex items-center gap-4">
                 <div className="text-center">
-                  <p className="text-xs text-brand-muted">הקמה</p>
+                  <p className="text-xs text-brand-muted">{t.setup}</p>
                   <p className="text-sm font-bold text-brand-dark">{fmt(catalogue.baseSetup)}</p>
                 </div>
                 <span className="rounded-pill border border-slate-200 bg-brand-grey px-3 py-1 text-xs font-semibold text-brand-muted">
-                  נכלל תמיד
+                  {t.alwaysIncluded}
                 </span>
               </div>
             </div>
@@ -433,20 +609,20 @@ export function PricingCalculator({ catalogue = DEFAULT_CATALOGUE }: { catalogue
 
           {/* Core products */}
           <div className="rounded-card border border-slate-200 bg-white p-5 shadow-sm">
-            <SectionHeader title="מוצרים ראשיים" subtitle="כלולים בחישוב ההנחה החודשית" badge="כולל הנחה" />
+            <SectionHeader title={t.core} subtitle={t.coreSub} badge={t.withDiscount} />
             <div className="space-y-2.5">
               {coreProducts.map((p) => (
-                <ProductRow key={p.id} {...p} state={calc[p.id]} onChange={update} />
+                <ProductRow key={p.id} {...p} state={calc[p.id]} onChange={update} t={t} />
               ))}
             </div>
           </div>
 
           {/* Add-ons included */}
           <div className="rounded-card border border-slate-200 bg-white p-5 shadow-sm">
-            <SectionHeader title="תוספות — כלולות בהנחה" subtitle="נכללות בחישוב ההנחה החודשית" badge="כולל הנחה" />
+            <SectionHeader title={t.addonsIncluded} subtitle={t.addonsIncludedSub} badge={t.withDiscount} />
             <div className="space-y-2.5">
               {addonsIncluded.map((p) => (
-                <ProductRow key={p.id} {...p} state={calc[p.id]} onChange={update} />
+                <ProductRow key={p.id} {...p} state={calc[p.id]} onChange={update} t={t} />
               ))}
             </div>
           </div>
@@ -456,13 +632,13 @@ export function PricingCalculator({ catalogue = DEFAULT_CATALOGUE }: { catalogue
           {integrations.length > 0 && (
             <div className="rounded-card border border-slate-200 bg-white p-5 shadow-sm">
               <SectionHeader
-                title="ממשקים ואינטגרציות"
-                subtitle="חיבור לפלטפורמות שאתם כבר מוכרים בהן — מחיר פר פלטפורמה"
-                badge="כולל הנחה"
+                title={t.integrations}
+                subtitle={t.integrationsSub}
+                badge={t.withDiscount}
               />
               <div className="space-y-2.5">
                 {integrations.map((p) => (
-                  <ProductRow key={p.id} {...p} state={calc[p.id]} onChange={update} />
+                  <ProductRow key={p.id} {...p} state={calc[p.id]} onChange={update} t={t} />
                 ))}
               </div>
             </div>
@@ -470,28 +646,28 @@ export function PricingCalculator({ catalogue = DEFAULT_CATALOGUE }: { catalogue
 
           {/* Add-ons excluded */}
           <div className="rounded-card border border-slate-200 bg-white p-5 shadow-sm">
-            <SectionHeader title="תוספות — לא כלולות בהנחה" subtitle="מחויבות במחיר קבוע ללא הנחה" />
+            <SectionHeader title={t.addonsExcluded} subtitle={t.addonsExcludedSub} />
             <div className="space-y-2.5">
               {addonsExcluded.map((p) => (
-                <ProductRow key={p.id} {...p} state={calc[p.id]} onChange={update} />
+                <ProductRow key={p.id} {...p} state={calc[p.id]} onChange={update} t={t} />
               ))}
             </div>
           </div>
 
           {/* Mobile app */}
           <div className="rounded-card border border-slate-200 bg-white p-5 shadow-sm">
-            <SectionHeader title="אפליקציה ממותגת" subtitle="מחוץ לכל ההנחות — הקמה וחודשי במחיר מלא" />
-            {mobileApp ? <ProductRow {...mobileApp} state={calc[mobileApp.id]} onChange={update} /> : null}
+            <SectionHeader title={t.app} subtitle={t.appSub} />
+            {mobileApp ? <ProductRow {...mobileApp} state={calc[mobileApp.id]} onChange={update} t={t} /> : null}
           </div>
 
           {/* Hardware. Rendered only when there is any, so a software-only price
               list does not grow an empty heading. */}
           {hardware.length > 0 ? (
             <div className="rounded-card border border-slate-200 bg-white p-5 shadow-sm">
-              <SectionHeader title="מוצרים וחומרה" subtitle="תשלום חד־פעמי — לא נכנס לחישוב ההנחה" />
+              <SectionHeader title={t.hardware} subtitle={t.hardwareSub} />
               <div className="space-y-2.5">
                 {hardware.map((p) => (
-                  <ProductRow key={p.id} {...p} state={calc[p.id]} onChange={update} />
+                  <ProductRow key={p.id} {...p} state={calc[p.id]} onChange={update} t={t} />
                 ))}
               </div>
             </div>
@@ -499,19 +675,19 @@ export function PricingCalculator({ catalogue = DEFAULT_CATALOGUE }: { catalogue
 
           {/* Discount tiers explainer */}
           <div className="rounded-card border border-slate-200 bg-white p-5 shadow-sm">
-            <SectionHeader title="מדרגות הנחה חודשית" subtitle="ההנחה מחושבת על הסכום החודשי הזכאי בלבד" />
+            <SectionHeader title={t.tiers} subtitle={t.tiersSub} />
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {[...PRICING_CONFIG.discountTiers].reverse().map((t) => {
-                const active = discountPct === t.pct && eligibleMonthlySubtotal > t.threshold;
+              {[...PRICING_CONFIG.discountTiers].reverse().map((tier) => {
+                const active = discountPct === tier.pct && eligibleMonthlySubtotal > tier.threshold;
                 return (
                   <div
-                    key={t.threshold}
+                    key={tier.threshold}
                     className={`rounded-2xl border p-3 text-center transition-all ${
                       active ? "border-brand-pink bg-brand-tint shadow-sm" : "border-slate-200 bg-brand-grey"
                     }`}
                   >
-                    <p className={`text-xl font-bold ${active ? "text-brand-pink" : "text-brand-dark"}`}>{t.pct}%</p>
-                    <p className="mt-0.5 text-xs text-brand-muted">מעל {fmt(t.threshold)} לחודש</p>
+                    <p className={`text-xl font-bold ${active ? "text-brand-pink" : "text-brand-dark"}`}>{tier.pct}%</p>
+                    <p className="mt-0.5 text-xs text-brand-muted">{t.above(fmt(tier.threshold))}</p>
                   </div>
                 );
               })}
@@ -526,44 +702,44 @@ export function PricingCalculator({ catalogue = DEFAULT_CATALOGUE }: { catalogue
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-tint text-brand-pink">
                 <Icon name="doc" className="h-4 w-4" />
               </div>
-              <h2 className="text-base font-bold text-brand-dark">סיכום הצעה</h2>
+              <h2 className="text-base font-bold text-brand-dark">{t.summary}</h2>
             </div>
 
             {!hasAnyEnabled ? (
-              <p className="py-6 text-center text-sm text-brand-muted">סמנו מוצרים כדי לראות את החישוב</p>
+              <p className="py-6 text-center text-sm text-brand-muted">{t.pickSomething}</p>
             ) : (
               <div>
-                <SummaryRow label="הקמה ראשונית" value={fmt(initialSetupAmt)} />
+                <SummaryRow label={t.initialSetup} value={fmt(initialSetupAmt)} />
                 {productSetupSubtotal + addonSetupSubtotal + appSetup > 0 ? (
-                  <SummaryRow label="הקמת מוצרים ותוספות" value={fmt(productSetupSubtotal + addonSetupSubtotal + appSetup)} />
+                  <SummaryRow label={t.componentSetup} value={fmt(productSetupSubtotal + addonSetupSubtotal + appSetup)} />
                 ) : null}
-                <SummaryRow label="סה״כ הקמה (חד פעמי)" value={fmt(finalSetupTotal)} divider highlight />
+                <SummaryRow label={t.totalSetup} value={fmt(finalSetupTotal)} divider highlight />
                 {hardwareTotal > 0 ? (
-                  <SummaryRow label="מוצרים וחומרה (חד פעמי)" value={fmt(hardwareTotal)} highlight />
+                  <SummaryRow label={t.hardwareOneTime} value={fmt(hardwareTotal)} highlight />
                 ) : null}
 
                 <div className="mt-4" />
-                <SummaryRow label="חודשי זכאי להנחה" value={fmt(eligibleMonthlySubtotal)} />
+                <SummaryRow label={t.eligibleMonthly} value={fmt(eligibleMonthlySubtotal)} />
                 {discountPct > 0 ? (
-                  <SummaryRow label={`הנחה ${discountPct}%`} value={`-${fmt(discountAmt)}`} discount />
+                  <SummaryRow label={t.discount(discountPct)} value={`-${fmt(discountAmt)}`} discount />
                 ) : null}
                 {nonDiscountableMonthly > 0 ? (
-                  <SummaryRow label="רכיבים ללא הנחה" value={`+${fmt(nonDiscountableMonthly)}`} muted />
+                  <SummaryRow label={t.nonDiscountable} value={`+${fmt(nonDiscountableMonthly)}`} muted />
                 ) : null}
-                <SummaryRow label="סה״כ חודשי" value={fmt(finalMonthlyTotal)} divider highlight />
+                <SummaryRow label={t.totalMonthly} value={fmt(finalMonthlyTotal)} divider highlight />
 
                 {discountAmt > 0 ? (
                   <div className="mt-3 flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2">
                     <Icon name="percent" className="h-4 w-4 flex-shrink-0 text-emerald-700" />
                     <p className="text-xs font-semibold text-emerald-700">
-                      חיסכון של {fmt(discountAmt)} בכל חודש ({fmt(discountAmt * 12)} בשנה)
+                      {t.saving(fmt(discountAmt), fmt(discountAmt * 12))}
                     </p>
                   </div>
                 ) : null}
 
                 {nextTier && eligibleMonthlySubtotal > 0 ? (
                   <p className="mt-3 text-center text-xs text-brand-muted">
-                    עוד {fmt(amountToNextTier(eligibleMonthlySubtotal, nextTier))} בחודשי הזכאי — ותעלו להנחת {nextTier.pct}%
+                    {t.nextTier(fmt(amountToNextTier(eligibleMonthlySubtotal, nextTier)), nextTier.pct)}
                   </p>
                 ) : null}
               </div>
@@ -576,7 +752,7 @@ export function PricingCalculator({ catalogue = DEFAULT_CATALOGUE }: { catalogue
                 className="flex flex-1 items-center justify-center gap-1.5 rounded-pill border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-brand-muted transition-colors hover:bg-brand-grey"
               >
                 <Icon name="reset" className="h-3.5 w-3.5" />
-                איפוס
+                {t.reset}
               </button>
               <button
                 type="button"
@@ -585,15 +761,15 @@ export function PricingCalculator({ catalogue = DEFAULT_CATALOGUE }: { catalogue
                 className="flex flex-1 items-center justify-center gap-1.5 rounded-pill bg-brand-pinkStrong px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-pinkInk disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <Icon name="copy" className="h-3.5 w-3.5" />
-                {copied ? "הועתק!" : "העתק הצעה"}
+                {copied ? t.copied : t.copy}
               </button>
             </div>
 
             <a
-              href="/he/contact"
+              href={t.contactHref}
               className="mt-3 block rounded-pill border border-brand-pink px-3 py-2 text-center text-sm font-semibold text-brand-pinkInk transition-colors hover:bg-brand-tint"
             >
-              דברו איתנו על ההצעה
+              {t.talk}
             </a>
           </div>
         </aside>
