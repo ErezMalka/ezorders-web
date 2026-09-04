@@ -65,6 +65,7 @@ export const en: Dictionary = {
             { label: "Price", href: "/en/price" },
             { label: "Blog", href: "/en/blog" },
             { label: "Contact", href: "/en/contact" },
+            { label: "Accessibility", href: "/en/accessibility" },
                 ],
           solutions: [
             { label: "Restaurant ordering website", href: "/en/restaurant-ordering-website" },

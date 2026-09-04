@@ -18,6 +18,7 @@ import { createServerClient } from "@supabase/ssr";
 
 const LEGACY_EN_PATHS = [
   "/about",
+  "/accessibility",
   // "/blog" was the one page missing from this list, so it 404'd while every
   // sibling redirected. Search Console reported it as the site's only
   // "Not found (404)".
@@ -124,6 +125,7 @@ export const config = {
   matcher: [
     "/",
     "/about",
+    "/accessibility",
     // Must be listed HERE as well as in LEGACY_EN_PATHS. This matcher decides
     // whether the middleware runs at all; the other list only decides what it
     // does once it has. Adding the path to one and not the other leaves the
