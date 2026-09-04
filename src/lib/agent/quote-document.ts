@@ -1,7 +1,5 @@
 import "server-only";
 
-import { DEFAULT_CATALOGUE } from "@/lib/pricing";
-
 import { renderQuoteDocument, type QuoteDocumentData } from "./quote-html";
 import type { QuoteWithItems } from "./quotes";
 
@@ -12,7 +10,29 @@ import type { QuoteWithItems } from "./quotes";
  * coerced here rather than at each use site — a stray string would silently
  * concatenate instead of adding and put a nonsense total on a customer's PDF.
  */
-export function quoteDocumentData(quote: QuoteWithItems, agentEmail?: string | null): QuoteDocumentData {
+/**
+ * The base fee a quote was priced with.
+ *
+ * setup_total is base + every software line's setup (recalc_quote, 0008), so
+ * the base is what is left after the lines are taken back out. Never below
+ * zero, which can only happen to a row somebody edited by hand.
+ */
+export function baseSetupOf(
+  setupTotal: number,
+  items: ReadonlyArray<{ item_group: string; setup_total: number }>
+): number {
+  const lines = items
+    .filter((i) => i.item_group !== "hardware")
+    .reduce((acc, i) => acc + i.setup_total, 0);
+  return Math.max(0, setupTotal - lines);
+}
+
+export function quoteDocumentData(
+  quote: QuoteWithItems,
+  agentEmail?: string | null,
+  /** What the list said for the base fee, when the agent changed it (from the audit trail). */
+  listBaseSetup?: number | null
+): QuoteDocumentData {
   return {
     quoteNumber: quote.quote_number,
     issuedAt: new Date(quote.created_at),
@@ -36,12 +56,18 @@ export function quoteDocumentData(quote: QuoteWithItems, agentEmail?: string | n
       setup_unit: Number(item.setup_unit),
       setup_total: Number(item.setup_total),
       monthly_total: Number(item.monthly_total),
+      ...(item.list_setup_unit != null ? { list_setup_unit: Number(item.list_setup_unit) } : {}),
+      ...(item.list_monthly_unit != null ? { list_monthly_unit: Number(item.list_monthly_unit) } : {}),
     })),
+    layoutVersion: Number(quote.layout_version ?? 1),
+    ...(listBaseSetup != null ? { listBaseSetup: Number(listBaseSetup) } : {}),
 
-    // The base fee is not stored per quote, so a document reprints with today's.
-    // It has not moved since the portal was built; if it ever does, it belongs
-    // on the quote row next to vat_percent and term_months.
-    baseSetup: DEFAULT_CATALOGUE.baseSetup,
+    // Derived from the quote's own figures, so an agent's base fee — or a list
+    // price that has since moved — prints as it was on the day.
+    baseSetup: baseSetupOf(
+      Number(quote.setup_total),
+      quote.items.map((i) => ({ item_group: i.item_group, setup_total: Number(i.setup_total) }))
+    ),
     setupTotal: Number(quote.setup_total),
     hardwareTotal: Number(quote.hardware_total ?? 0),
     monthlyEligible: Number(quote.monthly_eligible),

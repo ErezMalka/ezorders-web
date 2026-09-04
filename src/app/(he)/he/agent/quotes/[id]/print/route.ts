@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { quoteDocumentData, renderQuoteDocument } from "@/lib/agent/quote-document";
-import { getQuote } from "@/lib/agent/quotes";
+import { getQuote, getQuotePriceChanges } from "@/lib/agent/quotes";
 import { getAgentSession } from "@/lib/agent/session";
 
 export const runtime = "nodejs";
@@ -29,7 +29,14 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   const quote = await getQuote(id);
   if (!quote) notFound();
 
-  const html = renderQuoteDocument(quoteDocumentData(quote, session.email));
+  // The list's base fee, when the agent changed it: the document prints it
+  // beside the given one. Read from the trail, where it was recorded.
+  const listBaseSetup =
+    quote.base_setup_override !== null
+      ? ([...(await getQuotePriceChanges(quote.id))].reverse().find((c) => c.field === "base_setup")?.list_value ?? null)
+      : null;
+
+  const html = renderQuoteDocument(quoteDocumentData(quote, session.email, listBaseSetup));
 
   return new Response(html, {
     headers: {

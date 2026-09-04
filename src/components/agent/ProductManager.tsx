@@ -20,12 +20,13 @@ import type { ProductRow } from "@/lib/agent/products";
  * that actually happens.
  */
 
-const GROUP_ORDER: ItemGroup[] = ["core", "addon_included", "addon_excluded", "mobile_app", "hardware"];
+const GROUP_ORDER: ItemGroup[] = ["core", "addon_included", "addon_excluded", "integrations", "mobile_app", "hardware"];
 
 const GROUP_HINT: Record<ItemGroup, string> = {
   core: "נכללים בחישוב ההנחה החודשית",
   addon_included: "מגדילים את מדרגת ההנחה",
   addon_excluded: "נוספים לסה״כ במלוא המחיר",
+  integrations: "פלטפורמות משלוחים ושוברים — ללא הנחה",
   mobile_app: "ללא הנחה",
   hardware: "תשלום חד־פעמי בלבד — לא נכנס לחישוב ההנחה",
 };
@@ -159,7 +160,7 @@ export function ProductManager({ products }: { products: ProductRow[] }) {
         <button
           type="button"
           onClick={() => setAdding(true)}
-          className="rounded-pill bg-brand-pink px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-pinkDark"
+          className="rounded-pill bg-brand-pinkStrong px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-pinkInk"
         >
           + מוצר חדש
         </button>
@@ -243,7 +244,7 @@ export function ProductManager({ products }: { products: ProductRow[] }) {
               <button
                 type="button"
                 onClick={clearFilters}
-                className="font-semibold text-brand-pink underline underline-offset-2"
+                className="font-semibold text-brand-pinkInk underline underline-offset-2"
               >
                 נקה סינון
               </button>
@@ -750,7 +751,7 @@ function NewProduct({ onDone, onCancel }: { onDone: (note: string) => void; onCa
           type="button"
           disabled={busy || !form.label.trim() || !form.key.trim()}
           onClick={submit}
-          className="rounded-pill bg-brand-pink px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-pinkDark disabled:opacity-40"
+          className="rounded-pill bg-brand-pinkStrong px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-pinkInk disabled:opacity-40"
         >
           {busy ? "מוסיף…" : "הוספה למחירון"}
         </button>

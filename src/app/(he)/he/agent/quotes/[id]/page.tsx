@@ -8,10 +8,10 @@ import { CloseQuoteButton } from "@/components/agent/CloseQuoteButton";
 import { CreateContractButton } from "@/components/agent/CreateContractButton";
 import { QuoteActions } from "@/components/agent/QuoteActions";
 import { getOrderForQuote } from "@/lib/agent/orders";
-import { getQuote } from "@/lib/agent/quotes";
+import { getQuote, getQuotePriceChanges } from "@/lib/agent/quotes";
 import { requireAgentSession } from "@/lib/agent/session";
 import { ORDER_STATUS, QUOTE_STATUS, heDate } from "@/lib/agent/status";
-import { GROUP_LABELS, fmt, type ItemGroup } from "@/lib/pricing";
+import { BASE_SETUP_LABEL, GROUP_LABELS, fmt, type ItemGroup } from "@/lib/pricing";
 
 export const dynamic = "force-dynamic";
 
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-const GROUP_ORDER: ItemGroup[] = ["core", "addon_included", "addon_excluded", "mobile_app", "hardware"];
+const GROUP_ORDER: ItemGroup[] = ["core", "addon_included", "addon_excluded", "integrations", "mobile_app", "hardware"];
 
 export default async function QuoteDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -34,6 +34,11 @@ export default async function QuoteDetailPage({ params }: { params: Promise<{ id
   // Whether this quote was ever sold. Drives the one decision this screen makes
   // that the quote row alone cannot answer: show the order, or offer to open one.
   const order = await getOrderForQuote(quote.id);
+  // Every price the agent set by hand, oldest first. Empty for a list-priced quote.
+  const priceChanges = quote.price_overridden ? await getQuotePriceChanges(quote.id) : [];
+  // What the list said for the base fee, as recorded when the agent changed it.
+  const listBaseSetup =
+    [...priceChanges].reverse().find((c) => c.field === "base_setup")?.list_value ?? null;
 
   const status = QUOTE_STATUS[quote.status];
   const hardwareTotal = Number(quote.hardware_total ?? 0);
@@ -88,10 +93,31 @@ export default async function QuoteDetailPage({ params }: { params: Promise<{ id
                       </tr>
                       {items.map((item) => (
                         <tr key={item.component_key} className="border-b border-slate-100">
-                          <td className="px-4 py-2.5 text-brand-dark">{item.label}</td>
+                          <td className="px-4 py-2.5 text-brand-dark">
+                            {item.label}
+                            {item.price_overridden ? (
+                              <span className="ms-2 rounded-pill bg-brand-pinkStrong px-2 py-0.5 text-[10px] font-bold text-white">
+                                מחיר ידני
+                              </span>
+                            ) : null}
+                          </td>
                           <td className="px-4 py-2.5 tabular-nums">{item.quantity}</td>
-                          <td className="px-4 py-2.5 tabular-nums">{fmt(Number(item.setup_total))}</td>
-                          <td className="px-4 py-2.5 tabular-nums">{fmt(Number(item.monthly_total))}</td>
+                          <td className="px-4 py-2.5 tabular-nums">
+                            {fmt(Number(item.setup_total))}
+                            <ListPrice
+                              unit={Number(item.setup_unit)}
+                              list={item.list_setup_unit}
+                              qty={item.quantity}
+                            />
+                          </td>
+                          <td className="px-4 py-2.5 tabular-nums">
+                            {fmt(Number(item.monthly_total))}
+                            <ListPrice
+                              unit={Number(item.monthly_unit)}
+                              list={item.list_monthly_unit}
+                              qty={item.quantity}
+                            />
+                          </td>
                         </tr>
                       ))}
                     </Fragment>
@@ -117,6 +143,70 @@ export default async function QuoteDetailPage({ params }: { params: Promise<{ id
               </p>
             ) : null}
           </section>
+
+          {/* The trail. Shown only where there is one — a list-priced quote has
+              nothing to account for, and a heading over nothing invites a question. */}
+          {quote.price_overridden ? (
+            <section className="rounded-card border border-brand-pink/40 bg-white p-5 shadow-sm">
+              <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
+                <h2 className="text-base font-bold text-brand-dark">מחירים ידניים</h2>
+                <span className="text-xs text-brand-muted">
+                  {quote.price_alert_sent_at
+                    ? `התראה נשלחה למנהל ${heDate.format(new Date(quote.price_alert_sent_at))}`
+                    : "התראה תישלח למנהל בשליחה ללקוח"}
+                </span>
+              </div>
+              <dl className="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
+                {quote.base_setup_override !== null ? (
+                  <Detail
+                    label={BASE_SETUP_LABEL}
+                    value={`${fmt(Number(quote.base_setup_override))}${
+                      listBaseSetup !== null ? ` (מחירון ${fmt(Number(listBaseSetup))})` : ""
+                    }`}
+                  />
+                ) : null}
+                {quote.discount_override_pct !== null ? (
+                  <Detail label="הנחה" value={`${Number(quote.discount_override_pct)}% במקום המדרגה האוטומטית`} />
+                ) : null}
+              </dl>
+              {priceChanges.length > 0 ? (
+                <div className="mt-3 overflow-x-auto">
+                  <table className="w-full border-collapse text-xs">
+                    <thead>
+                      <tr className="bg-brand-grey text-brand-muted">
+                        <th className="px-3 py-2 text-right font-semibold">מתי</th>
+                        <th className="px-3 py-2 text-right font-semibold">מה</th>
+                        <th className="px-3 py-2 text-right font-semibold">מחירון</th>
+                        <th className="px-3 py-2 text-right font-semibold">נקבע</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {priceChanges.map((c) => (
+                        <tr key={c.id} className="border-b border-slate-100">
+                          <td className="px-3 py-1.5 tabular-nums text-brand-muted">
+                            {heDate.format(new Date(c.at))}
+                          </td>
+                          <td className="px-3 py-1.5 text-brand-dark">
+                            {c.field === "base_setup"
+                              ? BASE_SETUP_LABEL
+                              : c.field === "discount_pct"
+                                ? "הנחה"
+                                : `${c.label ?? c.component_key} — ${c.field === "setup_unit" ? "הקמה ליח׳" : "חודשי ליח׳"}`}
+                          </td>
+                          <td className="px-3 py-1.5 tabular-nums text-brand-muted">
+                            {c.field === "discount_pct" ? `${Number(c.list_value ?? 0)}%` : fmt(Number(c.list_value ?? 0))}
+                          </td>
+                          <td className="px-3 py-1.5 font-semibold tabular-nums text-brand-pinkDark">
+                            {c.field === "discount_pct" ? `${Number(c.new_value)}%` : fmt(Number(c.new_value))}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : null}
+            </section>
+          ) : null}
         </div>
 
         <aside className="space-y-4 lg:sticky lg:top-6">
@@ -125,6 +215,11 @@ export default async function QuoteDetailPage({ params }: { params: Promise<{ id
               <h2 className="text-sm font-bold">סיכום</h2>
             </div>
             <div className="px-5 py-4 text-sm">
+              {quote.price_overridden ? (
+                <p className="mb-3 rounded-xl bg-brand-tint px-3 py-2 text-center text-xs font-semibold text-brand-pinkDark">
+                  הצעה עם מחיר ידני
+                </p>
+              ) : null}
               <SummaryRow label="סה״כ הקמה" value={fmt(Number(quote.setup_total))} emphasis />
 
               {hardwareTotal > 0 ? (
@@ -139,7 +234,7 @@ export default async function QuoteDetailPage({ params }: { params: Promise<{ id
               <SummaryRow label="חודשי זכאי" value={fmt(Number(quote.monthly_eligible))} />
               {Number(quote.discount_percent) > 0 ? (
                 <SummaryRow
-                  label={`הנחה ${quote.discount_percent}%`}
+                  label={`הנחה ${quote.discount_percent}%${quote.discount_override_pct !== null ? " (ידני)" : ""}`}
                   value={`−${fmt(Number(quote.discount_amount))}`}
                   good
                 />
@@ -233,5 +328,13 @@ function SummaryRow({
       <span>{label}</span>
       <span className={`tabular-nums ${emphasis ? "text-brand-pink" : ""}`}>{value}</span>
     </div>
+  );
+}
+
+/** The list price under a hand-set one, so the two can be read together. */
+function ListPrice({ unit, list, qty }: { unit: number; list: number | null; qty: number }) {
+  if (list === null || Number(list) === unit) return null;
+  return (
+    <span className="block text-[11px] text-brand-muted line-through">מחירון {fmt(Number(list) * qty)}</span>
   );
 }

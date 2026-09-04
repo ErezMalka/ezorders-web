@@ -41,7 +41,17 @@ export function QuotesTable({
             const status = QUOTE_STATUS[quote.status];
             return (
               <tr key={quote.id} className="border-b border-slate-100 last:border-0 hover:bg-brand-grey">
-                <td className="px-4 py-3 font-semibold text-brand-dark">{quote.quote_number}</td>
+                <td className="px-4 py-3 font-semibold text-brand-dark">
+                  {quote.quote_number}
+                  {quote.price_overridden ? (
+                    <span
+                      title="הצעה עם מחיר ידני"
+                      className="ms-2 inline-block rounded-pill bg-brand-pinkStrong px-1.5 py-0.5 align-middle text-[10px] font-bold text-white"
+                    >
+                      ידני
+                    </span>
+                  ) : null}
+                </td>
                 <td className="px-4 py-3">
                   <span className="text-brand-dark">{quote.customer_name}</span>
                   {quote.customer_contact ? (
@@ -69,7 +79,7 @@ export function QuotesTable({
                 <td className="px-4 py-3 text-left">
                   <Link
                     href={`/he/agent/quotes/${quote.id}`}
-                    className="rounded-pill border border-slate-200 px-3 py-1.5 text-xs font-semibold text-brand-muted transition-colors hover:bg-brand-tint hover:text-brand-pink"
+                    className="rounded-pill border border-slate-200 px-3 py-1.5 text-xs font-semibold text-brand-muted transition-colors hover:bg-brand-tint hover:text-brand-pinkInk"
                   >
                     צפייה
                   </Link>

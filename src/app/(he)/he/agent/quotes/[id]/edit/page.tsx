@@ -22,9 +22,11 @@ export const metadata: Metadata = {
  * agent rather than the thing that protects the document — the API refuses it
  * too, and so does a trigger in the database.
  *
- * Only the SELECTION is handed to the builder, never the frozen prices. The
- * form reprices from today's catalogue as the agent works, which is the whole
- * reason a draft is worth editing rather than re-typing.
+ * Only the SELECTION is handed to the builder, never the frozen list prices.
+ * The form reprices from today's catalogue as the agent works, which is the
+ * whole reason a draft is worth editing rather than re-typing. The exception is
+ * a price the agent set by hand (0026): that was a decision, not a reading of
+ * the list, so it travels with the draft — a line, the base fee, the discount.
  */
 export default async function EditQuotePage({ params }: { params: Promise<{ id: string }> }) {
   const session = await requireAgentSession();
@@ -45,7 +47,23 @@ export default async function EditQuotePage({ params }: { params: Promise<{ id: 
       email: quote.customer_email ?? "",
       taxId: quote.customer_tax_id ?? "",
     },
-    selection: Object.fromEntries(quote.items.map((item) => [item.component_key, item.quantity])),
+    selection: Object.fromEntries(
+      quote.items.map((item) => [
+        item.component_key,
+        {
+          qty: item.quantity,
+          ...(item.price_overridden
+            ? { setupUnit: Number(item.setup_unit), monthlyUnit: Number(item.monthly_unit) }
+            : {}),
+        },
+      ])
+    ),
+    overrides: {
+      ...(quote.base_setup_override !== null ? { baseSetup: Number(quote.base_setup_override) } : {}),
+      ...(quote.discount_override_pct !== null
+        ? { discountPct: Number(quote.discount_override_pct) }
+        : {}),
+    },
     validDays: quote.valid_days,
     notes: quote.notes ?? "",
   };

@@ -6,11 +6,14 @@ import {
   DEFAULT_VALID_DAYS,
   DEFAULT_VAT_PERCENT,
   computeQuote,
+  sanitizeOverrides,
   sanitizeState,
   selectedLines,
   type CalcState,
   type Catalogue,
   type ItemGroup,
+  type PriceOverrides,
+  type SelectedLine,
 } from "@/lib/pricing";
 import { loadAgentCatalogue } from "@/lib/agent/products";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -18,11 +21,12 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 /**
  * Quote persistence.
  *
- * The shape of the contract with the browser is deliberately narrow: the client
- * sends WHICH COMPONENTS were selected, never what they cost. Prices are looked
- * up here from PRICING_CONFIG and the totals are recomputed by the database, so
- * the worst a tampered request can do is order a different package -- not the
- * same package for less.
+ * The client sends WHICH COMPONENTS were selected and, since 0026, may name a
+ * price for any of them, for the base fee, and for the discount. Anything it
+ * does not name is priced from the catalogue. The totals are still the
+ * database's: recalc_quote sums the stored lines and applies the stored
+ * overrides, so a figure the agent typed and a figure the list supplied are
+ * both on the row, side by side, and nothing is silent. See 0026.
  */
 
 export type QuoteStatus = "draft" | "sent" | "viewed" | "accepted" | "rejected" | "expired";
@@ -37,8 +41,10 @@ export interface QuoteCustomer {
 
 export interface CreateQuoteInput {
   customer: QuoteCustomer;
-  /** The calculator selection. Sanitised before use. */
+  /** The calculator selection, with any per-line prices. Sanitised before use. */
   calc: unknown;
+  /** The base fee and discount the agent set by hand, if any. Sanitised before use. */
+  overrides?: unknown;
   vatPercent?: number;
   termMonths?: number;
   validDays?: number;
@@ -67,6 +73,7 @@ export interface QuoteListRow {
   agent_name: string;
   item_count: number;
   is_expired: boolean;
+  price_overridden: boolean;
 }
 
 export interface QuoteItemRow {
@@ -82,6 +89,22 @@ export interface QuoteItemRow {
   monthly_total: number;
   is_discountable: boolean;
   sort_order: number;
+  /** The list price on the day. Equal to setup_unit / monthly_unit unless the agent set a price. */
+  list_setup_unit: number | null;
+  list_monthly_unit: number | null;
+  price_overridden: boolean;
+}
+
+/** One hand-set price, beside the list price it replaced. */
+export interface QuotePriceChange {
+  id: number;
+  at: string;
+  agent_id: string;
+  field: "base_setup" | "discount_pct" | "setup_unit" | "monthly_unit";
+  component_key: string | null;
+  label: string | null;
+  list_value: number | null;
+  new_value: number;
 }
 
 export interface QuoteRow {
@@ -112,6 +135,12 @@ export interface QuoteRow {
   first_viewed_at: string | null;
   view_count: number;
   pdf_path: string | null;
+  base_setup_override: number | null;
+  discount_override_pct: number | null;
+  price_overridden: boolean;
+  price_alert_sent_at: string | null;
+  /** 1 = the original document; 2 = with the equipment/setup/monthly summary. Frozen on acceptance. */
+  layout_version: number;
 }
 
 export interface QuoteWithItems extends QuoteRow {
@@ -145,6 +174,7 @@ export function normalizeCreateInput(
 ): {
   customer: Required<Omit<QuoteCustomer, "contact" | "email" | "taxId">> & QuoteCustomer;
   calc: CalcState;
+  overrides: PriceOverrides;
   vatPercent: number;
   termMonths: number;
   validDays: number;
@@ -160,8 +190,18 @@ export function normalizeCreateInput(
   if (!phone) throw new QuoteValidationError("טלפון הלקוח חסר");
 
   const calc = sanitizeState(input.calc, catalogue);
-  if (!computeQuote(calc, catalogue).hasAnyEnabled) {
+  const overrides = sanitizeOverrides(input.overrides);
+  // A base fee typed back as the list's is not an override, same as for lines.
+  if (overrides.baseSetup !== undefined && overrides.baseSetup === catalogue.baseSetup) {
+    delete overrides.baseSetup;
+  }
+  const totals = computeQuote(calc, catalogue, overrides);
+  if (!totals.hasAnyEnabled) {
     throw new QuoteValidationError("לא נבחרו רכיבים להצעה");
+  }
+  // Likewise a discount typed back as the tier it would have earned anyway.
+  if (overrides.discountPct !== undefined && overrides.discountPct === totals.listDiscountPct) {
+    delete overrides.discountPct;
   }
 
   return {
@@ -173,6 +213,7 @@ export function normalizeCreateInput(
       taxId: clean(input.customer?.taxId, 40),
     },
     calc,
+    overrides,
     vatPercent: clampNumber(input.vatPercent, DEFAULT_VAT_PERCENT, 0, 100),
     termMonths: Math.round(clampNumber(input.termMonths, DEFAULT_TERM_MONTHS, 1, 120)),
     validDays: Math.round(clampNumber(input.validDays, DEFAULT_VALID_DAYS, 1, 365)),
@@ -181,6 +222,87 @@ export function normalizeCreateInput(
 }
 
 // ── writes ───────────────────────────────────────────────────
+/** A quote_items row from a priced line. One place, so create and update cannot differ. */
+function lineRow(quoteId: string, line: SelectedLine, index: number) {
+  return {
+    quote_id: quoteId,
+    component_key: line.componentKey,
+    item_group: line.group,
+    label: line.label,
+    note: line.note || null,
+    image: line.image,
+    quantity: line.qty,
+    setup_unit: line.setupUnit,
+    monthly_unit: line.monthlyUnit,
+    setup_total: line.setupTotal,
+    monthly_total: line.monthlyTotal,
+    is_discountable: line.discountable,
+    sort_order: index,
+    list_setup_unit: line.listSetupUnit,
+    list_monthly_unit: line.listMonthlyUnit,
+    price_overridden: line.priceOverridden,
+  };
+}
+
+/**
+ * Write the trail for every figure the agent set by hand.
+ *
+ * Append-only and written on every save, so editing a draft three times
+ * leaves three entries — which is the history a manager actually wants when
+ * asking "how did this get to ₪200". Best-effort: a quote must not fail to
+ * save because its audit row did, but the failure is logged loudly.
+ */
+async function recordPriceChanges(
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+  quoteId: string,
+  agentId: string,
+  lines: SelectedLine[],
+  overrides: PriceOverrides,
+  catalogue: Catalogue,
+  listDiscountPct: number
+): Promise<void> {
+  const rows: Array<{
+    quote_id: string; agent_id: string; field: string;
+    component_key: string | null; label: string | null;
+    list_value: number | null; new_value: number;
+  }> = [];
+
+  if (overrides.baseSetup !== undefined) {
+    rows.push({
+      quote_id: quoteId, agent_id: agentId, field: "base_setup",
+      component_key: null, label: null,
+      list_value: catalogue.baseSetup, new_value: overrides.baseSetup,
+    });
+  }
+  if (overrides.discountPct !== undefined) {
+    rows.push({
+      quote_id: quoteId, agent_id: agentId, field: "discount_pct",
+      component_key: null, label: null,
+      list_value: listDiscountPct, new_value: overrides.discountPct,
+    });
+  }
+  for (const line of lines) {
+    if (line.setupUnit !== line.listSetupUnit) {
+      rows.push({
+        quote_id: quoteId, agent_id: agentId, field: "setup_unit",
+        component_key: line.componentKey, label: line.label,
+        list_value: line.listSetupUnit, new_value: line.setupUnit,
+      });
+    }
+    if (line.monthlyUnit !== line.listMonthlyUnit) {
+      rows.push({
+        quote_id: quoteId, agent_id: agentId, field: "monthly_unit",
+        component_key: line.componentKey, label: line.label,
+        list_value: line.listMonthlyUnit, new_value: line.monthlyUnit,
+      });
+    }
+  }
+  if (rows.length === 0) return;
+
+  const { error } = await supabase.from("quote_price_changes").insert(rows);
+  if (error) console.error("[quotes] price audit rows were not written", { quoteId, error: error.message });
+}
+
 /**
  * Create a quote for the signed-in agent.
  *
@@ -227,6 +349,8 @@ export async function createQuote(
       valid_until: validUntil.toISOString().slice(0, 10),
       notes: normalized.notes || null,
       direct_contract: options.directContract ?? false,
+      base_setup_override: normalized.overrides.baseSetup ?? null,
+      discount_override_pct: normalized.overrides.discountPct ?? null,
     })
     .select()
     .single();
@@ -236,23 +360,9 @@ export async function createQuote(
   }
 
   const lines = selectedLines(normalized.calc, catalogue);
-  const { error: itemsError } = await supabase.from("quote_items").insert(
-    lines.map((line, index) => ({
-      quote_id: quote.id,
-      component_key: line.componentKey,
-      item_group: line.group,
-      label: line.label,
-      note: line.note || null,
-      image: line.image,
-      quantity: line.qty,
-      setup_unit: line.setupUnit,
-      monthly_unit: line.monthlyUnit,
-      setup_total: line.setupTotal,
-      monthly_total: line.monthlyTotal,
-      is_discountable: line.discountable,
-      sort_order: index,
-    }))
-  );
+  const { error: itemsError } = await supabase
+    .from("quote_items")
+    .insert(lines.map((line, index) => lineRow(quote.id, line, index)));
 
   if (itemsError) {
     // Leave nothing half-written: without lines the quote would price as empty.
@@ -260,19 +370,24 @@ export async function createQuote(
     throw new Error(`Could not create quote lines: ${itemsError.message}`);
   }
 
-  // The base setup fee is deliberately not passed. It used to be an argument,
-  // which meant a caller reaching the RPC directly could set it to zero and
-  // reprice their own quote; it now lives in public.pricing_settings, where only
-  // the service role can change it. See supabase/migrations/0007.
+  // The base setup fee comes from public.pricing_settings unless this quote
+  // carries its own (base_setup_override, written above and audited below).
+  // See supabase/migrations/0007 and 0026.
   const { error: recalcError } = await supabase.rpc("recalc_quote", {
     p_quote: quote.id,
   });
   if (recalcError) throw new Error(`Could not price quote: ${recalcError.message}`);
 
+  const totals = computeQuote(normalized.calc, catalogue, normalized.overrides);
+  await recordPriceChanges(
+    supabase, quote.id, agentId, lines, normalized.overrides, catalogue, totals.listDiscountPct
+  );
+
   await supabase.from("quote_events").insert({
     quote_id: quote.id,
     event_type: "created",
     actor_id: agentId,
+    meta: totals.priceOverridden ? { price_overridden: true } : null,
   });
 
   const { data: priced } = await supabase.from("quotes").select("*").eq("id", quote.id).single();
@@ -350,6 +465,8 @@ export async function updateQuote(
       valid_days: normalized.validDays,
       valid_until: validUntil.toISOString().slice(0, 10),
       notes: normalized.notes || null,
+      base_setup_override: normalized.overrides.baseSetup ?? null,
+      discount_override_pct: normalized.overrides.discountPct ?? null,
     })
     .eq("id", quoteId)
     .eq("status", "draft");
@@ -369,23 +486,9 @@ export async function updateQuote(
   if (deleteError) throw new Error(`Could not clear quote lines: ${deleteError.message}`);
 
   const lines = selectedLines(normalized.calc, catalogue);
-  const { error: itemsError } = await supabase.from("quote_items").insert(
-    lines.map((line, index) => ({
-      quote_id: quoteId,
-      component_key: line.componentKey,
-      item_group: line.group,
-      label: line.label,
-      note: line.note || null,
-      image: line.image,
-      quantity: line.qty,
-      setup_unit: line.setupUnit,
-      monthly_unit: line.monthlyUnit,
-      setup_total: line.setupTotal,
-      monthly_total: line.monthlyTotal,
-      is_discountable: line.discountable,
-      sort_order: index,
-    }))
-  );
+  const { error: itemsError } = await supabase
+    .from("quote_items")
+    .insert(lines.map((line, index) => lineRow(quoteId, line, index)));
 
   if (itemsError) {
     throw new Error(
@@ -396,10 +499,16 @@ export async function updateQuote(
   const { error: recalcError } = await supabase.rpc("recalc_quote", { p_quote: quoteId });
   if (recalcError) throw new Error(`Could not price quote: ${recalcError.message}`);
 
+  const totals = computeQuote(normalized.calc, catalogue, normalized.overrides);
+  await recordPriceChanges(
+    supabase, quoteId, agentId, lines, normalized.overrides, catalogue, totals.listDiscountPct
+  );
+
   await supabase.from("quote_events").insert({
     quote_id: quoteId,
     event_type: "updated",
     actor_id: agentId,
+    meta: totals.priceOverridden ? { price_overridden: true } : null,
   });
 
   const { data: priced } = await supabase.from("quotes").select("*").eq("id", quoteId).single();
@@ -427,10 +536,22 @@ export async function duplicateQuote(
   const source = await getQuote(quoteId);
   if (!source) throw new QuoteValidationError("ההצעה לא נמצאה");
 
+  // A price the agent set by hand travels with the copy: the point of
+  // duplicating a sent quote is usually to change one thing, not to lose the
+  // deal that was already agreed. List-priced lines are re-priced from today.
   const calc: CalcState = {};
   for (const item of source.items) {
-    calc[item.component_key] = { enabled: true, qty: item.quantity };
+    calc[item.component_key] = {
+      enabled: true,
+      qty: item.quantity,
+      ...(item.price_overridden
+        ? { setupUnit: Number(item.setup_unit), monthlyUnit: Number(item.monthly_unit) }
+        : {}),
+    };
   }
+  const overrides: PriceOverrides = {};
+  if (source.base_setup_override !== null) overrides.baseSetup = Number(source.base_setup_override);
+  if (source.discount_override_pct !== null) overrides.discountPct = Number(source.discount_override_pct);
 
   const quote = await createQuote(
     {
@@ -442,6 +563,7 @@ export async function duplicateQuote(
         taxId: source.customer_tax_id ?? "",
       },
       calc,
+      overrides,
       vatPercent: source.vat_percent,
       termMonths: source.term_months,
       validDays: source.valid_days,
@@ -494,6 +616,19 @@ export async function listQuotes(limit = 100): Promise<QuoteListRow[]> {
 
   if (error) throw new Error(`Could not load quotes: ${error.message}`);
   return (data ?? []) as QuoteListRow[];
+}
+
+/** Every hand-set price on a quote, oldest first. RLS scopes it like the quote. */
+export async function getQuotePriceChanges(quoteId: string): Promise<QuotePriceChange[]> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("quote_price_changes")
+    .select("id, at, agent_id, field, component_key, label, list_value, new_value")
+    .eq("quote_id", quoteId)
+    .order("at")
+    .order("id");
+  if (error) throw new Error(`Could not load the price history: ${error.message}`);
+  return (data ?? []) as QuotePriceChange[];
 }
 
 export async function getQuote(quoteId: string): Promise<QuoteWithItems | null> {
