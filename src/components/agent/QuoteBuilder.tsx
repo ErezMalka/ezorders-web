@@ -155,8 +155,8 @@ export function QuoteBuilder({
     [
       { title: "מוצרים ראשיים", hint: "נכללים בחישוב ההנחה", group: "core" },
       { title: "תוספות — כלולות בהנחה", hint: "מגדילות את מדרגת ההנחה", group: "addon_included" },
+      { title: "ממשקים ואינטגרציות", hint: "פר פלטפורמה · מגדילים את מדרגת ההנחה", group: "integrations" },
       { title: "תוספות — ללא הנחה", hint: "נוספות לסה״כ במלוא המחיר", group: "addon_excluded" },
-      { title: "אינטגרציות", hint: "משלוחים ושוברים — ללא הנחה", group: "integrations" },
       { title: "אפליקציה", hint: "ללא הנחה", group: "mobile_app" },
       { title: "מוצרים וחומרה", hint: "תשלום חד־פעמי, ללא הנחה", group: "hardware" },
     ] as const

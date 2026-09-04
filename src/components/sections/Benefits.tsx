@@ -10,7 +10,7 @@ export function Benefits({ locale = "en" }: { locale?: Locale }) {
           <div className="flex h-[420px] w-full max-w-md items-center justify-center rounded-full bg-brand-grey">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/images/benefits-app.png"
+              src="/images/benefits-app.webp"
               alt="App preview"
               width={558}
               height={742}

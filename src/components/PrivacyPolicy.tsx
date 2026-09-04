@@ -116,7 +116,9 @@ export function PrivacyPolicy({ locale = "en" }: { locale?: Locale }) {
               ),
         createElement(
                 "p",
-          { style: { color: "#999", fontSize: "0.9rem", marginBottom: "1.5rem" } },
+          // #999 measured 2.85:1 on white, well under the 4.5:1 floor. #666 is 5.74:1
+          // and still reads as the secondary line it is meant to be.
+          { style: { color: "#666", fontSize: "0.9rem", marginBottom: "1.5rem" } },
                 c.updated
               ),
         createElement(

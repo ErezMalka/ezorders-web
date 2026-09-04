@@ -64,7 +64,7 @@ export default async function AgentDashboardPage() {
       action={
         <Link
           href="/he/agent/new"
-          className="rounded-pill bg-brand-pink px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-pinkDark"
+          className="rounded-pill bg-brand-pinkStrong px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-pinkInk"
         >
           + הצעה חדשה
         </Link>
@@ -87,11 +87,11 @@ export default async function AgentDashboardPage() {
           <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
             <h2 className="text-base font-bold text-brand-dark">
               ממתין להקמה
-              <span className="mr-2 rounded-pill bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-700">
+              <span className="ms-2 rounded-pill bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-700">
                 {inSetup.length}
               </span>
             </h2>
-            <Link href="/he/agent/orders" className="text-sm font-semibold text-brand-pink hover:underline">
+            <Link href="/he/agent/orders" className="text-sm font-semibold text-brand-pinkInk hover:underline">
               לכל ההזמנות ←
             </Link>
           </div>
@@ -102,7 +102,7 @@ export default async function AgentDashboardPage() {
       <section className="overflow-hidden rounded-card border border-slate-200 bg-white shadow-sm">
         <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
           <h2 className="text-base font-bold text-brand-dark">הצעות אחרונות</h2>
-          <Link href="/he/agent/quotes" className="text-sm font-semibold text-brand-pink hover:underline">
+          <Link href="/he/agent/quotes" className="text-sm font-semibold text-brand-pinkInk hover:underline">
             לכל ההצעות ←
           </Link>
         </div>

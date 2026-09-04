@@ -18,7 +18,7 @@ export function HardwareShowcase({ items }: { items: ShowcaseItem[] }) {
   return (
     <section dir="rtl" className="bg-brand-grey py-20">
       <div className="mx-auto max-w-container px-6">
-        <span className="mb-3 inline-block font-semibold text-brand-pink">החומרה</span>
+        <span className="mb-3 inline-block font-semibold text-brand-pinkInk">החומרה</span>
         <h2 className="mb-3 text-3xl font-bold text-brand-dark sm:text-4xl">
           העמדות עצמן, והמחיר שלהן
         </h2>
@@ -38,7 +38,7 @@ export function HardwareShowcase({ items }: { items: ShowcaseItem[] }) {
           <HardwareFootnote />
           <a
             href="/he/contact"
-            className="mt-4 inline-block rounded-pill bg-brand-pink px-7 py-3 font-semibold text-white transition-colors hover:bg-brand-pinkDark"
+            className="mt-4 inline-block rounded-pill bg-brand-pinkStrong px-7 py-3 font-semibold text-white transition-colors hover:bg-brand-pinkInk"
           >
             דברו איתנו על עמדה
           </a>

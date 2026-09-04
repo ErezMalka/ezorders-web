@@ -8,7 +8,7 @@
 import type { Metadata } from "next";
 import { getArticle, getTranslationGroup } from "./articles";
 import type { Article } from "./schema";
-import { locales, defaultLocale, type Locale } from "@/i18n/config";
+import { locales, xDefaultLocale, type Locale } from "@/i18n/config";
 
 const SITE = "https://ezorders.com";
 
@@ -16,12 +16,12 @@ const OG_LOCALE: Record<Locale, string> = { en: "en_US", he: "he_IL" };
 
 const INDEX_META: Record<Locale, { title: string; description: string }> = {
   en: {
-    title: "Blog - ezorders",
+    title: "Blog — Restaurant Operations and Ordering | EZOrders",
     description:
       "Practical guides for quick-service restaurant operators: online ordering, self-order kiosks, kitchen flow, and the numbers behind them.",
   },
   he: {
-    title: "בלוג - ezorders",
+    title: "בלוג — תפעול מסעדות, הזמנות דיגיטליות ונתונים | EZOrders",
     description:
       "מדריכים פרקטיים למפעילי מסעדות מהיר: הזמנות אונליין, עמדות שירות עצמי, זרימת מטבח והמספרים שמאחוריהם.",
   },
@@ -55,12 +55,29 @@ export function blogIndexMetadata(locale: Locale): Metadata {
 }
 
 /**
+ * Appends the brand only when the result still fits in a search result.
+ *
+ * Every other page on the site ends in " | EZOrders"; articles used to end in
+ * " - ezorders", which was both off-brand and long enough to push the English
+ * kiosk guide to 65 characters — past the point where Google truncates and the
+ * end of the headline turns into an ellipsis. A brand name nobody sees because
+ * it was cut off is worth less than a title that reads to the end, so when the
+ * suffix does not fit, the article's own title stands alone.
+ */
+const TITLE_BUDGET = 60;
+const BRAND = " | EZOrders";
+
+function withBrand(seoTitle: string): string {
+  return seoTitle.length + BRAND.length <= TITLE_BUDGET ? `${seoTitle}${BRAND}` : seoTitle;
+}
+
+/**
  * Metadata for one article. Returns a minimal not-found metadata object rather
  * than throwing, so a missing slug renders the 404 page cleanly.
  */
 export function articleMetadata(locale: Locale, slug: string): Metadata {
   const article = getArticle(locale, slug);
-  if (!article) return { title: "Not found - ezorders", robots: { index: false, follow: false } };
+  if (!article) return { title: `Not found${BRAND}`, robots: { index: false, follow: false } };
 
   const image = article.featuredImage ? `${SITE}${article.featuredImage}` : undefined;
 
@@ -75,7 +92,7 @@ export function articleMetadata(locale: Locale, slug: string): Metadata {
   const twImages = image ? { images: [image] } : {};
 
   return {
-    title: `${article.seoTitle} - ezorders`,
+    title: withBrand(article.seoTitle),
     description: article.seoDescription,
     authors: [{ name: article.author }],
     keywords: article.tags.length ? article.tags : undefined,
@@ -123,23 +140,23 @@ export function articleMetadata(locale: Locale, slug: string): Metadata {
  * hreflang map for one article: every locale the article is actually published
  * in, plus x-default.
  *
- * x-default points at the ENGLISH URL when an English version exists, matching
- * `defaultLocale` in i18n/config.ts. It is the entry point search engines offer
- * when they cannot match a user's language, so it should be the widest-reach
- * version. Falls back to the article's own URL when there is no English one.
+ * x-default points at the locale "/" actually serves — Hebrew, per
+ * middleware.ts and `xDefaultLocale`. It is the entry point search engines
+ * offer when they cannot match a visitor's language, so it has to be the page
+ * a visitor would really land on. Falls back to the article's own URL when the
+ * Hebrew translation does not exist.
  */
 function articleLanguageAlternates(article: Article): Record<string, string> {
   const group = getTranslationGroup(article.translationKey);
   const out: Record<string, string> = {};
   for (const [loc, a] of Object.entries(group)) out[loc] = a.canonicalUrl;
-  out["x-default"] = group.en?.canonicalUrl ?? article.canonicalUrl;
+  out["x-default"] = group[xDefaultLocale]?.canonicalUrl ?? article.canonicalUrl;
   return out;
 }
 
 function languageAlternates(build: (l: Locale) => string): Record<string, string> {
   const out: Record<string, string> = {};
   for (const l of locales) out[l] = build(l);
-  // English is the site's default locale (i18n/config.ts `defaultLocale`).
-  out["x-default"] = build(defaultLocale);
+  out["x-default"] = build(xDefaultLocale);
   return out;
 }

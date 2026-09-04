@@ -42,7 +42,7 @@ export function ArticleCard({ article }: { article: Article }) {
 
       <div className="flex flex-1 flex-col p-6">
         <div className="mb-3 flex flex-wrap items-center gap-2 text-xs text-brand-muted">
-          <span className="rounded-pill bg-brand-tint px-3 py-1 font-medium text-brand-pink">
+          <span className="rounded-pill bg-brand-tint px-3 py-1 font-medium text-brand-pinkInk">
             {article.category}
           </span>
           {article.draft && (
@@ -65,7 +65,7 @@ export function ArticleCard({ article }: { article: Article }) {
 
         <Link
           href={href}
-          className="mt-auto inline-flex items-center gap-1 text-sm font-semibold text-brand-indigo transition hover:text-brand-pink"
+          className="mt-auto inline-flex min-h-11 items-center gap-1 self-start text-sm font-semibold text-brand-indigo transition hover:text-brand-pinkInk"
         >
           {t.readMore}
           <span aria-hidden="true">{dir === "rtl" ? "←" : "→"}</span>

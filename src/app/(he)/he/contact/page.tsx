@@ -2,12 +2,14 @@ import type { Metadata } from "next";
 import { createElement } from "react";
 import { PageLayout } from "@/components/PageLayout";
 import { ContactForm } from "@/components/ContactForm";
+import { WhatsAppButton } from "@/components/WhatsAppButton";
 
 export const metadata: Metadata = {
-  title: "צור קשר - ezorders",
+  title: "צור קשר — דמו למערכת הזמנות למסעדה | EZOrders",
   description:
     "רוצים לשמוע עוד על EZOrders? צרו איתנו קשר ונשמח להראות לכם איך תפריטים דיגיטליים והזמנות אונליין יכולים לעזור למסעדה שלכם.",
   alternates: {
+    canonical: "./",
     languages: {
       en: "/en/contact",
       he: "/he/contact",
@@ -19,7 +21,10 @@ export const metadata: Metadata = {
 export default function HeContactPage() {
   const intro = createElement(
     "div",
-    null,
+    // "contact@ezorders.com" is one unbreakable token, and a grid item's
+    // default min-width:auto sizes the column to it — 283px inside a 257px
+    // column at 320px. `anywhere` lets it break, which also lowers min-content.
+    { className: "min-w-0 [overflow-wrap:anywhere]" },
     createElement(
       "h1",
       { style: { fontSize: "1.875rem", fontWeight: 700, marginBottom: "0.75rem" } },
@@ -49,12 +54,16 @@ export default function HeContactPage() {
         { href: "mailto:contact@ezorders.com", style: { color: "#e6007e", textDecoration: "none" } },
         "contact@ezorders.com"
         )
-      )
+      ),
+    // Offered beside the form, not instead of it. A restaurant owner deciding
+    // at 22:00 whether to change systems is far likelier to send a message than
+    // to fill in six fields, and this was the one channel the site never had.
+    createElement("div", { style: { marginTop: "1.75rem" } }, createElement(WhatsAppButton, { locale: "he" }))
     );
 
 const formCard = createElement(
   "div",
-  { className: "rounded-card bg-brand-indigo p-8 md:p-12" },
+  { className: "min-w-0 rounded-card bg-brand-indigo p-5 sm:p-8 md:p-12" },
   createElement(ContactForm, { locale: "he" })
   );
 

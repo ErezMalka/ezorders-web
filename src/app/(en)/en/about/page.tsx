@@ -7,7 +7,16 @@ import { ContactBand } from "@/components/sections/ContactBand";
 import { SIGNUP_URL } from "@/data/content";
 
 export const metadata: Metadata = {
-  title: "About - ezorders",
+  alternates: {
+    canonical: "./",
+    languages: {
+      en: "/en/about",
+      he: "/he/about",
+      // "/" serves Hebrew (middleware.ts), so that is the fallback.
+      "x-default": "/he/about",
+    },
+  },
+  title: "About EZOrders — Restaurant Ordering Systems in Israel",
   description:
     "Get to know EZOrders — we build mobile-first digital menus for restaurants that update in seconds and guide guests smoothly from browsing to ordering.",
 };
@@ -18,7 +27,7 @@ export default function AboutPage() {
       {/* HERO */}
       <section className="bg-brand-grey pb-20 pt-36 text-center">
         <div className="mx-auto max-w-3xl px-6">
-          <span className="mb-6 inline-block rounded-pill bg-brand-tint px-6 py-2 text-sm font-medium text-brand-pink">
+          <span className="mb-6 inline-block rounded-pill bg-brand-tint px-6 py-2 text-sm font-medium text-brand-pinkInk">
             About
           </span>
           <h1 className="text-5xl font-bold leading-tight md:text-6xl">

@@ -26,7 +26,17 @@ function stripLocale(pathname: string): string {
  * Builds the href for a given target locale, preserving the current route.
  * Both locales are prefixed: "/en/about" <-> "/he/about", "/en" <-> "/he".
  */
+/**
+ * Paths that exist in Hebrew only. Swapping the prefix on these produced a link
+ * to a page that does not exist — /he/kitchen-display offered /en/kitchen-display
+ * and a visitor clicking EN landed on a 404.
+ */
+const HEBREW_ONLY = ["/kitchen-display", "/qr-ordering", "/menu-mockup", "/queue-calculator", "/integrations", "/commission-calculator", "/glossary"];
+
 function buildHref(basePath: string, target: Locale): string {
+  // No counterpart in the target locale, so send them to that locale's home
+  // rather than to a dead URL. Losing the page is better than losing the site.
+  if (target === "en" && HEBREW_ONLY.some((p) => basePath.startsWith(p))) return "/en";
   return basePath === "/" ? `/${target}` : `/${target}${basePath}`;
 }
 
@@ -53,6 +63,10 @@ export function LanguageSwitcher({ className }: { className?: string }) {
         hrefLang: locale,
         onClick: () => persistLocale(locale),
         "aria-current": locale === active ? "true" : undefined,
+        // Bare "EN" / "עב" measured 19x24px — below every touch-target
+        // guideline. The padding gives each a 44px-tall hit area.
+        className:
+          "inline-flex h-11 min-w-11 items-center justify-center rounded-lg px-2 transition-colors hover:bg-brand-grey",
         style: {
           fontWeight: locale === active ? 700 : 400,
           opacity: locale === active ? 1 : 0.6,
@@ -66,7 +80,7 @@ export function LanguageSwitcher({ className }: { className?: string }) {
     "div",
     {
       className,
-      style: { display: "inline-flex", gap: "0.5rem", alignItems: "center" },
+      style: { display: "inline-flex", gap: "0.125rem", alignItems: "center" },
     },
     links
   );

@@ -6,7 +6,16 @@ import { Testimonials } from "@/components/sections/Testimonials";
 import { ContactBand } from "@/components/sections/ContactBand";
 
 export const metadata: Metadata = {
-  title: "Solutions - ezorders",
+  alternates: {
+    canonical: "./",
+    languages: {
+      en: "/en/solutions",
+      he: "/he/solutions",
+      // "/" serves Hebrew (middleware.ts), so that is the fallback.
+      "x-default": "/he/solutions",
+    },
+  },
+  title: "Restaurant Solutions — POS, Kiosk, Menu & Website | EZOrders",
   description:
     "Digitize your restaurant menu with endless options — digital menus, websites, membership clubs, kiosk stands, applications and an order management system.",
 };
@@ -28,7 +37,7 @@ export default function SolutionsPage() {
       <section className="relative overflow-hidden pb-16 pt-36">
         <div className="mx-auto grid max-w-container items-center gap-10 px-6 md:grid-cols-2">
           <div>
-            <span className="mb-6 inline-block rounded-pill bg-brand-tint px-5 py-2 text-sm font-medium text-brand-pink">
+            <span className="mb-6 inline-block rounded-pill bg-brand-tint px-5 py-2 text-sm font-medium text-brand-pinkInk">
               Solutions
             </span>
             <h1 className="text-5xl font-bold leading-tight md:text-6xl">
@@ -39,7 +48,7 @@ export default function SolutionsPage() {
               It’s the time to dive in the newest technology that will let you
               enjoy the digital world and it’s benefits.
             </p>
-            <div className="mt-8 flex items-center gap-8">
+            <div className="mt-8 flex flex-wrap items-center gap-x-8 gap-y-4">
               <CTAButton href="/en/contact">Book a Demo Now</CTAButton>
               <CTAButton href="#technologies" variant="link">
                 Our Technologies
@@ -47,16 +56,18 @@ export default function SolutionsPage() {
             </div>
           </div>
           <div className="flex justify-center">
-            <div className="flex h-[420px] w-[420px] items-center justify-center rounded-full bg-brand-indigo">
+            <div className="flex aspect-square w-full max-w-[420px] items-center justify-center rounded-full bg-brand-indigo">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/images/solutions-chef.png"
+                src="/images/solutions-chef.webp"
                 alt="Chef holding phone"
                 width={556}
                 height={595}
                 loading="lazy"
                 decoding="async"
-                className="max-h-[400px] w-auto"
+                // Percentages, not max-h-[400px]: the circle is now fluid below
+                // 420px, and a fixed 400px cap overflowed it on a phone.
+                className="max-h-[95%] w-auto max-w-[95%]"
               />
             </div>
           </div>
@@ -65,7 +76,7 @@ export default function SolutionsPage() {
 
       {/* OUR SERVICES / TECHNOLOGIES */}
       <section id="technologies" className="mx-auto max-w-container px-6 py-20">
-        <p className="mb-2 text-sm font-medium text-brand-pink">
+        <p className="mb-2 text-sm font-medium text-brand-pinkInk">
           Our Technologies
         </p>
         <h2 className="text-4xl font-bold md:text-5xl">Our Services</h2>

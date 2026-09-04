@@ -57,7 +57,7 @@ export default async function AgentContractsPage() {
                     <td className="px-4 py-3">
                       <Link
                         href={`/he/agent/contracts/${c.id}`}
-                        className="font-mono text-xs font-semibold text-brand-pink hover:underline"
+                        className="font-mono text-xs font-semibold text-brand-pinkInk hover:underline"
                         dir="ltr"
                       >
                         {c.contract_number}

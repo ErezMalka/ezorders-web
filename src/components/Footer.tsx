@@ -15,16 +15,23 @@ export function Footer({ dictionary }: { dictionary?: Dictionary }) {
           createElement(
                     "div",
               {
-                          className:
-                                        "mx-auto grid max-w-container gap-10 px-6 py-14 md:grid-cols-4",
+                          // Five columns once a locale supplies the tools list,
+                          // four when it does not — English has no Hebrew-only
+                          // calculators to show.
+                          className: `mx-auto grid max-w-container gap-10 px-6 py-14 ${
+                            f.tools?.length ? "md:grid-cols-5" : "md:grid-cols-4"
+                          }`,
               },
                     createElement(Logo, { href: f.learnMore[0].href }),
                     FooterCol({ title: f.learnMoreTitle, links: f.learnMore }),
                     FooterCol({ title: f.solutionsTitle, links: f.solutions }),
+                    f.tools?.length && f.toolsTitle
+                      ? FooterCol({ title: f.toolsTitle, links: f.tools })
+                      : null,
                     createElement(
                                 "div",
                                 null,
-                                createElement("h4", { className: "mb-4 font-semibold" }, f.contactTitle),
+                                createElement("h2", { className: "mb-4 font-semibold" }, f.contactTitle),
                                 createElement("p", { className: "text-brand-muted" }, f.tel)
                               )
                   ),
@@ -35,7 +42,7 @@ export function Footer({ dictionary }: { dictionary?: Dictionary }) {
                                         "border-t border-gray-100 py-6 text-center text-sm text-brand-muted",
               },
                     createElement("span", null, f.rights),
-                    createElement("span", { className: "mx-2 text-gray-300" }, "·"),
+                    createElement("span", { className: "mx-2 text-gray-500", "aria-hidden": true }, "·"),
                     // The agents' way back in. Deliberately plain and last: it is a
                     // staff door on a customer-facing page, so it should be findable
                     // by the five people who need it and invisible to everyone else.
@@ -52,7 +59,7 @@ function FooterCol({ title, links }: { title: string; links: FooterLink[] }) {
       return createElement(
               "div",
               null,
-              createElement("h4", { className: "mb-4 font-semibold" }, title),
+              createElement("h2", { className: "mb-4 font-semibold" }, title),
               createElement(
                         "ul",
                   { className: "space-y-2 text-brand-muted" },

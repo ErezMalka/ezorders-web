@@ -1,6 +1,7 @@
 import { createElement, Fragment } from "react";
 import { Header } from "./Header";
 import { Footer } from "./Footer";
+import { SkipLink } from "./SkipLink";
 import { getDictionary } from "@/i18n/getDictionary";
 import { defaultLocale, type Locale } from "@/i18n/config";
 
@@ -16,8 +17,12 @@ export function PageLayout({
 return createElement(
     Fragment,
     null,
+    // First in the DOM so it is the first thing Tab reaches.
+    createElement(SkipLink, { locale }),
     createElement(Header, { dictionary, locale }),
-    createElement("main", null, children),
+    // tabIndex -1 so following the skip link actually moves focus here, not
+    // just the scroll position — without it the next Tab returns to the nav.
+    createElement("main", { id: "main", tabIndex: -1 }, children),
     createElement(Footer, { dictionary })
     );
 }

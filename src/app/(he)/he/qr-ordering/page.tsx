@@ -1,15 +1,20 @@
 import type { Metadata } from "next";
 import { PageLayout } from "@/components/PageLayout";
+import { WhatsAppButton } from "@/components/WhatsAppButton";
+import { FaqSection } from "@/components/sections/FaqSection";
+import { GENERAL_FAQ } from "@/data/faq";
+import { breadcrumbSchema } from "@/lib/seo/breadcrumbs";
 
 export const metadata: Metadata = {
-  title: "הזמנה בסריקת QR מהשולחן - ezorders",
+  title: "הזמנה בסריקת QR מהשולחן — בלי אפליקציה ובלי המתנה | EZOrders",
   description:
     "תפריט QR למסעדה: הסועדים סורקים קוד בשולחן, מזמינים ומשלמים מהטלפון — בלי אפליקציה, בלי המתנה למלצר. יותר הזמנות, פחות עומס על הצוות.",
-  alternates: { languages: { he: "/he/qr-ordering", "x-default": "/he/qr-ordering" } },
+  alternates: {
+    canonical: "./", languages: { he: "/he/qr-ordering", "x-default": "/he/qr-ordering" } },
 };
 
 const sectionStyle = { padding: "8rem 1.5rem 4rem", maxWidth: "56rem", margin: "0 auto" } as const;
-const tagStyle = { display: "inline-block", color: "#e5306f", fontWeight: 600, marginBottom: "1rem" } as const;
+const tagStyle = { display: "inline-block", color: "#D22F63", fontWeight: 600, marginBottom: "1rem" } as const;
 const h1Style = { fontSize: "2.75rem", fontWeight: 700, lineHeight: 1.2, marginBottom: "1.25rem" } as const;
 const leadStyle = { color: "#555", lineHeight: 1.9, fontSize: "1.125rem", marginBottom: "2rem" } as const;
 const h2Style = { fontSize: "1.9rem", fontWeight: 700, marginBottom: "0.5rem" } as const;
@@ -17,9 +22,9 @@ const introStyle = { color: "#555", lineHeight: 1.8, marginBottom: "1.75rem" } a
 const h3Style = { fontSize: "1.2rem", fontWeight: 600, marginBottom: "0.4rem" } as const;
 const bodyStyle = { color: "#555", lineHeight: 1.8, marginBottom: "1.5rem" } as const;
 const imgStyle = { width: "100%", height: "auto", borderRadius: "1rem", marginBottom: "2.5rem" } as const;
-const linkStyle = { color: "#e5306f", textDecoration: "none", fontWeight: 600 } as const;
-const ctaWrapStyle = { marginTop: "3rem" } as const;
-const ctaStyle = { display: "inline-block", background: "#e5306f", color: "#fff", padding: "0.9rem 2rem", borderRadius: "999px", fontWeight: 600, textDecoration: "none" } as const;
+const linkStyle = { color: "#D22F63", textDecoration: "none", fontWeight: 600 } as const;
+const ctaWrapStyle = { marginTop: "3rem", display: "flex", flexWrap: "wrap", gap: "0.75rem", alignItems: "center" } as const;
+const ctaStyle = { display: "inline-block", background: "#D22F63", color: "#fff", padding: "0.9rem 2rem", borderRadius: "999px", fontWeight: 600, textDecoration: "none" } as const;
 
 export default function HeQrOrderingPage() {
   return (
@@ -33,7 +38,7 @@ export default function HeQrOrderingPage() {
         </p>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/images/ai/ezorders-mobile-ordering-app.webp"
+          src="/images/ai/ezorders-mobile-ordering-app.webp" width={1024} height={1024}
           alt="הזמנה בסריקת QR במסעדה — טלפון עם תפריט דיגיטלי של EZOrders ליד מעמד QR על שולחן ערוך"
           style={imgStyle}
           loading="lazy"
@@ -57,7 +62,7 @@ export default function HeQrOrderingPage() {
         </p>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/images/ai/ezorders-qr-table-ordering.webp"
+          src="/images/ai/ezorders-qr-table-ordering.webp" width={1024} height={1024}
           alt="חבורת חברים במסעדה מזמינה מהטלפונים באמצעות מעמד QR ו-NFC על השולחן"
           style={imgStyle}
           loading="lazy"
@@ -88,8 +93,14 @@ export default function HeQrOrderingPage() {
 
         <div style={ctaWrapStyle}>
           <a href="/he/contact" style={ctaStyle}>רוצים QR על השולחנות? דברו איתנו</a>
+          <WhatsAppButton locale="he" />
         </div>
       </section>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema("he", { name: "הזמנה בסריקת QR", path: "/qr-ordering" })) }}
+      />
+      <FaqSection items={GENERAL_FAQ.he} locale="he" />
     </PageLayout>
   );
 }

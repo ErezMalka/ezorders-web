@@ -7,9 +7,9 @@ import { getHomeContent, type Locale } from "@/data/homeContent";
 // height. The carousel swaps images in place, and without them the frame
 // re-lays-out on every slide change as each new file reports its own size.
 const sampleApps = [
-  { name: "App 1", image: "/images/benefits-app.png", width: 558, height: 742 },
-  { name: "App 2", image: "/images/app-hero.png", width: 427, height: 439 },
-  { name: "App 3", image: "/images/website-hero.png", width: 906, height: 1065 },
+  { name: "App 1", image: "/images/benefits-app.webp", width: 558, height: 742 },
+  { name: "App 2", image: "/images/app-hero.webp", width: 427, height: 439 },
+  { name: "App 3", image: "/images/website-hero.webp", width: 906, height: 1065 },
 ];
 
 export function SampleApps({ locale = "en" }: { locale?: Locale }) {
@@ -36,7 +36,7 @@ export function SampleApps({ locale = "en" }: { locale?: Locale }) {
         <button
           onClick={prev}
           aria-label="Previous"
-          className="absolute left-0 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-brand-pink text-white transition hover:bg-brand-pinkDark"
+          className="absolute left-0 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-brand-pinkStrong text-white transition hover:bg-brand-pinkInk"
         >
           ‹
         </button>
@@ -48,6 +48,12 @@ export function SampleApps({ locale = "en" }: { locale?: Locale }) {
             alt={sampleApps[index].name}
             width={sampleApps[index].width}
             height={sampleApps[index].height}
+            // React emits <link rel="preload" as="image"> for any server-rendered
+            // <img> without this attribute. This carousel is the seventh section
+            // on the home page, so that preload only stole bandwidth from the
+            // hero — it was pulling the largest image on the site before anything
+            // above the fold had finished painting.
+            loading="lazy"
             decoding="async"
             className="max-h-[380px] w-auto"
           />
@@ -56,22 +62,28 @@ export function SampleApps({ locale = "en" }: { locale?: Locale }) {
         <button
           onClick={next}
           aria-label="Next"
-          className="absolute right-0 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-brand-pink text-white transition hover:bg-brand-pinkDark"
+          className="absolute right-0 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-brand-pinkStrong text-white transition hover:bg-brand-pinkInk"
         >
           ›
         </button>
       </div>
 
-      <div className="mt-6 flex justify-center gap-2">
+      <div className="mt-6 flex justify-center gap-1">
         {sampleApps.map((_, i) => (
+          // The dot stays 10px; the button around it carries a 24px hit area.
           <button
             key={i}
             onClick={() => setIndex(i)}
             aria-label={`Go to slide ${i + 1}`}
-            className={`h-2.5 w-2.5 rounded-full ${
-              i === index ? "bg-brand-pink" : "bg-gray-300"
-            }`}
-          />
+            aria-current={i === index ? "true" : undefined}
+            className="flex h-6 w-6 items-center justify-center"
+          >
+            <span
+              className={`block h-2.5 w-2.5 rounded-full transition-colors ${
+                i === index ? "bg-brand-pink" : "bg-gray-300"
+              }`}
+            />
+          </button>
         ))}
       </div>
     </section>

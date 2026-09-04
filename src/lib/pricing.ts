@@ -21,9 +21,10 @@
  *   - a RECURRING monthly charge
  *
  * The volume discount applies to the monthly charge only, and only to the
- * components flagged discountable — core products and "included" add-ons. The
- * excluded add-ons (BIT, Apple Pay, 3D Secure) and the branded mobile app are
- * always billed at full price and never raise the discount tier.
+ * components flagged discountable — core products, "included" add-ons and the
+ * platform integrations. The excluded add-ons (BIT, Apple Pay, 3D Secure) and
+ * the branded mobile app are always billed at full price and never raise the
+ * discount tier.
  *
  * Prices are pre-VAT throughout. VAT is a presentation concern and is applied by
  * the caller, because the rate belongs to the quote (it is stored per quote so a
@@ -46,6 +47,14 @@ export const PRICING_CONFIG = {
     { id: "loyalty", label: "מועדון לקוחות", note: "פר סניף", setup: 0, monthly: 350, maxQty: 1, icon: "users" },
     { id: "ezwallet", label: "EzWallet", note: "", setup: 0, monthly: 150, maxQty: 1, icon: "wallet" },
     { id: "feedback", label: "מודול פידבק", note: "", setup: 0, monthly: 150, maxQty: 1, icon: "chat" },
+    // The two screens sell as add-ons rather than core products: neither stands
+    // alone, since a KDS shows orders a POS took and a CDS faces the customer
+    // at one. addon_included is discountable and counts toward the tier
+    // threshold, which is what "נכלל בהנחות כמו היתר במדרגות" asks for —
+    // and it keeps them out of the AggregateOffer on /he/pos, which reads
+    // coreProducts alone and would otherwise advertise a ₪150 floor price.
+    { id: "kds", label: "מסך מטבח (KDS)", note: "המחיר פר מסך", setup: 250, monthly: 150, maxQty: 10, icon: "kds" },
+    { id: "cds", label: "מסך לקוח (CDS)", note: "המחיר פר עמדה", setup: 250, monthly: 150, maxQty: 20, icon: "cds" },
   ],
 
   addonsExcluded: [
@@ -60,6 +69,21 @@ export const PRICING_CONFIG = {
       icon: "shield",
       txNote: "+ ₪0.90 לעסקה מאומתת (לא כלול בסה״כ)",
     },
+  ],
+
+  /**
+   * Interfaces to the platforms the restaurant already sells on. Priced per
+   * platform, ₪95 to connect and ₪85 a month to keep running, and discountable
+   * like the core products — a business on four platforms is a bigger customer
+   * than one on none, and the tier should say so.
+   */
+  integrations: [
+    { id: "tenbis", label: "תן ביס", note: "ממשק הזמנות", setup: 95, monthly: 85, maxQty: 1, icon: "integration" },
+    { id: "cibus", label: "סיבוס", note: "ממשק תשלום", setup: 95, monthly: 85, maxQty: 1, icon: "integration" },
+    { id: "mishloha", label: "משלוחה", note: "ממשק הזמנות", setup: 95, monthly: 85, maxQty: 1, icon: "integration" },
+    { id: "wolt", label: "וולט", note: "ממשק הזמנות", setup: 95, monthly: 85, maxQty: 1, icon: "integration" },
+    { id: "wolt_drive", label: "וולט דרייב", note: "ממשק שליחויות", setup: 95, monthly: 85, maxQty: 1, icon: "integration" },
+    { id: "haat", label: "האאט", note: "ממשק הזמנות", setup: 95, monthly: 85, maxQty: 1, icon: "integration" },
   ],
 
   mobileApp: { id: "app", label: "אפליקציה ממותגת", setup: 4900, monthly: 190, maxQty: 1, icon: "phone" },
@@ -153,28 +177,29 @@ export type ItemGroup =
   | "core"
   | "addon_included"
   | "addon_excluded"
+  /**
+   * Interfaces to the platforms a restaurant already sells on — Wolt, Tenbis,
+   * Cibus and the rest. A department of its own rather than more add-ons: these
+   * are bought one per platform the business is actually on, so an agent needs
+   * to see them as a block, and the count varies far more between customers
+   * than the add-ons do. Discountable, like core and the included add-ons.
+   */
+  | "integrations"
   | "mobile_app"
   /**
    * Physical goods: a screen, a printer, a cash drawer. One-time like setup but
    * not setup — nobody installs a cash drawer — so it is charged and presented
    * separately, and it never feeds the discount tier. See supabase 0008.
    */
-  | "hardware"
-  /**
-   * Delivery and voucher platforms — Wolt, Cibus, Ten Bis. A setup fee and a
-   * monthly fee, priced like an excluded add-on: never discounted, never
-   * raising the tier. The group exists in the database (products.item_group)
-   * and was invisible to the builder until it was named here.
-   */
-  | "integrations";
+  | "hardware";
 
 export const GROUP_LABELS: Record<ItemGroup, string> = {
   core: "מוצרים ראשיים",
   addon_included: "תוספות כלולות בהנחה",
   addon_excluded: "תוספות ללא הנחה",
+  integrations: "ממשקים ואינטגרציות",
   mobile_app: "אפליקציה",
   hardware: "מוצרים וחומרה",
-  integrations: "אינטגרציות",
 };
 
 // ============================================================
@@ -218,6 +243,7 @@ export const DEFAULT_CATALOGUE: Catalogue = {
   items: [
     ...withGroup(PRICING_CONFIG.coreProducts, "core"),
     ...withGroup(PRICING_CONFIG.addonsIncluded, "addon_included"),
+    ...withGroup(PRICING_CONFIG.integrations, "integrations"),
     ...withGroup(PRICING_CONFIG.addonsExcluded, "addon_excluded"),
     ...withGroup([PRICING_CONFIG.mobileApp], "mobile_app"),
   ],
@@ -232,7 +258,7 @@ export function itemsInGroup(group: ItemGroup, catalogue: Catalogue = DEFAULT_CA
 export const BASE_SETUP_LABEL = PRICING_CONFIG.initialSetup.label;
 
 /** Discountable groups feed the tier threshold; the others never do. */
-export const DISCOUNTABLE_GROUPS: readonly ItemGroup[] = ["core", "addon_included"];
+export const DISCOUNTABLE_GROUPS: readonly ItemGroup[] = ["core", "addon_included", "integrations"];
 
 export function isDiscountableGroup(group: ItemGroup): boolean {
   return DISCOUNTABLE_GROUPS.includes(group);
@@ -482,7 +508,17 @@ export function computeQuote(
 
   const initialSetupAmt = overrides.baseSetup ?? catalogue.baseSetup;
   const productSetupSubtotal = setupOf(inGroups("core"));
-  const addonSetupSubtotal = setupOf(inGroups("addon_included", "addon_excluded", "integrations"));
+  // Everything that carries a setup fee and is not a core product, an app or
+  // hardware. Listed by exclusion rather than by name: spelling the groups out
+  // here is what made a new group silently free to install — adding
+  // "integrations" to the catalogue and to DISCOUNTABLE_GROUPS left this line
+  // still summing the two it happened to name, and six ₪95 fees vanished from
+  // every quote that included them.
+  const addonSetupSubtotal = setupOf(
+    catalogue.items.filter(
+      (item) => !(["core", "mobile_app", "hardware"] as ItemGroup[]).includes(item.group),
+    ),
+  );
   const appSetup = setupOf(inGroups("mobile_app"));
   const appMonthly = monthlyOf(inGroups("mobile_app"));
 
@@ -492,13 +528,25 @@ export function computeQuote(
   // object is a rental, which is a different product and a different contract.
   const hardwareTotal = setupOf(inGroups("hardware"));
 
-  const eligibleMonthlySubtotal = monthlyOf(inGroups("core", "addon_included"));
+  // Read from DISCOUNTABLE_GROUPS rather than naming the groups again. The
+  // constant is what isDiscountableGroup answers with, so repeating the list
+  // here meant a group could be discountable everywhere except in the one
+  // function that decides the money.
+  const eligibleMonthlySubtotal = monthlyOf(inGroups(...DISCOUNTABLE_GROUPS));
   const listDiscountPct = getDiscount(eligibleMonthlySubtotal);
   const discountPct = overrides.discountPct ?? listDiscountPct;
   const discountAmt = Math.round((eligibleMonthlySubtotal * discountPct) / 100);
   const eligibleAfterDiscount = eligibleMonthlySubtotal - discountAmt;
+  // The complement of the discountable set, minus the two groups accounted for
+  // separately: hardware never recurs, and the app is added back as appMonthly.
   const nonDiscountableMonthly =
-    monthlyOf(inGroups("addon_excluded", "integrations")) + appMonthly;
+    monthlyOf(
+      catalogue.items.filter(
+        (item) =>
+          !isDiscountableGroup(item.group) &&
+          !(["mobile_app", "hardware"] as ItemGroup[]).includes(item.group),
+      ),
+    ) + appMonthly;
   const finalMonthlyTotal = eligibleAfterDiscount + nonDiscountableMonthly;
 
   return {

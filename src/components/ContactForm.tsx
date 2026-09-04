@@ -1,6 +1,7 @@
 "use client";
 
 import { createElement, useEffect, useRef, useState } from "react";
+import { VISUALLY_HIDDEN } from "@/lib/visually-hidden";
 
 type Locale = "en" | "he";
 
@@ -22,7 +23,15 @@ declare global {
 interface Window {
 turnstile?: TurnstileApi;
 dataLayer?: Record<string, unknown>[];
+fbq?: (...args: unknown[]) => void;
 }
+}
+
+// Generates a unique id shared between the browser Pixel event and the
+// server-side Conversions API event so Meta deduplicates the two.
+function newEventId(): string {
+if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
+return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
 // Build-time inlined; when unset, all Turnstile code paths are skipped.
@@ -103,7 +112,33 @@ if (v) found = true;
 return found ? out : null;
 }
 
-export function ContactForm({ locale = "en" }: { locale?: Locale }) {
+// The Google click id, for lead attribution. Prefers the URL (?gclid=…) and
+// falls back to the _gcl_aw cookie set by Google's conversion linker.
+function getGclid(): string {
+if (typeof window === "undefined") return "";
+const fromUrl = new URLSearchParams(window.location.search).get("gclid");
+if (fromUrl) return fromUrl;
+const m = document.cookie.match(/(?:^|;\s*)_gcl_aw=GCL\.\d+\.([^;]+)/);
+return m ? m[1] : "";
+}
+
+/**
+ * `headingLevel: "none"` drops the form's own heading.
+ *
+ * Inside ContactBand the section already renders an h2 carrying the identical
+ * string — "בואו נדבר" appeared twice in a row on all twelve pages that use the
+ * band. A repeated heading is noise for a sighted reader and worse for a screen
+ * reader navigating by headings, since the second one promises a new section
+ * and delivers the same one. The form keeps an accessible name either way: when
+ * the heading is dropped, aria-label carries it instead.
+ */
+export function ContactForm({
+  locale = "en",
+  showHeading = true,
+}: {
+  locale?: Locale;
+  showHeading?: boolean;
+}) {
 const t = LABELS[locale];
 const privacyHref = locale === "he" ? "/he/privacy" : "/privacy";
 
@@ -183,6 +218,10 @@ return;
 
 setStatus("sending");
 
+// Shared id so the browser Pixel event and the server Conversions API event
+// are deduplicated by Meta into a single Lead conversion.
+const eventId = newEventId();
+
 // Send the lead through our API route, which emails it via Resend.
 // Success is shown ONLY when the request returns HTTP 200 and { ok: true }.
 let delivered = false;
@@ -199,8 +238,10 @@ message,
 locale,
 company_url: companyUrl,
 turnstileToken: captchaToken,
+eventId,
 pagePath: typeof window !== "undefined" ? window.location.pathname : null,
 utm: getUtm(),
+gclid: getGclid(),
 }),
 });
 let json: { ok?: boolean } | null = null;
@@ -227,13 +268,21 @@ if (delivered) {
 // Fire one semantic conversion event for GTM. Google Ads / Meta Pixel / GA4
 // all trigger off this single event. Safe no-op when GTM/dataLayer is absent.
 if (typeof window !== "undefined") {
+// GTM event for Google Ads + GA4 conversions (Meta is handled directly below).
 window.dataLayer = window.dataLayer || [];
 window.dataLayer.push({
 event: "lead_submit",
 form: "contact",
 locale,
 pagePath: window.location.pathname,
+eventId,
 });
+// Meta Pixel Lead event (browser side). Same eventId as the server-side
+// Conversions API call in /api/contact so Meta counts it once. No-op when
+// the pixel is not configured.
+if (typeof window.fbq === "function") {
+window.fbq("track", "Lead", { content_name: "contact", locale }, { eventID: eventId });
+}
 }
 setStatus("success");
 setName("");
@@ -269,6 +318,8 @@ value: name,
 onChange: (e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value),
 placeholder: t.name,
 "aria-label": t.name,
+"aria-required": true,
+required: true,
 autoComplete: "name",
 className: inputClass,
 }),
@@ -279,6 +330,8 @@ value: email,
 onChange: (e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value),
 placeholder: t.email,
 "aria-label": t.email,
+"aria-required": true,
+required: true,
 autoComplete: "email",
 className: inputClass,
 }),
@@ -307,6 +360,8 @@ value: message,
 onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => setMessage(e.target.value),
 placeholder: t.message,
 "aria-label": t.message,
+"aria-required": true,
+required: true,
 rows: 4,
 className: inputClass,
 })
@@ -320,23 +375,23 @@ name: "company_url",
 tabIndex: -1,
 autoComplete: "off",
 "aria-hidden": true,
-style: { position: "absolute", left: "-9999px", width: "1px", height: "1px", opacity: 0 },
+style: VISUALLY_HIDDEN,
 });
 
 const consent = createElement(
 "label",
-{ className: "mt-4 flex items-center gap-2 text-sm" },
+{ className: "mt-4 flex min-h-11 cursor-pointer items-center gap-2.5 text-sm" },
 createElement("input", {
 type: "checkbox",
 checked: agree,
 onChange: (e: React.ChangeEvent<HTMLInputElement>) => setAgree(e.target.checked),
-className: "h-5 w-5 flex-shrink-0 accent-brand-pink",
+className: "h-6 w-6 flex-shrink-0 accent-brand-pink",
 }),
 t.agree,
 " ",
 createElement(
 "a",
-{ href: privacyHref, className: "text-brand-pink underline" },
+{ href: privacyHref, className: "text-brand-pinkInk underline" },
 t.privacy
 )
 );
@@ -360,15 +415,25 @@ const submitBtn = createElement(
 type: "submit",
 disabled: status === "sending",
 className:
-"mt-5 w-full rounded-pill bg-brand-pink px-9 py-3 font-medium text-white transition hover:bg-brand-pinkDark disabled:opacity-60 sm:w-auto",
+"mt-5 w-full rounded-pill bg-brand-pinkStrong px-9 py-3 font-medium text-white transition hover:bg-brand-pinkInk disabled:opacity-60 sm:w-auto",
 },
 status === "sending" ? t.sending : t.submit
 );
 
 return createElement(
 "form",
-{ className: "rounded-card bg-white p-8 shadow-lg", onSubmit: handleSubmit, noValidate: true },
-createElement("h3", { className: "mb-6 text-center text-2xl font-semibold" }, t.title),
+// p-5 on phones: this card sits inside another p-8 card, and the two together
+// ate 128px of a 320px screen — enough to push the grid column past the page.
+{
+className: "min-w-0 rounded-card bg-white p-5 shadow-lg sm:p-8",
+onSubmit: handleSubmit,
+noValidate: true,
+// Without a visible heading the form still needs a name of its own.
+"aria-label": showHeading ? undefined : t.title,
+},
+showHeading
+? createElement("h2", { className: "mb-6 text-center text-2xl font-semibold" }, t.title)
+: null,
 fields,
 honeypot,
 consent,

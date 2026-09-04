@@ -41,6 +41,9 @@ function Icon({ name, className }: { name: string; className?: string }) {
         src={`/icons/${brand}.svg`}
         alt=""
         aria-hidden="true"
+        // Without this React preloads one <link> per brand icon on /price.
+        // They sit inside the calculator, well below the fold.
+        loading="lazy"
         className={`${className ?? ""} object-contain`}
       />
     );
@@ -55,6 +58,14 @@ function Icon({ name, className }: { name: string; className?: string }) {
     card: <path d="M3 6h18v12H3zM3 10h18M6 15h4" />,
     shield: <path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3zM9 12l2 2 4-4" />,
     phone: <path d="M8 2h8a1 1 0 011 1v18a1 1 0 01-1 1H8a1 1 0 01-1-1V3a1 1 0 011-1zM11 18h2" />,
+    // A missing key here renders an empty <svg> rather than throwing, so a new
+    // catalogue item without an icon looks broken in a way nothing reports.
+    // Kitchen display: a wall screen with a ticket queue on it.
+    kds: <path d="M3 4h18v12H3zM3 20h18M8 8h8M8 12h5" />,
+    // Customer display: a small screen on a stand, facing the other way.
+    cds: <path d="M5 4h14v9H5zM12 13v5M8 21h8M9 8h6" />,
+    // Two plugs meeting: one system connected to another.
+    integration: <path d="M10 3v4M14 3v4M8 7h8v5a4 4 0 01-8 0zM12 16v5" />,
     settings: <path d="M12 9a3 3 0 100 6 3 3 0 000-6zM19 12l2-1-1-3-2.2.3-1.5-1.5L16.5 4l-3-1-1 2h-2l-1-2-3 1 .2 2.8L5.2 8.3 3 8l-1 3 2 1-2 1 1 3 2.2-.3 1.5 1.5L6.5 20l3 1 1-2h2l1 2 3-1-.2-2.8 1.5-1.5 2.2.3 1-3-2-1z" />,
     info: <path d="M12 3a9 9 0 100 18 9 9 0 000-18zM12 8h.01M12 11v5" />,
     reset: <path d="M4 10a8 8 0 118 8M4 10V4m0 6h6" />,
@@ -115,13 +126,13 @@ function ProductRow({ id, label, note, txNote, setup, monthly, maxQty, icon, sta
             type="checkbox"
             checked={state.enabled}
             onChange={(e) => onChange(id, { enabled: e.target.checked })}
-            className="h-5 w-5 flex-shrink-0 cursor-pointer rounded accent-brand-pink"
+            className="h-6 w-6 flex-shrink-0 cursor-pointer rounded accent-brand-pink"
             aria-label={label}
           />
 
           <div
             className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl ${
-              state.enabled ? "bg-white text-brand-pink" : "bg-slate-100 text-slate-400"
+              state.enabled ? "bg-white text-brand-pink" : "bg-slate-100 text-slate-500"
             }`}
           >
             <Icon name={icon} className="h-4.5 w-4.5 h-[18px] w-[18px]" />
@@ -132,7 +143,10 @@ function ProductRow({ id, label, note, txNote, setup, monthly, maxQty, icon, sta
           </div>
         </div>
 
-        <div className="flex items-center justify-between gap-2 border-t border-slate-100 pt-2.5 sm:justify-end sm:gap-3 sm:border-0 sm:pt-0">
+        {/* flex-wrap on mobile: the stepper and both price columns are
+            shrink-proof by design, and at 320px they summed past the row and
+            pushed the page sideways. Wrapping costs a line instead. */}
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-2.5 sm:flex-nowrap sm:justify-end sm:gap-3 sm:border-0 sm:pt-0">
         {maxQty > 1 ? (
           <div className="flex flex-shrink-0 items-center gap-1">
             <button
@@ -142,13 +156,13 @@ function ProductRow({ id, label, note, txNote, setup, monthly, maxQty, icon, sta
               aria-label="הפחת כמות"
               className={`h-8 w-8 rounded-md transition-colors sm:h-7 sm:w-7 ${
                 state.enabled && state.qty > 1
-                  ? "bg-white text-brand-pink hover:bg-brand-pink hover:text-white"
-                  : "cursor-not-allowed bg-slate-100 text-slate-300"
+                  ? "bg-white text-brand-pink hover:bg-brand-pinkStrong hover:text-white"
+                  : "cursor-not-allowed bg-slate-100 text-slate-500"
               }`}
             >
               <Icon name="minus" className="mx-auto h-3.5 w-3.5" />
             </button>
-            <span className={`w-6 text-center text-sm font-bold sm:w-8 ${state.enabled ? "text-brand-dark" : "text-slate-400"}`}>
+            <span className={`w-6 text-center text-sm font-bold sm:w-8 ${state.enabled ? "text-brand-dark" : "text-slate-500"}`}>
               {state.qty}
             </span>
             <button
@@ -158,8 +172,8 @@ function ProductRow({ id, label, note, txNote, setup, monthly, maxQty, icon, sta
               aria-label="הוסף כמות"
               className={`h-8 w-8 rounded-md transition-colors sm:h-7 sm:w-7 ${
                 state.enabled && state.qty < maxQty
-                  ? "bg-white text-brand-pink hover:bg-brand-pink hover:text-white"
-                  : "cursor-not-allowed bg-slate-100 text-slate-300"
+                  ? "bg-white text-brand-pink hover:bg-brand-pinkStrong hover:text-white"
+                  : "cursor-not-allowed bg-slate-100 text-slate-500"
               }`}
             >
               <Icon name="plus" className="mx-auto h-3.5 w-3.5" />
@@ -171,14 +185,14 @@ function ProductRow({ id, label, note, txNote, setup, monthly, maxQty, icon, sta
 
         <div className="w-16 flex-shrink-0 text-center sm:w-20">
           <p className="text-xs text-brand-muted">הקמה</p>
-          <p className={`text-sm font-semibold ${state.enabled ? "text-brand-dark" : "text-slate-400"}`}>
-            {setup === 0 ? <span className="text-xs font-bold text-emerald-500">חינם</span> : fmt(setup)}
+          <p className={`text-sm font-semibold ${state.enabled ? "text-brand-dark" : "text-slate-500"}`}>
+            {setup === 0 ? <span className="text-xs font-bold text-emerald-700">חינם</span> : fmt(setup)}
           </p>
         </div>
 
         <div className="w-24 flex-shrink-0 text-center sm:w-28">
           <p className="text-xs text-brand-muted">חודשי</p>
-          <p className={`text-sm font-bold ${state.enabled ? "text-brand-pink" : "text-slate-400"}`}>
+          <p className={`text-sm font-bold ${state.enabled ? "text-brand-pinkInk" : "text-slate-500"}`}>
             {state.enabled && maxQty > 1 && state.qty > 1 ? (
               <>
                 <span className="text-xs font-normal">
@@ -218,7 +232,7 @@ function SectionHeader({ title, subtitle, badge }: { title: string; subtitle?: s
         {subtitle ? <p className="mt-0.5 text-xs text-brand-muted">{subtitle}</p> : null}
       </div>
       {badge ? (
-        <span className="rounded-pill border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-600">
+        <span className="rounded-pill border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
           {badge}
         </span>
       ) : null}
@@ -250,7 +264,7 @@ function SummaryRow({
     <div className={`flex items-start justify-between py-1.5 ${divider ? "mt-1 border-t border-slate-200 pt-2.5" : ""}`}>
       <span
         className={`text-sm ${
-          muted ? "text-slate-400" : discount ? "font-semibold text-emerald-600" : highlight ? "font-bold text-brand-dark" : "text-brand-muted"
+          muted ? "text-slate-500" : discount ? "font-semibold text-emerald-700" : highlight ? "font-bold text-brand-dark" : "text-brand-muted"
         }`}
       >
         {label}
@@ -258,12 +272,12 @@ function SummaryRow({
       <div className="text-left">
         <span
           className={`text-sm font-semibold ${
-            discount ? "text-emerald-600" : muted ? "text-slate-400" : highlight ? "text-base font-bold text-brand-pink" : "text-brand-dark"
+            discount ? "text-emerald-700" : muted ? "text-slate-500" : highlight ? "text-base font-bold text-brand-pink" : "text-brand-dark"
           }`}
         >
           {value}
         </span>
-        {sub ? <p className="text-xs text-slate-400">{sub}</p> : null}
+        {sub ? <p className="text-xs text-slate-500">{sub}</p> : null}
       </div>
     </div>
   );
@@ -304,6 +318,7 @@ export function PricingCalculator({ catalogue = DEFAULT_CATALOGUE }: { catalogue
   // or fills is reflected here without a deploy.
   const coreProducts = itemsInGroup("core", catalogue);
   const addonsIncluded = itemsInGroup("addon_included", catalogue);
+  const integrations = itemsInGroup("integrations", catalogue);
   const addonsExcluded = itemsInGroup("addon_excluded", catalogue);
   const hardware = itemsInGroup("hardware", catalogue);
   const mobileApp = itemsInGroup("mobile_app", catalogue)[0];
@@ -329,6 +344,7 @@ export function PricingCalculator({ catalogue = DEFAULT_CATALOGUE }: { catalogue
     };
     addSection("מוצרים ראשיים", coreProducts);
     addSection("תוספות כלולות בהנחה", addonsIncluded);
+    addSection("ממשקים ואינטגרציות", integrations);
     addSection("תוספות לא כלולות בהנחה", addonsExcluded);
     addSection("מוצרים וחומרה", hardware);
     if (mobileApp && appState?.enabled) {
@@ -372,19 +388,23 @@ export function PricingCalculator({ catalogue = DEFAULT_CATALOGUE }: { catalogue
     <section dir="rtl" className="mx-auto max-w-container px-6">
       {/* Heading */}
       <div className="mb-10 text-center">
-        <span className="mb-4 inline-block rounded-pill bg-brand-tint px-6 py-2 text-sm font-medium text-brand-pink">
+        <span className="mb-4 inline-block rounded-pill bg-brand-tint px-6 py-2 text-sm font-medium text-brand-pinkInk">
           מחירון
         </span>
         <h1 className="text-4xl font-bold leading-tight text-brand-dark md:text-5xl">בנו את החבילה שלכם</h1>
         <p className="mx-auto mt-4 max-w-2xl text-lg text-brand-muted">
           סמנו את המוצרים שמתאימים למסעדה שלכם וראו את המחיר בזמן אמת — ככל שמוסיפים יותר, ההנחה החודשית גדלה, עד 40%.
         </p>
-        <p className="mx-auto mt-3 max-w-2xl rounded-xl bg-brand-tint px-4 py-2 text-sm font-medium text-brand-pink">
+        <p className="mx-auto mt-3 max-w-2xl rounded-xl bg-brand-tint px-4 py-2 text-sm font-medium text-brand-pinkInk">
           החישוב מתייחס לסניף בודד — ברשת עם מספר סניפים, כל סניף מחויב ומחושב בנפרד.
         </p>
       </div>
 
-      <div className="flex flex-col items-start gap-8 lg:flex-row">
+      {/* items-start only once this is a row. In the mobile column layout the
+          cross axis is the width, so items-start sized each card to its
+          max-content (347px) inside a 312px viewport and pushed the page
+          sideways. flex-1 controls the main axis, so it could not correct it. */}
+      <div className="flex flex-col items-stretch gap-8 lg:flex-row lg:items-start">
         {/* Main column */}
         <div className="min-w-0 flex-1 space-y-6">
           {/* Initial setup */}
@@ -430,6 +450,23 @@ export function PricingCalculator({ catalogue = DEFAULT_CATALOGUE }: { catalogue
               ))}
             </div>
           </div>
+
+          {/* Platform integrations. Rendered only when the catalogue has any, so
+              an empty heading never appears if they are switched off in admin. */}
+          {integrations.length > 0 && (
+            <div className="rounded-card border border-slate-200 bg-white p-5 shadow-sm">
+              <SectionHeader
+                title="ממשקים ואינטגרציות"
+                subtitle="חיבור לפלטפורמות שאתם כבר מוכרים בהן — מחיר פר פלטפורמה"
+                badge="כולל הנחה"
+              />
+              <div className="space-y-2.5">
+                {integrations.map((p) => (
+                  <ProductRow key={p.id} {...p} state={calc[p.id]} onChange={update} />
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Add-ons excluded */}
           <div className="rounded-card border border-slate-200 bg-white p-5 shadow-sm">
@@ -517,7 +554,7 @@ export function PricingCalculator({ catalogue = DEFAULT_CATALOGUE }: { catalogue
 
                 {discountAmt > 0 ? (
                   <div className="mt-3 flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2">
-                    <Icon name="percent" className="h-4 w-4 flex-shrink-0 text-emerald-500" />
+                    <Icon name="percent" className="h-4 w-4 flex-shrink-0 text-emerald-700" />
                     <p className="text-xs font-semibold text-emerald-700">
                       חיסכון של {fmt(discountAmt)} בכל חודש ({fmt(discountAmt * 12)} בשנה)
                     </p>
@@ -545,7 +582,7 @@ export function PricingCalculator({ catalogue = DEFAULT_CATALOGUE }: { catalogue
                 type="button"
                 onClick={copyQuote}
                 disabled={!hasAnyEnabled}
-                className="flex flex-1 items-center justify-center gap-1.5 rounded-pill bg-brand-pink px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-pinkDark disabled:cursor-not-allowed disabled:opacity-40"
+                className="flex flex-1 items-center justify-center gap-1.5 rounded-pill bg-brand-pinkStrong px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-pinkInk disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <Icon name="copy" className="h-3.5 w-3.5" />
                 {copied ? "הועתק!" : "העתק הצעה"}
@@ -554,7 +591,7 @@ export function PricingCalculator({ catalogue = DEFAULT_CATALOGUE }: { catalogue
 
             <a
               href="/he/contact"
-              className="mt-3 block rounded-pill border border-brand-pink px-3 py-2 text-center text-sm font-semibold text-brand-pink transition-colors hover:bg-brand-tint"
+              className="mt-3 block rounded-pill border border-brand-pink px-3 py-2 text-center text-sm font-semibold text-brand-pinkInk transition-colors hover:bg-brand-tint"
             >
               דברו איתנו על ההצעה
             </a>

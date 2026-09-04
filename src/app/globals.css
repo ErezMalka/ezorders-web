@@ -10,6 +10,44 @@ html {
   scroll-behavior: smooth;
 }
 
+/* ---------------------------------------------------------------------------
+   Keyboard focus
+   Nothing on the site drew a focus ring — every link and button relied on the
+   UA default, which Tailwind's preflight removes. Measured before this: 25 of
+   25 interactive elements gave no visible indication of focus, so anyone
+   navigating by keyboard could not tell where they were. WCAG 2.4.7.
+
+   :focus-visible rather than :focus, so a mouse click does not leave a ring
+   behind but Tab always does.
+   --------------------------------------------------------------------------- */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 3px solid #3b33c8;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* On the indigo and pink surfaces an indigo ring disappears. White reads on
+   both, and the dark halo keeps it visible if the surface is light. */
+.bg-brand-indigo :where(a, button):focus-visible,
+.bg-brand-pinkStrong:focus-visible,
+.bg-brand-indigo:focus-visible {
+  outline-color: #ffffff;
+  box-shadow: 0 0 0 5px rgba(25, 29, 42, 0.55);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* The header is pinned, so anything an in-page link jumps to has to clear it,
+   or the heading lands underneath. 6rem covers the header at its tallest. */
+main [id],
+:target {
+  scroll-margin-block-start: 6rem;
+}
+
 body {
   color: var(--brand-dark);
   background: #ffffff;
@@ -26,6 +64,9 @@ body {
   color: var(--brand-dark);
   font-size: 1.0625rem;
   line-height: 1.75;
+  /* A long URL or email in body copy is one unbreakable token, which sets the
+     container's min-content width and pushes narrow phones sideways. */
+  overflow-wrap: anywhere;
 }
 
 .article-body > * + * {
@@ -141,4 +182,56 @@ body {
 .article-body th {
   background: #f8fafc;
   font-weight: 600;
+}
+
+/*
+ * Skip link.
+ *
+ * Written as plain CSS rather than Tailwind utilities on purpose. The first
+ * attempt used `sr-only focus:not-sr-only focus:fixed …` and silently did
+ * nothing: `focus:inset-inline-start-4` is not a real utility so it emitted no
+ * rule at all, and `sr-only` kept winning the position, leaving the link a 1x1
+ * pixel at the top of the page even while focused. A control this small and
+ * this important should not depend on utility ordering.
+ *
+ * Hidden by clipping rather than by a large negative offset. A -9999px inset is
+ * outside the scrollable area in LTR and inside it under dir="rtl", which is
+ * exactly what once put 9,999px of blank white space beside every Hebrew page.
+ */
+.skip-link {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.skip-link:focus {
+  position: fixed;
+  inset-block-start: 1rem;
+  inset-inline-start: 1rem;
+  z-index: 60;
+  width: auto;
+  height: auto;
+  min-height: 2.75rem;
+  clip: auto;
+  clip-path: none;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.5rem;
+  background: #3b33c8;
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
+  outline: 3px solid #c92a5c;
+  outline-offset: 2px;
+}
+
+/* The target must not gain a ring of its own when the skip link sends focus
+   there — tabindex="-1" makes it focusable, not interactive. */
+main:focus {
+  outline: none;
 }

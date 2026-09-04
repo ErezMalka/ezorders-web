@@ -6,7 +6,7 @@ const en: ProductContent = {
   titleParts: ["Be ", "exceptional", " through a website"],
   heroBody:
     "Experience convenience and efficiency with our restaurant ordering website. Explore a user-friendly platform to customize orders, make secure payments, and indulge in delectable dining. Embrace technology and unlock your restaurant’s potential with our online ordering website.",
-  heroImage: "/images/website-hero.png",
+  heroImage: "/images/website-hero.webp",
   featuresHeading: "Website Features",
   featuresIntro:
     "Upgrade your customer experience with our unique restaurant website services. Join us and unlock a range of innovative features that will set your restaurant apart",
@@ -40,7 +40,7 @@ const he: ProductContent = {
   titleParts: ["אתר הזמנות למסעדה ", "שעובד בשבילכם", ""],
   heroBody:
     "אתר הזמנות אונליין ממותג משלכם, שמלווה את הלקוח מהעיון בתפריט ועד לתשלום המאובטח — בלי עמלות של פלטפורמות חיצוניות. הלקוחות מזמינים בקצב שלהם, בונים את ההזמנה בדיוק כרצונם, ואתם מקבלים כל הזמנה ישירות למטבח, מסודרת וברורה.",
-  heroImage: "/images/website-hero.png",
+  heroImage: "/images/website-hero.webp",
   featuresHeading: "יכולות מרכזיות",
   featuresIntro:
     "כל מה שמסעדה מודרנית צריכה כדי למכור יותר ולעבוד חכם — במקום אחד.",

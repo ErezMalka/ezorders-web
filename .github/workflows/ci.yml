@@ -63,6 +63,11 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
+      # Unit tests, including the RTL/overflow source guards. These are cheap
+      # and dependency-free, so they run before the build rather than after it.
+      - name: Unit tests
+        run: npm test
+
       - name: Production build
         run: npm run build
 

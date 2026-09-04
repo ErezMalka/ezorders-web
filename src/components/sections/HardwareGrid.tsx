@@ -38,7 +38,7 @@ export function HardwareGrid({ items }: { items: ShowcaseItem[] }) {
               item.image ? "border-t border-slate-100" : ""
             }`}
           >
-            <h4 className="text-base font-bold text-brand-dark">{item.label}</h4>
+            <h3 className="text-base font-bold text-brand-dark">{item.label}</h3>
             {item.note ? (
               <p className="mt-1 text-sm leading-relaxed text-brand-muted">{item.note}</p>
             ) : null}

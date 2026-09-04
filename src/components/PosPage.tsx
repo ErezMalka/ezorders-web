@@ -1,6 +1,11 @@
 import { PageLayout } from "@/components/PageLayout";
 import { CTAButton } from "@/components/CTAButton";
+import { AdminScreens } from "@/components/sections/AdminScreens";
 import { ContactBand } from "@/components/sections/ContactBand";
+import { FaqSection } from "@/components/sections/FaqSection";
+import { WhatsAppButton } from "@/components/WhatsAppButton";
+import { GENERAL_FAQ } from "@/data/faq";
+import { breadcrumbSchema } from "@/lib/seo/breadcrumbs";
 import { ModuleIcon } from "@/components/Icons";
 import { SIGNUP_URL } from "@/data/content";
 import { getHomeContent, type Locale } from "@/data/homeContent";
@@ -14,9 +19,9 @@ function PosTerminal({ label, modules }: { label: string; modules: PosChip[] }) 
       <div className="p-6">
         <div className="flex items-center justify-between">
           <span className="text-lg font-bold text-brand-indigo">
-            EZ<span className="text-brand-pink">Orders</span>
+            EZ<span className="text-brand-pinkInk">Orders</span>
           </span>
-          <span className="inline-flex items-center gap-2 rounded-pill bg-brand-tint px-3 py-1 text-xs font-medium text-brand-pink">
+          <span className="inline-flex items-center gap-2 rounded-pill bg-brand-tint px-3 py-1 text-xs font-medium text-brand-pinkInk">
             <span className="h-2 w-2 rounded-full bg-brand-pink" />
             {label}
           </span>
@@ -47,11 +52,22 @@ export function PosPage({ locale = "en" }: { locale?: Locale }) {
 
   return (
     <PageLayout locale={locale}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(
+            breadcrumbSchema(locale, {
+              name: locale === "he" ? "מערכת קופה" : "POS system",
+              path: "/pos",
+            }),
+          ),
+        }}
+      />
       {/* HERO */}
       <section className="relative overflow-hidden pb-16 pt-36">
         <div className="mx-auto grid max-w-container items-center gap-10 px-6 md:grid-cols-2">
           <div>
-            <span className="mb-5 inline-block rounded-pill bg-brand-tint px-5 py-2 text-sm font-medium text-brand-pink">
+            <span className="mb-5 inline-block rounded-pill bg-brand-tint px-5 py-2 text-sm font-medium text-brand-pinkInk">
               {t.heroTag}
             </span>
             <h1 className="text-4xl font-bold leading-tight md:text-6xl">
@@ -103,9 +119,18 @@ export function PosPage({ locale = "en" }: { locale?: Locale }) {
         </div>
       </section>
 
+      {/* THE REGISTER SCREEN — Hebrew only; renders nothing for other locales */}
+      <AdminScreens
+        locale={locale}
+        keys={["pos", "report"]}
+        eyebrow="מתוך המערכת"
+        heading="הקופה, כמו שהצוות רואה אותה"
+        lead="פתיחת מגירה, הזמנה חדשה, דוח Z וסגירת יום — הכול ממסך אחד."
+      />
+
       {/* PRICING — refer to the up-to-date pricing calculator */}
       <section className="mx-auto max-w-container px-6 py-20 text-center">
-        <p className="mb-3 inline-block rounded-pill bg-brand-tint px-5 py-1 text-sm font-medium text-brand-pink">
+        <p className="mb-3 inline-block rounded-pill bg-brand-tint px-5 py-1 text-sm font-medium text-brand-pinkInk">
           {locale === "he" ? "מחירון" : "Pricing"}
         </p>
         <h2 className="text-3xl font-bold md:text-4xl">
@@ -116,12 +141,17 @@ export function PosPage({ locale = "en" }: { locale?: Locale }) {
             ? "המחירון המלא והמעודכן, כולל מחשבון אינטראקטיבי לבניית החבילה שלכם, נמצא בעמוד המחירים."
             : "Our full, up-to-date pricing — including an interactive package builder — lives on the pricing page."}
         </p>
-        <div className="mt-8">
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <CTAButton href={locale === "he" ? "/he/price" : "/en/price"}>
             {locale === "he" ? "למחירון המלא" : "See full pricing"}
           </CTAButton>
+          <WhatsAppButton locale={locale} />
         </div>
       </section>
+      {/* This page was the only product page without either of these, which is
+          the wrong one to leave out: "קופה למסעדה" is the term the business
+          most wants to rank for. */}
+      <FaqSection items={GENERAL_FAQ[locale]} locale={locale} />
       <ContactBand locale={locale} />
     </PageLayout>
   );

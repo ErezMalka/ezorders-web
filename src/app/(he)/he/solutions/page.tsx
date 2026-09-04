@@ -1,12 +1,16 @@
 import type { Metadata } from "next";
 import { createElement } from "react";
 import { PageLayout } from "@/components/PageLayout";
+import { FaqSection } from "@/components/sections/FaqSection";
+import { GENERAL_FAQ } from "@/data/faq";
+import { breadcrumbSchema } from "@/lib/seo/breadcrumbs";
 
 export const metadata: Metadata = {
-  title: "פתרונות - ezorders",
+  title: "פתרונות דיגיטליים למסעדות — קופה, קיוסק ותפריט | EZOrders",
   description:
     "הפתרונות של EZOrders למסעדות: אתר הזמנות למסעדה, תפריטים דיגיטליים, עמדות קיוסק ואפליקציית הזמנות — הכל מסונכרן ומתעדכן בזמן אמת.",
   alternates: {
+    canonical: "./",
     languages: {
       en: "/en/solutions",
       he: "/he/solutions",
@@ -50,6 +54,11 @@ const solutions = [
     title: "מסך מטבח דיגיטלי (KDS)",
     href: "/he/kitchen-display",
     text: "כל ההזמנות מכל הערוצים על מסך אחד במטבח, עם טיימרים, סטטוסים ולוח מוכנות ללקוחות — נגמר עידן הבונים המודפסים.",
+  },
+  {
+    title: "חיבור לוולט, תן ביס וסיבוס",
+    href: "/he/integrations",
+    text: "כל אפליקציות המשלוחים ומועדוני העובדים מתחברים לאותה קופה ולאותו מסך מטבח — הזמנה אחת, דוח אחד, בלי להקליד פעמיים.",
   },
   {
     title: "המערכת",
@@ -110,8 +119,42 @@ const content = createElement(
     loading: "lazy",
   }
     ),
-  cards
+  cards,
+  // The cards say what each product does; this says why they are one purchase
+  // and not eight. It is the page's actual argument, and it was missing — the
+  // page was 191 words of link text with nothing tying it together.
+  createElement(
+    "h2",
+    { style: { fontSize: "1.9rem", fontWeight: 700, marginTop: "3rem", marginBottom: "0.75rem" } },
+    "למה מערכת אחת ולא כמה כלים נפרדים"
+    ),
+  createElement(
+    "p",
+    { style: { color: "#555", lineHeight: 1.8, marginBottom: "1.25rem" } },
+    "רוב המסעדות מגיעות אלינו אחרי שהרכיבו פתרון מכמה ספקים — אתר מאחד, תפריט דיגיטלי משני, קופה משלישי. זה עובד עד הרגע שבו משנים מחיר: צריך לזכור לעדכן אותו בכל מקום בנפרד, ומספיק ששוכחים באחד כדי שלקוח יראה מחיר אחד ויחויב באחר."
+    ),
+  createElement(
+    "p",
+    { style: { color: "#555", lineHeight: 1.8, marginBottom: "1.25rem" } },
+    "כל הכלים כאן יושבים על אותו מסד נתונים. פריט שסומן כאזל מהמלאי נעלם באותו רגע מהאתר, מהקיוסק, מהתפריט בשולחן ומהאפליקציה. הזמנה שנפתחה בכל אחד מהערוצים מגיעה לאותו מסך במטבח ולאותו דוח בסוף היום."
+    ),
+  createElement(
+    "p",
+    { style: { color: "#555", lineHeight: 1.8, marginBottom: "1.25rem" } },
+    "אין חובה להתחיל מהכל. רוב הלקוחות מתחילים ברכיב אחד שכואב להם עכשיו — לרוב הקופה או עמדת הקיוסק — ומוסיפים ערוצים כשהם מוכנים. מה שכבר הוגדר פעם אחת ממשיך לעבוד, בלי להזין את התפריט מחדש."
+    )
   );
 
-return createElement(PageLayout, { locale: "he" }, content);
+return createElement(
+  PageLayout,
+  { locale: "he" },
+  createElement("script", {
+    type: "application/ld+json",
+    dangerouslySetInnerHTML: {
+      __html: JSON.stringify(breadcrumbSchema("he", { name: "פתרונות", path: "/solutions" })),
+    },
+  }),
+  content,
+  createElement(FaqSection, { items: GENERAL_FAQ.he, locale: "he" })
+  );
 }

@@ -6,6 +6,11 @@ import type { Metadata } from "next";
 const SITE_DESCRIPTION =
   "EZorders turns offline to online — POS, digital menus, online ordering, kiosk stands, loyalty and multi-branch management for modern restaurants.";
 
+// Meta Business "facebook-domain-verification" code, added to every page's <head>
+// to prove domain ownership in Business Manager (needed for Aggregated Event
+// Measurement). Set NEXT_PUBLIC_FB_DOMAIN_VERIFICATION to enable; safe no-op when unset.
+const FB_DOMAIN_VERIFICATION = process.env.NEXT_PUBLIC_FB_DOMAIN_VERIFICATION;
+
 export const baseMetadata: Metadata = {
   title: {
     default: "ezorders",
@@ -40,14 +45,82 @@ export const baseMetadata: Metadata = {
     title: "EZOrders — restaurant ordering & management system",
     description: SITE_DESCRIPTION,
   },
+  ...(FB_DOMAIN_VERIFICATION
+    ? { verification: { other: { "facebook-domain-verification": FB_DOMAIN_VERIFICATION } } }
+    : {}),
 };
 
+/**
+ * Who EZOrders is, in the form a search engine and an AI assistant can verify.
+ *
+ * `sameAs` is the important field and the one still empty. It is how a search
+ * engine ties this domain to the same company mentioned elsewhere — the profile
+ * URLs are the evidence that an entity exists behind the site. Until it has
+ * real URLs in it, EZOrders is a domain rather than a known organisation.
+ *
+ * Add profiles here as they come; an empty array is honest, a fabricated one is
+ * not, and pointing at a page that does not exist is worse than pointing at
+ * nothing.
+ */
 export const organizationSchema = {
   "@context": "https://schema.org",
   "@type": "Organization",
+  "@id": "https://ezorders.com/#organization",
   name: "EZOrders",
+  legalName: "EZOrders",
   url: "https://ezorders.com",
+  logo: {
+    "@type": "ImageObject",
+    url: "https://ezorders.com/images/logo.png",
+  },
+  image: "https://ezorders.com/images/logo.png",
   description: SITE_DESCRIPTION,
   telephone: "*4958",
-  sameAs: [] as string[],
+  /**
+   * Both numbers are real and they are not interchangeable: *4958 is the line
+   * the site advertises, and the mobile is the one that also takes WhatsApp,
+   * which is how a large share of Israeli business contact actually happens.
+   *
+   * Listing both here rather than forcing one of them to match the Facebook
+   * page keeps the entity consistent without throwing away a channel. Hours
+   * come from the published support answer in src/data/faq.ts, so the two
+   * cannot drift into contradicting each other unnoticed.
+   */
+  contactPoint: [
+    {
+      "@type": "ContactPoint",
+      contactType: "customer service",
+      telephone: "*4958",
+      email: "contact@ezorders.com",
+      availableLanguage: ["he", "en"],
+      areaServed: "IL",
+      hoursAvailable: {
+        "@type": "OpeningHoursSpecification",
+        dayOfWeek: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"],
+        opens: "10:00",
+        closes: "18:00",
+      },
+    },
+    {
+      "@type": "ContactPoint",
+      contactType: "sales",
+      telephone: "+972-50-838-4505",
+      availableLanguage: ["he", "en"],
+      areaServed: "IL",
+    },
+  ],
+  email: "contact@ezorders.com",
+  address: {
+    "@type": "PostalAddress",
+    streetAddress: "פל ים 2",
+    addressLocality: "חיפה",
+    addressCountry: "IL",
+  },
+  areaServed: { "@type": "Country", name: "Israel" },
+  knowsLanguage: ["he", "en"],
+  // Checked while logged OUT before being added here. A logged-in check proves
+  // nothing: an unpublished page still renders for its own admin. The page also
+  // states the same street address and email as the fields above, which is the
+  // consistency the entity match depends on.
+  sameAs: ["https://www.facebook.com/profile.php?id=61591771392713"],
 };

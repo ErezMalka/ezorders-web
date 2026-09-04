@@ -1,9 +1,19 @@
 import type { Metadata } from "next";
 import { PageLayout } from "@/components/PageLayout";
 import { ContactForm } from "@/components/ContactForm";
+import { WhatsAppButton } from "@/components/WhatsAppButton";
 
 export const metadata: Metadata = {
-  title: "Contact - ezorders",
+  alternates: {
+    canonical: "./",
+    languages: {
+      en: "/en/contact",
+      he: "/he/contact",
+      // "/" serves Hebrew (middleware.ts), so that is the fallback.
+      "x-default": "/he/contact",
+    },
+  },
+  title: "Contact — Book a Demo of the Restaurant System | EZOrders",
   description:
     "Our experts can answer your questions. Contact EZOrders today and let’s start building your success together.",
 };
@@ -13,8 +23,12 @@ export default function ContactPage() {
     <PageLayout>
       <section className="pb-20 pt-36">
         <div className="mx-auto grid max-w-container items-center gap-12 px-6 md:grid-cols-2">
-          <div>
-            <span className="mb-6 inline-block rounded-pill bg-brand-tint px-6 py-2 text-sm font-medium text-brand-pink">
+          {/* "contact@ezorders.com" is one unbreakable token, and a grid item's
+              default min-width:auto sizes the column to it — 283px inside a
+              257px column at 320px. `anywhere` lets it break, which also
+              lowers the column's min-content width. */}
+          <div className="min-w-0 [overflow-wrap:anywhere]">
+            <span className="mb-6 inline-block rounded-pill bg-brand-tint px-6 py-2 text-sm font-medium text-brand-pinkInk">
               Contact
             </span>
             <h1 className="text-4xl font-bold leading-tight md:text-5xl">
@@ -30,7 +44,7 @@ export default function ContactPage() {
               Already a customer?{" "}
               <a
                 href="mailto:contact@ezorders.com"
-                className="font-normal text-brand-pink underline"
+                className="font-normal text-brand-pinkInk underline"
               >
                 contact@ezorders.com
               </a>
@@ -39,8 +53,13 @@ export default function ContactPage() {
               Want to see EZOrders in action? Fill out the form and we\u2019ll
               get back to you shortly to schedule a live demo.
             </p>
+            {/* Offered beside the form, not instead of it — this was the one
+                contact channel the site never had. */}
+            <div className="mt-7">
+              <WhatsAppButton locale="en" />
+            </div>
           </div>
-          <div className="rounded-card bg-brand-indigo p-8 md:p-12">
+          <div className="min-w-0 rounded-card bg-brand-indigo p-5 sm:p-8 md:p-12">
             <ContactForm />
           </div>
         </div>

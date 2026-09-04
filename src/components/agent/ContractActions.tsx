@@ -115,7 +115,7 @@ export function ContractActions({
                 }
                 void act("send");
               }}
-              className="rounded-pill bg-brand-pink px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-pinkDark disabled:opacity-40"
+              className="rounded-pill bg-brand-pinkStrong px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-pinkInk disabled:opacity-40"
             >
               {busy
                 ? "שולח…"

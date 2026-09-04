@@ -56,7 +56,7 @@ export function ArticlePage({ locale, slug }: { locale: Locale; slug: string }) 
                   hrefLang={otherLocale}
                   lang={otherLocale}
                   dir={localeDirection[otherLocale]}
-                  className="rounded-pill border border-black/10 px-4 py-1.5 text-sm font-medium text-brand-indigo transition hover:border-brand-pink hover:text-brand-pink"
+                  className="rounded-pill border border-black/10 px-4 py-1.5 text-sm font-medium text-brand-indigo transition hover:border-brand-pink hover:text-brand-pinkInk"
                 >
                   {t.readInOther}
                 </Link>
@@ -70,7 +70,7 @@ export function ArticlePage({ locale, slug }: { locale: Locale; slug: string }) 
             )}
 
             <div className="mb-5 flex flex-wrap items-center gap-2 text-xs text-brand-muted">
-              <span className="rounded-pill bg-brand-tint px-3 py-1 font-medium text-brand-pink">
+              <span className="rounded-pill bg-brand-tint px-3 py-1 font-medium text-brand-pinkInk">
                 {article.category}
               </span>
               {article.draft && (
@@ -142,7 +142,7 @@ export function ArticlePage({ locale, slug }: { locale: Locale; slug: string }) 
                       href={s.url}
                       target="_blank"
                       rel="noopener noreferrer nofollow"
-                      className="text-brand-indigo underline-offset-2 transition hover:text-brand-pink hover:underline"
+                      className="text-brand-indigo underline-offset-2 transition hover:text-brand-pinkInk hover:underline"
                     >
                       {s.title}
                     </a>
@@ -155,7 +155,7 @@ export function ArticlePage({ locale, slug }: { locale: Locale; slug: string }) 
           <div className="mt-12">
             <Link
               href={`/${locale}/blog`}
-              className="inline-flex items-center gap-1 text-sm font-semibold text-brand-indigo transition hover:text-brand-pink"
+              className="inline-flex min-h-11 items-center gap-1 text-sm font-semibold text-brand-indigo transition hover:text-brand-pinkInk"
             >
               <span aria-hidden="true">{dir === "rtl" ? "→" : "←"}</span>
               {t.backToBlog}
@@ -164,7 +164,9 @@ export function ArticlePage({ locale, slug }: { locale: Locale; slug: string }) 
         </div>
       </article>
 
-      <ContactBand />
+      {/* ContactBand defaults to English. Without this every Hebrew article
+          closed with "Let's Talk" and an English form, under an RTL page. */}
+      <ContactBand locale={locale} />
     </PageLayout>
   );
 }

@@ -1,7 +1,11 @@
 import { PageLayout } from "@/components/PageLayout";
 import { CTAButton } from "@/components/CTAButton";
+import { AdminPreview } from "@/components/sections/AdminPreview";
+import { AdminScreens } from "@/components/sections/AdminScreens";
 import { Capabilities } from "@/components/sections/Capabilities";
 import { ContactBand } from "@/components/sections/ContactBand";
+import { FaqSection } from "@/components/sections/FaqSection";
+import { GENERAL_FAQ } from "@/data/faq";
 import { ModuleIcon } from "@/components/Icons";
 import { SIGNUP_URL } from "@/data/content";
 import {
@@ -15,7 +19,7 @@ function FeatureList({ features }: { features: PlatformFeature[] }) {
     <ul className="mt-8 space-y-6">
       {features.map((f) => (
         <li key={f.title} className="flex gap-4">
-          <span className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-tint text-brand-pink">
+          <span className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-tint text-brand-pinkInk">
             <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M5 12l5 5L19 7" />
             </svg>
@@ -45,8 +49,8 @@ function DashboardMock({
       <div className="h-1.5 w-full bg-brand-pink" />
       <div className="p-6">
         <div className="flex items-center justify-between">
-          <span className="text-lg font-bold text-brand-indigo">EZ<span className="text-brand-pink">Orders</span></span>
-          <span className="rounded-pill bg-brand-tint px-3 py-1 text-xs font-medium text-brand-pink">
+          <span className="text-lg font-bold text-brand-indigo">EZ<span className="text-brand-pinkInk">Orders</span></span>
+          <span className="rounded-pill bg-brand-tint px-3 py-1 text-xs font-medium text-brand-pinkInk">
             {label}
           </span>
         </div>
@@ -57,7 +61,7 @@ function DashboardMock({
               <p className="text-2xl font-bold text-brand-dark">{s.value}</p>
               <p className="mt-1 text-xs text-brand-muted">{s.label}</p>
               {s.delta && (
-                <span className="mt-2 inline-block rounded-pill bg-brand-tint px-2 py-0.5 text-[11px] font-semibold text-brand-pink">
+                <span className="mt-2 inline-block rounded-pill bg-brand-tint px-2 py-0.5 text-xs font-semibold text-brand-pinkInk">
                   {s.delta}
                 </span>
               )}
@@ -94,8 +98,8 @@ function ReportsMock({
       <div className="h-1.5 w-full bg-brand-pink" />
       <div className="p-6">
         <div className="flex items-center justify-between">
-          <span className="text-lg font-bold text-brand-indigo">EZ<span className="text-brand-pink">Orders</span></span>
-          <span className="rounded-pill bg-brand-tint px-3 py-1 text-xs font-medium text-brand-pink">
+          <span className="text-lg font-bold text-brand-indigo">EZ<span className="text-brand-pinkInk">Orders</span></span>
+          <span className="rounded-pill bg-brand-tint px-3 py-1 text-xs font-medium text-brand-pinkInk">
             {label}
           </span>
         </div>
@@ -162,7 +166,7 @@ export function PlatformPage({ locale = "en" }: { locale?: Locale }) {
       <section className="relative overflow-hidden pb-16 pt-36">
         <div className="mx-auto grid max-w-container items-center gap-12 px-6 md:grid-cols-2">
           <div>
-            <span className="mb-5 inline-block rounded-pill bg-brand-tint px-5 py-2 text-sm font-medium text-brand-pink">
+            <span className="mb-5 inline-block rounded-pill bg-brand-tint px-5 py-2 text-sm font-medium text-brand-pinkInk">
               {t.heroTag}
             </span>
             <h1 className="text-4xl font-bold leading-tight md:text-6xl">
@@ -187,6 +191,18 @@ export function PlatformPage({ locale = "en" }: { locale?: Locale }) {
       {/* CAPABILITIES GRID */}
       <Capabilities locale={locale} variant="platform" />
 
+      {/* THE PANEL ITSELF. Hebrew gets the real captures; the panel's own UI is
+          Hebrew, so on other locales AdminScreens renders nothing and the
+          rebuilt-in-markup AdminPreview stands in, because it translates. */}
+      <AdminScreens
+        locale={locale}
+        keys={["branch", "orders", "report", "home"]}
+        eyebrow="מתוך המערכת"
+        heading="ככה זה נראה מהצד שלך"
+        lead="דשבורד הסניף, רשימת ההזמנות והדוחות — הכול מהטלפון, בלי להתקין כלום."
+      />
+      {locale === "he" ? null : <AdminPreview locale={locale} />}
+
       {/* POS */}
       <section className="bg-brand-grey py-20">
         <div className="mx-auto grid max-w-container items-center gap-12 px-6 md:grid-cols-2">
@@ -194,7 +210,7 @@ export function PlatformPage({ locale = "en" }: { locale?: Locale }) {
             <ModuleChips items={t.posModules} />
           </div>
           <div className="order-1 md:order-2">
-            <span className="mb-4 inline-block rounded-pill bg-white px-5 py-2 text-sm font-medium text-brand-pink">
+            <span className="mb-4 inline-block rounded-pill bg-white px-5 py-2 text-sm font-medium text-brand-pinkInk">
               {t.posTag}
             </span>
             <h2 className="text-3xl font-bold md:text-4xl">{t.posTitle}</h2>
@@ -208,7 +224,7 @@ export function PlatformPage({ locale = "en" }: { locale?: Locale }) {
       <section className="mx-auto max-w-container px-6 py-20">
         <div className="grid items-center gap-12 md:grid-cols-2">
           <div>
-            <span className="mb-4 inline-block rounded-pill bg-brand-tint px-5 py-2 text-sm font-medium text-brand-pink">
+            <span className="mb-4 inline-block rounded-pill bg-brand-tint px-5 py-2 text-sm font-medium text-brand-pinkInk">
               {t.branchesTag}
             </span>
             <h2 className="text-3xl font-bold md:text-4xl">{t.branchesTitle}</h2>
@@ -244,7 +260,7 @@ export function PlatformPage({ locale = "en" }: { locale?: Locale }) {
             <ReportsMock label={t.analyticsTag} title={t.reportsMock.title} rows={t.reportsMock.rows} />
           </div>
           <div className="order-1 md:order-2">
-            <span className="mb-4 inline-block rounded-pill bg-white px-5 py-2 text-sm font-medium text-brand-pink">
+            <span className="mb-4 inline-block rounded-pill bg-white px-5 py-2 text-sm font-medium text-brand-pinkInk">
               {t.analyticsTag}
             </span>
             <h2 className="text-3xl font-bold md:text-4xl">{t.analyticsTitle}</h2>
@@ -258,7 +274,7 @@ export function PlatformPage({ locale = "en" }: { locale?: Locale }) {
       <section className="mx-auto max-w-container px-6 py-20">
         <div className="grid items-center gap-12 md:grid-cols-2">
           <div>
-            <span className="mb-4 inline-block rounded-pill bg-brand-tint px-5 py-2 text-sm font-medium text-brand-pink">
+            <span className="mb-4 inline-block rounded-pill bg-brand-tint px-5 py-2 text-sm font-medium text-brand-pinkInk">
               {t.loyaltyTag}
             </span>
             <h2 className="text-3xl font-bold md:text-4xl">{t.loyaltyTitle}</h2>
@@ -282,6 +298,8 @@ export function PlatformPage({ locale = "en" }: { locale?: Locale }) {
           </div>
         </div>
       </section>
+
+      <FaqSection items={GENERAL_FAQ[locale]} locale={locale} />
 
       <ContactBand locale={locale} />
     </PageLayout>

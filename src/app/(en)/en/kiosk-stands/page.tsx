@@ -3,11 +3,20 @@ import { ProductPageLayout } from "@/components/ProductPageLayout";
 import { kioskStandsContent } from "@/data/products/kiosk-stands";
 
 export const metadata: Metadata = {
-  title: "Kiosk stands - ezorders",
+  alternates: {
+    canonical: "./",
+    languages: {
+      en: "/en/kiosk-stands",
+      he: "/he/kiosk-stands",
+      // "/" serves Hebrew (middleware.ts), so that is the fallback.
+      "x-default": "/he/kiosk-stands",
+    },
+  },
+  title: "Self-Order Kiosks for Restaurants — Cut Queues | EZOrders",
   description:
     "A modern self-service restaurant kiosk that turns rush-hour bottlenecks into fast, accurate, high-conversion orders.",
 };
 
 export default function KioskStandsPage() {
-  return <ProductPageLayout content={kioskStandsContent.en} />;
+  return <ProductPageLayout content={kioskStandsContent.en}  path="/kiosk-stands" />;
 }

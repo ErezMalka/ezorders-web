@@ -7,9 +7,9 @@ name: Content PR scope
 # bug in the publisher or an unreviewed change riding along inside a PR a human
 # will skim as "just an article" — both are exactly what this gate exists to stop.
 #
-# Scope: PRs whose head branch starts with `content/` or `feature/article-`.
-# Human PRs that legitimately change the article SYSTEM are not affected, because
-# this job only fails when the PR is labelled or branched as content-only.
+# Scope: PRs whose head branch starts with `content/` — see the `if:` below.
+# Human PRs that legitimately change the article SYSTEM are not affected, including
+# `feature/article-*` branches, because only `content/` branches are gated.
 
 permissions:
   contents: read

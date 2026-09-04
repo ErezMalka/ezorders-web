@@ -2,7 +2,9 @@ import { PageLayout } from "./PageLayout";
 import { CTAButton } from "./CTAButton";
 import { FeatureCard } from "./FeatureCard";
 import { PricingTable } from "./sections/PricingTable";
-import { FAQ } from "./sections/FAQ";
+import { FaqSection } from "./sections/FaqSection";
+import { GENERAL_FAQ } from "@/data/faq";
+import { breadcrumbSchema } from "@/lib/seo/breadcrumbs";
 import { ContactBand } from "./sections/ContactBand";
 import { getHomeContent, type Locale } from "@/data/homeContent";
 import { ModuleIcon, type IconName } from "@/components/Icons";
@@ -24,9 +26,12 @@ export type ProductContent = {
 export function ProductPageLayout({
   content,
   locale = "en",
+  path,
 }: {
   content: ProductContent;
   locale?: Locale;
+  /** Locale-agnostic route, e.g. "/kiosk-stands". Omit to skip breadcrumbs. */
+  path?: string;
 }) {
   const home = getHomeContent(locale);
   const solutionsHref = locale === "he" ? "/he/solutions" : "/solutions";
@@ -35,11 +40,23 @@ export function ProductPageLayout({
 
   return (
     <PageLayout locale={locale}>
+      {/* Home > Solutions > this page. The article system has emitted this
+          since it was built; the marketing pages never did. */}
+      {path && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(
+              breadcrumbSchema(locale, { name: content.tag, path }),
+            ),
+          }}
+        />
+      )}
       {/* HERO */}
       <section className="relative overflow-hidden pb-16 pt-36">
         <div className="mx-auto grid max-w-container items-center gap-10 px-6 md:grid-cols-2">
           <div>
-            <span className="mb-5 inline-block rounded-pill bg-brand-tint px-5 py-2 text-sm font-medium text-brand-pink">
+            <span className="mb-5 inline-block rounded-pill bg-brand-tint px-5 py-2 text-sm font-medium text-brand-pinkInk">
               {content.tag}
             </span>
             <h1 className="text-5xl font-bold leading-tight md:text-6xl">
@@ -113,8 +130,18 @@ export function ProductPageLayout({
       {/* PRICING */}
       <PricingTable locale={locale} />
 
-      {/* FAQ */}
-      {content.faq.length > 0 && <FAQ items={content.faq} />}
+      {/* FAQ. Only questions that have an answer: the shipped list carried four
+          keyword-shaped ones ("What is digital ordering?") with nothing behind
+          them, which rendered accordions that opened onto blank space and made
+          FAQPage schema impossible. The general questions fill the gap with
+          answers a customer actually asked for. */}
+      <FaqSection
+        locale={locale}
+        items={[
+          ...content.faq.filter((f): f is { q: string; a: string } => Boolean(f.a)),
+          ...GENERAL_FAQ[locale],
+        ]}
+      />
 
       {/* CONTACT */}
       <ContactBand locale={locale} />

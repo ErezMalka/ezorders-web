@@ -43,7 +43,7 @@ export function CreateContractButton({ quoteId }: { quoteId: string }) {
         type="button"
         disabled={busy}
         onClick={create}
-        className="rounded-pill border border-brand-pink px-5 py-2.5 text-sm font-semibold text-brand-pink transition-colors hover:bg-brand-tint disabled:opacity-40"
+        className="rounded-pill border border-brand-pink px-5 py-2.5 text-sm font-semibold text-brand-pinkInk transition-colors hover:bg-brand-tint disabled:opacity-40"
       >
         {busy ? "מפיק…" : "הפקת הסכם"}
       </button>

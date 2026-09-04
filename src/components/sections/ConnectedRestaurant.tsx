@@ -124,7 +124,7 @@ return (
   <section dir="rtl" className="relative w-full bg-white py-20 md:py-28 font-sans">
   <div className="mx-auto max-w-container px-5">
   <div className="text-center mb-10 md:mb-14">
-  <p className="text-brand-pink font-semibold tracking-wide mb-3">פלטפורמה אחת לכל המסעדה</p>
+  <p className="text-brand-pinkInk font-semibold tracking-wide mb-3">פלטפורמה אחת לכל המסעדה</p>
   <h2 className="text-brand-dark font-extrabold leading-tight text-4xl md:text-6xl mb-4">המסעדה שלך. מחוברת.</h2>
   <p className="text-brand-muted text-lg md:text-2xl max-w-2xl mx-auto">תראה איך כל חלק במסעדה עובד יחד – ממקום אחד.</p>
   </div>

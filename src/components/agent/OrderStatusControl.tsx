@@ -76,7 +76,7 @@ export function OrderStatusControl({
           type="button"
           disabled={busy}
           onClick={() => patch({ status: current.next }, `הסטטוס עודכן ל״${ORDER_STATUS[current.next!].label}״`)}
-          className="w-full rounded-pill bg-brand-pink px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-pinkDark disabled:opacity-40"
+          className="w-full rounded-pill bg-brand-pinkStrong px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-pinkInk disabled:opacity-40"
         >
           {busy ? "מעדכן…" : current.nextLabel}
         </button>
