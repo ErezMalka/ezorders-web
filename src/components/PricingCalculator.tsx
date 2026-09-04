@@ -26,7 +26,8 @@ const STRINGS = {
   he: {
     badge: "מחירון",
     title: "בנו את החבילה שלכם",
-    lead: "סמנו את המוצרים שמתאימים למסעדה שלכם וראו את המחיר בזמן אמת — ככל שמוסיפים יותר, ההנחה החודשית גדלה, עד 40%.",
+    lead: "סמנו את המוצרים שמתאימים למסעדה שלכם וראו את המחיר בזמן אמת. ככל שמוסיפים יותר, ההנחה החודשית גדלה —",
+    leadHighlight: "עד 40% הנחה",
     perBranch: "החישוב מתייחס לסניף בודד — ברשת עם מספר סניפים, כל סניף מחויב ומחושב בנפרד.",
     baseSetup: "הקמת מערכת ראשונית",
     baseSetupSub: "חד פעמי — נכלל תמיד בכל חבילה",
@@ -89,7 +90,8 @@ const STRINGS = {
   en: {
     badge: "Pricing",
     title: "Build your package",
-    lead: "Tick the products that fit your restaurant and watch the price update live — the more you add, the bigger the monthly discount, up to 40%.",
+    lead: "Tick the products that fit your restaurant and watch the price update live. The more you add, the bigger the monthly discount —",
+    leadHighlight: "up to 40% off",
     perBranch: "Prices are per location — a chain is billed and calculated separately for each branch.",
     baseSetup: "Initial system setup",
     baseSetupSub: "One-time — always included in every package",
@@ -570,7 +572,12 @@ export function PricingCalculator({
           {t.badge}
         </span>
         <h1 className="text-4xl font-bold leading-tight text-brand-dark md:text-5xl">{t.title}</h1>
-        <p className="mx-auto mt-4 max-w-2xl text-lg text-brand-muted">{t.lead}</p>
+        <p className="mx-auto mt-4 max-w-2xl text-lg text-brand-muted">
+          {t.lead}{" "}
+          <strong className="inline-block whitespace-nowrap rounded-pill bg-brand-pinkStrong px-4 py-1 text-xl font-bold text-white align-middle">
+            {t.leadHighlight}
+          </strong>
+        </p>
         <p className="mx-auto mt-3 max-w-2xl rounded-xl bg-brand-tint px-4 py-2 text-sm font-medium text-brand-pinkInk">
           {t.perBranch}
         </p>
