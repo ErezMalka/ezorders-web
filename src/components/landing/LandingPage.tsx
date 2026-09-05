@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import { LandingLeadForm } from "@/components/landing/LandingLeadForm";
+import { CookieBanner, CookieSettingsLink } from "@/components/CookieBanner";
 import type { LandingContent } from "@/data/landingPages";
 
 // Shell for the paid-traffic landing pages. Deliberately NOT PageLayout: a
@@ -190,7 +191,9 @@ export function LandingPage({ content }: { content: LandingContent }) {
           © {new Date().getFullYear()} EZOrders ·{" "}
           <Link href="/he/privacy" className="underline">
             מדיניות פרטיות
-          </Link>
+          </Link>{" "}
+          ·{" "}
+          <CookieSettingsLink locale="he" className="underline" />
         </p>
       </footer>
 
@@ -211,6 +214,12 @@ export function LandingPage({ content }: { content: LandingContent }) {
           </a>
         </div>
       </div>
+
+      {/* Consent banner. The shared PageLayout renders it for the rest of the
+          site; this shell skips PageLayout, and without the banner nothing
+          asks the visitor — so GTM and the Meta Pixel never load here and ad
+          conversions go unmeasured on exactly the pages bought with ad money. */}
+      <CookieBanner locale="he" />
     </div>
   );
 }
