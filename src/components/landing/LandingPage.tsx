@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import { LandingLeadForm } from "@/components/landing/LandingLeadForm";
+import { CookieBanner, CookieSettingsLink } from "@/components/CookieBanner";
 import { Reveal } from "@/components/landing/Reveal";
 import { ModuleIcon } from "@/components/Icons";
 import type { LandingContent } from "@/data/landingPages";
