@@ -7,6 +7,12 @@ import {
   sendContract,
   setContractNotes,
 } from "@/lib/agent/contracts";
+import {
+  PaymentError,
+  issuePaymentLink,
+  listContractPayments,
+  refreshPaymentStatus,
+} from "@/lib/agent/payments";
 import { sendPriceAlert } from "@/lib/agent/price-alert-email";
 import { loadAgentCatalogue } from "@/lib/agent/products";
 import { getQuote } from "@/lib/agent/quotes";
@@ -109,9 +115,40 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       await setContractNotes(id, notes, itemNotes);
       return NextResponse.json({ ok: true });
     }
+    // ── the card payment ────────────────────────────────────────────────
+    // getContract() runs as the agent, so a contract that is not theirs comes
+    // back null here and the service-role work below never starts.
+    if (action === "payment_link" || action === "payment_check") {
+      const contract = await getContract(id);
+      if (!contract) return NextResponse.json({ error: "ההסכם לא נמצא" }, { status: 404 });
+
+      if (action === "payment_link") {
+        const payload = body as { amount?: unknown; maxInstallments?: unknown };
+        const amount = Number(payload.amount);
+        if (!Number.isFinite(amount) || amount <= 0) {
+          return NextResponse.json({ error: "הסכום חייב להיות מספר גדול מאפס" }, { status: 400 });
+        }
+        const origin = (process.env.NEXT_PUBLIC_SITE_URL ?? new URL(request.url).origin).replace(/\/$/, "");
+        const payment = await issuePaymentLink(id, {
+          amount,
+          maxInstallments: Number(payload.maxInstallments) || 1,
+          createdBy: session.id,
+          origin,
+          ip: request.headers.get("x-forwarded-for")?.split(",")[0]?.trim().slice(0, 64) ?? null,
+          userAgent: request.headers.get("user-agent")?.slice(0, 400) ?? null,
+        });
+        return NextResponse.json({ ok: true, payment });
+      }
+
+      const current = (await listContractPayments(id)).find((p) => p.status !== "cancelled");
+      if (!current) return NextResponse.json({ error: "עדיין לא הונפק קישור תשלום" }, { status: 400 });
+      const payment = await refreshPaymentStatus(current.id);
+      return NextResponse.json({ ok: true, payment });
+    }
+
     return NextResponse.json({ error: "פעולה לא מוכרת" }, { status: 400 });
   } catch (error) {
-    if (error instanceof ContractError) {
+    if (error instanceof ContractError || error instanceof PaymentError) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
     console.error("[agent/contracts] update failed", error);

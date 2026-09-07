@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 
 import { AgentShell } from "@/components/agent/AgentShell";
 import { ContractEditor } from "@/components/agent/ContractEditor";
+import { ContractPayment } from "@/components/agent/ContractPayment";
 import {
   CONTRACT_STATUS_LABEL,
   getContract,
@@ -11,6 +12,8 @@ import {
   getContractLines,
   getQuoteNotes,
 } from "@/lib/agent/contracts";
+import { defaultPaymentAmount, listContractPayments, paymentsEnabled } from "@/lib/agent/payments";
+import { getQuote } from "@/lib/agent/quotes";
 import { requireAgentSession } from "@/lib/agent/session";
 
 export const dynamic = "force-dynamic";
@@ -33,6 +36,8 @@ const EVENT_LABEL: Record<string, string> = {
   signed: "נחתם",
   signature_cleared: "חתימה נמחקה",
   cancelled: "בוטל",
+  payment_link: "הונפק קישור תשלום",
+  paid: "שולם",
 };
 
 export default async function AgentContractPage({
@@ -46,10 +51,12 @@ export default async function AgentContractPage({
   const contract = await getContract(id);
   if (!contract) notFound();
 
-  const [events, lines, quoteNotes] = await Promise.all([
+  const [events, lines, quoteNotes, payments, quote] = await Promise.all([
     getContractEvents(id),
     getContractLines(contract.quote_id),
     getQuoteNotes(contract.quote_id),
+    listContractPayments(id),
+    getQuote(contract.quote_id),
   ]);
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://ezorders.com";
 
@@ -88,6 +95,16 @@ export default async function AgentContractPage({
             />
           </dl>
         </section>
+
+        <ContractPayment
+          contractId={contract.id}
+          contractStatus={contract.status}
+          token={contract.public_token}
+          siteUrl={siteUrl}
+          enabled={paymentsEnabled()}
+          defaultAmount={quote ? defaultPaymentAmount(quote) : 0}
+          payments={payments}
+        />
 
         {contract.status === "signed" ? (
           <section className="rounded-card border border-emerald-200 bg-emerald-50/40 p-5">

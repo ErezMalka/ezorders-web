@@ -49,6 +49,8 @@ export interface ContractCopy {
   documentHtml: string;
   /** Where the contract lives, for the link. */
   url: string;
+  /** The card payment for the one-time part, when a link exists and is still open. */
+  payment?: { url: string; amount: number } | null;
 }
 
 const STAMP = new Intl.DateTimeFormat("he-IL", {
@@ -114,7 +116,23 @@ function body(copy: ContractCopy, forCompany: boolean): string {
     </table>
     <p style="margin:0 0 20px;font-size:12px;color:#5F6575">המחירים אינם כוללים מע״מ.</p>
 
-    <a href="${escapeHtml(copy.url)}" style="display:inline-block;background:#F05D86;color:#fff;text-decoration:none;padding:12px 26px;border-radius:50px;font-weight:600">
+    ${
+      copy.payment && !forCompany
+        ? `<div style="margin:0 0 22px;padding:16px 18px;border-radius:12px;background:#fff7fa;border:1px solid #fbd0dd">
+      <p style="margin:0 0 6px;font-weight:700">תשלום חד־פעמי — ציוד והקמה: ${fmt(copy.payment.amount)} כולל מע״מ</p>
+      <p style="margin:0 0 14px;font-size:13px;color:#5F6575">
+        אפשר לשלם עכשיו בכרטיס אשראי, בדף מאובטח של GROW (משולם). התשלום החודשי נגבה בנפרד עם עליית המערכת לאוויר.
+      </p>
+      <a href="${escapeHtml(copy.payment.url)}" style="display:inline-block;background:#F05D86;color:#fff;text-decoration:none;padding:12px 26px;border-radius:50px;font-weight:700">
+        לתשלום מאובטח
+      </a>
+    </div>`
+        : copy.payment && forCompany
+          ? `<p style="margin:0 0 18px;font-size:13px;color:#5F6575">קישור תשלום ל-GROW הונפק ללקוח על סך ${fmt(copy.payment.amount)} כולל מע״מ: <a href="${escapeHtml(copy.payment.url)}" dir="ltr">${escapeHtml(copy.payment.url)}</a></p>`
+          : ""
+    }
+
+    <a href="${escapeHtml(copy.url)}" style="display:inline-block;background:${copy.payment && !forCompany ? "#191D2A" : "#F05D86"};color:#fff;text-decoration:none;padding:12px 26px;border-radius:50px;font-weight:600">
       צפייה בהסכם החתום
     </a>
 

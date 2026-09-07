@@ -13,6 +13,12 @@ import {
   renderSignedPanel,
 } from "@/lib/agent/contract-sign-html";
 import { sendSignedContractCopy } from "@/lib/agent/contract-email";
+import {
+  issuePaymentLink,
+  paymentSummaryForToken,
+  paymentsEnabled,
+  type PaymentSummary,
+} from "@/lib/agent/payments";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
@@ -99,8 +105,17 @@ export async function GET(request: Request, { params }: { params: Promise<{ toke
   if (contract === "error") return errorResponse();
   if (!contract) return notFoundResponse();
 
-  const errorCode = new URL(request.url).searchParams.get("e");
-  return new Response(renderPage(contract, token, errorCode), { headers: htmlHeaders });
+  const search = new URL(request.url).searchParams;
+  const errorCode = search.get("e");
+
+  // Only a signed contract has anything to pay, and only then is the row read.
+  // `paid` is what GROW's success/cancel URL appends when it hands the customer
+  // back: it decides the wording, never the status — that comes from the row,
+  // which the notification (or the agent's check) is what moves.
+  const payment = contract.status === "signed" ? await paymentSummaryForToken(token, siteOrigin(request)) : null;
+  const returned = search.get("paid") === "1" ? "success" : search.get("paid") === "0" ? "cancelled" : null;
+
+  return new Response(renderPage(contract, token, errorCode, { payment, returned }), { headers: htmlHeaders });
 }
 
 export async function POST(request: Request, { params }: { params: Promise<{ token: string }> }) {
@@ -182,10 +197,44 @@ async function sign(request: Request, token: string): Promise<Response> {
   // Only on the transition. Signing is idempotent, and a customer who refreshes
   // should not send themselves a second copy.
   if (result.code === "signed") {
-    await deferred(mailSignedCopy(request, token));
+    await deferred(afterSigning(request, token));
   }
 
   return redirectBack(request, token, null);
+}
+
+/**
+ * What follows a signature: the payment link, then the copies — in that order,
+ * so the email can carry the link. The link is best-effort like everything
+ * else here; if GROW is down the customer still gets their copy and a link
+ * that says "לתשלום" on the page, which makes the page for them when opened.
+ */
+async function afterSigning(request: Request, token: string): Promise<void> {
+  let payment: PaymentSummary | null = null;
+  if (paymentsEnabled()) {
+    try {
+      const supabase = createSupabaseAdminClient();
+      const { data } = await supabase.from("contracts").select("id").eq("public_token", token).maybeSingle();
+      const contractId = (data as { id: string } | null)?.id;
+      if (contractId) {
+        await issuePaymentLink(contractId, {
+          origin: siteOrigin(request),
+          createdBy: null,
+          ip: clientIp(request),
+          userAgent: request.headers.get("user-agent")?.slice(0, 400) ?? null,
+        });
+        payment = await paymentSummaryForToken(token, siteOrigin(request));
+      }
+    } catch (error) {
+      console.error("[c/token] issuing the payment link failed", error);
+    }
+  }
+  await mailSignedCopy(request, token, payment);
+}
+
+/** Absolute origin for links that leave the site: the configured one, else the request's. */
+function siteOrigin(request: Request): string {
+  return (process.env.NEXT_PUBLIC_SITE_URL ?? new URL(request.url).origin).replace(/\/$/, "");
 }
 
 /**
@@ -214,7 +263,7 @@ async function deferred(work: Promise<void>): Promise<void> {
  * are logged, and signed_email_sent_at stays null so an unsent copy is visible
  * rather than assumed.
  */
-async function mailSignedCopy(request: Request, token: string): Promise<void> {
+async function mailSignedCopy(request: Request, token: string, payment: PaymentSummary | null): Promise<void> {
   try {
     // Re-read without counting a view: this is the signed state, and the
     // document it renders is the one that gets attached.
@@ -237,6 +286,7 @@ async function mailSignedCopy(request: Request, token: string): Promise<void> {
       termMonths: Number(signed.term_months),
       documentHtml: renderDocument(signed, { signed: true }),
       url: new URL(`/c/${token}`, request.url).toString(),
+      payment: payment && payment.status === "pending" ? { url: payment.payUrl, amount: payment.amount } : null,
     });
 
     if (!sent) return;
@@ -409,12 +459,23 @@ function renderDocument(c: PublicContract, opts: { signed: boolean }): string {
   return renderContractDocument(toDocument(c, opts));
 }
 
-function renderPage(c: PublicContract, token: string, errorCode: string | null): string {
+function renderPage(
+  c: PublicContract,
+  token: string,
+  errorCode: string | null,
+  pay: { payment: PaymentSummary | null; returned: "success" | "cancelled" | null } = { payment: null, returned: null }
+): string {
   const signed = c.status === "signed";
   const document = renderDocument(c, { signed });
 
   const panel = signed
-    ? renderSignedPanel(c.contract_number)
+    ? renderSignedPanel(c.contract_number, {
+        // GROW may be switched off, or the link may not have been made yet:
+        // /c/<token>/pay makes one on the way through, so the button can be
+        // shown whenever there is a signed contract and the integration is on.
+        payment: pay.payment ?? (paymentsEnabled() ? { status: "pending", amount: null, payUrl: `/c/${token}/pay` } : null),
+        returned: pay.returned,
+      })
     : c.status === "cancelled"
       ? renderCancelledPanel()
       : renderSignPanel(

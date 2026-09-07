@@ -94,15 +94,75 @@ function pdfButton(hint: string): string {
   <p class="pdfhint">${hint}</p>`;
 }
 
-/** Shown once the contract carries a signature. */
-export function renderSignedPanel(contractNumber: string): string {
+const ILS = new Intl.NumberFormat("he-IL", { style: "currency", currency: "ILS", maximumFractionDigits: 2 });
+
+export interface SignedPanelPayment {
+  status: "pending" | "paid" | "failed" | "cancelled";
+  /** Null when the amount is not known yet — the pay link works it out. */
+  amount: number | null;
+  payUrl: string;
+}
+
+/**
+ * Shown once the contract carries a signature — and, when there is something
+ * to pay, the way to pay it.
+ *
+ * `returned` is the word GROW's redirect brought back with the customer. It
+ * shapes the message ("thank you" / "nothing was charged") but never the
+ * status: a customer who lands on ?paid=1 with a row still pending is told the
+ * confirmation is on its way, because it is the notification that settles it.
+ */
+export function renderSignedPanel(
+  contractNumber: string,
+  pay: { payment: SignedPanelPayment | null; returned: "success" | "cancelled" | null } = { payment: null, returned: null }
+): string {
+  const p = pay.payment;
+  let payment = "";
+
+  if (p?.status === "paid") {
+    payment = `
+  <div class="payblock paid">
+    <h3>התשלום התקבל</h3>
+    <p>${p.amount ? `שולם ${escapeHtml(ILS.format(p.amount))}.` : "התשלום נקלט."} תודה! הקבלה נשלחת מ-GROW לכתובת הדוא״ל שהוזנה בדף התשלום.</p>
+  </div>`;
+  } else if (p && pay.returned === "success") {
+    payment = `
+  <div class="payblock paid">
+    <h3>תודה, התשלום בטיפול</h3>
+    <p>קיבלנו את החזרה מדף התשלום. האישור הסופי מגיע מחברת הסליקה תוך דקות; אם התשלום לא הושלם, הכפתור יופיע כאן שוב.</p>
+  </div>`;
+  } else if (p) {
+    payment = `
+  <div class="payblock">
+    <h3>תשלום חד־פעמי — ציוד והקמה</h3>
+    <p>
+      ${p.amount ? `לתשלום: <strong>${escapeHtml(ILS.format(p.amount))}</strong> כולל מע״מ. ` : ""}
+      התשלום מתבצע בכרטיס אשראי בדף מאובטח של GROW (משולם). התשלום החודשי אינו כלול — הוא נגבה בנפרד עם עליית המערכת לאוויר.
+      ${pay.returned === "cancelled" ? "<br><span class=\"note\">דף התשלום נסגר לפני שהושלם — לא בוצע חיוב.</span>" : ""}
+    </p>
+    <a class="paybtn" href="${escapeHtml(p.payUrl)}">לתשלום מאובטח</a>
+  </div>`;
+  }
+
   return `${PANEL_CSS}
+<style>
+  .payblock { margin-top: 22px; padding: 18px 20px; border-radius: 12px; background: #fff7fa; border: 1px solid #fbd0dd; }
+  .payblock.paid { background: #f0fdf4; border-color: #bbf7d0; }
+  .payblock h3 { margin: 0 0 6px; font-size: 15px; color: #191D2A; }
+  .payblock p { margin: 0 0 14px; }
+  .payblock .note { color: #9a3412; }
+  .paybtn { display: inline-block; padding: 12px 28px; border-radius: 999px; background: #F05D86; color: #fff;
+            font-weight: 700; font-size: 15px; text-decoration: none; }
+  .paybtn:hover { background: #d9436d; }
+  @media print { .payblock { display: none !important; } }
+</style>
 <div class="done" dir="rtl">
   <h2>ההסכם נחתם</h2>
   <p>
     הסכם ${escapeHtml(contractNumber)} נחתם ונשמר. נספח הראיות בתחתית המסמך מתעד מי חתם,
     מתי, ומאיזו כתובת. שמרו את הקישור הזה — הוא ימשיך להציג את ההסכם החתום.
   </p>
+  ${payment}
   ${pdfButton("נפתח חלון ההדפסה של הדפדפן — בחרו ביעד ״שמירה כ-PDF״. הקובץ כולל את החתימה ואת נספח הראיות.")}
 </div>`;
 }
