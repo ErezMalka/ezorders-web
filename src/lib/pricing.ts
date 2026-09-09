@@ -38,9 +38,9 @@ export const PRICING_CONFIG = {
   initialSetup: { id: "initial", label: "הקמת מערכת ראשונית", setup: 1950 },
 
   coreProducts: [
-    { id: "pos", label: "קופה (POS)", note: "המחיר פר קופה", setup: 490, monthly: 350, maxQty: 20, icon: "pos" },
-    { id: "website", label: "אתר אינטרנט", note: "המחיר פר סניף", setup: 490, monthly: 450, maxQty: 1, icon: "globe" },
-    { id: "kiosk", label: "קיוסק", note: "המחיר פר עמדה", setup: 490, monthly: 350, maxQty: 10, icon: "kiosk" },
+    { id: "pos", label: "רשיון תוכנה קופה 1", note: "המחיר פר קופה", setup: 490, monthly: 350, maxQty: 20, icon: "pos" },
+    { id: "website", label: "אתר הזמנות", note: "המחיר פר סניף", setup: 490, monthly: 450, maxQty: 1, icon: "globe" },
+    { id: "kiosk", label: "תוכנה לקיוסק אחד", note: "המחיר פר עמדה", setup: 490, monthly: 350, maxQty: 10, icon: "kiosk" },
   ],
 
   addonsIncluded: [
@@ -53,8 +53,8 @@ export const PRICING_CONFIG = {
     // threshold, which is what "נכלל בהנחות כמו היתר במדרגות" asks for —
     // and it keeps them out of the AggregateOffer on /he/pos, which reads
     // coreProducts alone and would otherwise advertise a ₪150 floor price.
-    { id: "kds", label: "מסך מטבח (KDS)", note: "המחיר פר מסך", setup: 250, monthly: 150, maxQty: 10, icon: "kds" },
-    { id: "cds", label: "מסך לקוח (CDS)", note: "המחיר פר עמדה", setup: 250, monthly: 150, maxQty: 20, icon: "cds" },
+    { id: "kds", label: "תוכנה KDS", note: "המחיר פר מסך", setup: 250, monthly: 150, maxQty: 10, icon: "kds" },
+    { id: "cds", label: "תוכנה מסך סטטוס הזמנה CDS", note: "המחיר פר עמדה", setup: 250, monthly: 150, maxQty: 20, icon: "cds" },
   ],
 
   addonsExcluded: [

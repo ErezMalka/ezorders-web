@@ -65,6 +65,11 @@ export interface ContractRow extends ContractListRow {
   notes: string | null;
   item_notes: Record<string, string>;
   notes_updated_at: string | null;
+  /** Set once a manager has pushed the contract into the CRM. See 0031. */
+  crm_order_id: string | null;
+  crm_order_number: string | null;
+  crm_customer_id: string | null;
+  crm_synced_at: string | null;
 }
 
 /** One line of the quote this contract was drafted from, with its note. */

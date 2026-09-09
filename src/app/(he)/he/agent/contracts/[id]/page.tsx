@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 
 import { AgentShell } from "@/components/agent/AgentShell";
 import { ContractEditor } from "@/components/agent/ContractEditor";
+import { ContractCrmSync } from "@/components/agent/ContractCrmSync";
 import { ContractPayment } from "@/components/agent/ContractPayment";
 import {
   CONTRACT_STATUS_LABEL,
@@ -12,6 +13,7 @@ import {
   getContractLines,
   getQuoteNotes,
 } from "@/lib/agent/contracts";
+import { crmSyncEnabled } from "@/lib/agent/crm-sync";
 import { defaultPaymentAmount, listContractPayments, paymentsEnabled } from "@/lib/agent/payments";
 import { getQuote } from "@/lib/agent/quotes";
 import { requireAgentSession } from "@/lib/agent/session";
@@ -38,6 +40,7 @@ const EVENT_LABEL: Record<string, string> = {
   cancelled: "בוטל",
   payment_link: "הונפק קישור תשלום",
   paid: "שולם",
+  crm_synced: "הועבר ל-CRM",
 };
 
 export default async function AgentContractPage({
@@ -104,6 +107,16 @@ export default async function AgentContractPage({
           enabled={paymentsEnabled()}
           defaultAmount={quote ? defaultPaymentAmount(quote) : 0}
           payments={payments}
+        />
+
+        <ContractCrmSync
+          contractId={contract.id}
+          contractStatus={contract.status}
+          isManager={session.isManager}
+          enabled={crmSyncEnabled()}
+          paid={payments.some((p) => p.status === "paid")}
+          crmOrderNumber={contract.crm_order_number ?? null}
+          crmSyncedAt={contract.crm_order_id ? contract.crm_synced_at : null}
         />
 
         {contract.status === "signed" ? (

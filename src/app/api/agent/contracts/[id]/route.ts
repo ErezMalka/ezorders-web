@@ -13,6 +13,7 @@ import {
   listContractPayments,
   refreshPaymentStatus,
 } from "@/lib/agent/payments";
+import { CrmSyncError, pushContractToCrm } from "@/lib/agent/crm-sync";
 import { sendPriceAlert } from "@/lib/agent/price-alert-email";
 import { loadAgentCatalogue } from "@/lib/agent/products";
 import { getQuote } from "@/lib/agent/quotes";
@@ -146,9 +147,30 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       return NextResponse.json({ ok: true, payment });
     }
 
+    // ── into the CRM ──────────────────────────────────────────────────────
+    // A manager's decision, not an agent's: the order it creates starts the
+    // installation and billing machinery on the other side.
+    if (action === "crm_push") {
+      if (!session.isManager) return NextResponse.json({ error: "רק מנהל יכול לאשר העברה ל-CRM" }, { status: 403 });
+      const contract = await getContract(id);
+      if (!contract) return NextResponse.json({ error: "ההסכם לא נמצא" }, { status: 404 });
+      const origin = (process.env.NEXT_PUBLIC_SITE_URL ?? new URL(request.url).origin).replace(/\/$/, "");
+      const result = await pushContractToCrm(
+        id,
+        {
+          agentId: session.id,
+          agentName: session.fullName,
+          ip: request.headers.get("x-forwarded-for")?.split(",")[0]?.trim().slice(0, 64) ?? null,
+          userAgent: request.headers.get("user-agent")?.slice(0, 400) ?? null,
+        },
+        origin
+      );
+      return NextResponse.json({ ok: true, ...result });
+    }
+
     return NextResponse.json({ error: "פעולה לא מוכרת" }, { status: 400 });
   } catch (error) {
-    if (error instanceof ContractError || error instanceof PaymentError) {
+    if (error instanceof ContractError || error instanceof PaymentError || error instanceof CrmSyncError) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
     console.error("[agent/contracts] update failed", error);

@@ -162,14 +162,14 @@ type Strings = (typeof STRINGS)[CalcLocale];
  * does not show it.
  */
 const EN_LABELS: Record<string, { label: string; note?: string; txNote?: string }> = {
-  pos: { label: "Point of sale (POS)", note: "per till" },
+  pos: { label: "POS software licence (1 till)", note: "per till" },
   website: { label: "Ordering website", note: "per branch" },
-  kiosk: { label: "Self-service kiosk", note: "per station" },
+  kiosk: { label: "Kiosk software (1 station)", note: "per station" },
   loyalty: { label: "Loyalty club", note: "per branch" },
   ezwallet: { label: "EzWallet" },
   feedback: { label: "Feedback module" },
-  kds: { label: "Kitchen display (KDS)", note: "per screen" },
-  cds: { label: "Customer display (CDS)", note: "per station" },
+  kds: { label: "KDS software", note: "per screen" },
+  cds: { label: "Order status display (CDS) software", note: "per station" },
   bit: { label: "Bit payments" },
   applepay: { label: "Apple Pay / Google Pay" },
   secure3d: { label: "3D Secure", txNote: "+ ₪0.90 per authenticated transaction (not included in the total)" },
