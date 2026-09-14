@@ -115,6 +115,24 @@ export function LandingPage({ content }: { content: LandingContent }) {
               {content.h1}
             </h1>
             <p className="mt-5 max-w-lg text-lg leading-8 text-white/85">{content.sub}</p>
+
+            {/* The price, before the form rather than after a phone call. On a
+                phone the form is the next thing in the DOM, so this is the last
+                thing read before deciding whether to fill it in — which is
+                exactly where the question "how much is this?" gets asked. */}
+            {content.price && (
+              <div className="mt-6 inline-flex flex-wrap items-baseline gap-x-3 gap-y-1 rounded-2xl bg-white/10 px-5 py-3 ring-1 ring-inset ring-white/20">
+                <span className="text-xl font-extrabold text-white">{content.price.from}</span>
+                <span className="text-white/80">{content.price.setup}</span>
+                <Link
+                  href="/he/price"
+                  className="text-sm font-semibold text-brand-pink underline-offset-4 hover:underline"
+                >
+                  למחירון המלא
+                </Link>
+                <span className="w-full text-xs text-white/65">{content.price.note}</span>
+              </div>
+            )}
           </div>
 
           {/* Second in the DOM, so a phone reaches it right after the headline.

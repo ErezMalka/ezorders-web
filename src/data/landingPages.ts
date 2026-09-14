@@ -22,6 +22,21 @@ export type LandingContent = {
   eyebrow: string;
   h1: string;
   sub: string;
+  /**
+   * The money, said out loud, in the hero.
+   *
+   * These pages converted 1.3% of paid clicks while Bite's equivalent page —
+   * which prints "כל העמדות – החל מ-255 ₪" above its form — converted 6.5%.
+   * The prices were never a secret: /he/price has published the full
+   * calculator all along. Only the landing pages withheld them, and asked for
+   * a demo instead, so the visitor had to book a meeting to learn whether the
+   * product was even in their range.
+   *
+   * `from` is the cheapest package that actually delivers what THIS page
+   * promised, taken from PRICING_CONFIG — never a lower number borrowed from a
+   * product the page does not sell. Pre-VAT, like the calculator.
+   */
+  price?: { from: string; setup: string; note: string };
   heroBullets: string[];
   heroFootnote: string;
   /**
@@ -71,24 +86,29 @@ const branchSelect: SelectField = {
 export const posLanding: LandingContent = {
   funnel: "דף נחיתה — קופה חכמה",
   eventName: "lp_pos",
-  navCta: "לקבלת דמו",
+  navCta: "קבלו הצעת מחיר",
   eyebrow: "קופה למזון מהיר ולרשתות",
   h1: "קופה אחת שמחברת את הדלפק, האתר, האפליקציה והקיוסק",
   sub: "במקום קופה שלא מדברת עם ההזמנות אונליין ועם המטבח — מערכת אחת של EZOrders: כל הזמנה, מכל ערוץ, נכנסת לאותו מקום.",
+  price: {
+    from: "קופה מ-₪350 לחודש",
+    setup: "· הקמה חד-פעמית מ-₪2,440",
+    note: "המחירים לפני מע״מ · בחבילה גדולה ההנחה החודשית מגיעה עד 40%",
+  },
   heroBullets: [
     "כל ההזמנות בממשק אחד — דלפק, אתר, אפליקציה, קיוסק ומשלוחים",
     "תפריט אחד שמתעדכן בכל הערוצים בבת אחת",
     "דוחות מכירות והכנסות לפי סניף, שעה ומוצר",
     "התקנה והדרכה מלאה של הצוות שלנו",
   ],
-  heroFootnote: "השאירו פרטים ונחזור אליכם עם דמו של המערכת על התפריט שלכם.",
+  heroFootnote: "השאירו פרטים ותקבלו הצעה מותאמת — ונראה לכם את המערכת על התפריט שלכם.",
   heroImage: { src: "/images/admin/03-pos.webp", alt: "מסך הקופה של EZOrders — הזמנה פתוחה עם תוספות ומחירים", width: 395, height: 754 },
   proofImage: { src: "/images/admin/05-report.webp", alt: "דוח מכירות יומי במערכת EZOrders, לפי שעה ולפי מוצר", width: 405, height: 758 },
-  formTitle: "רוצים לראות דמו?",
-  formSubtitle: "נראה לכם את הקופה עובדת על התפריט והמחירים שלכם — 20 דקות, בלי התחייבות.",
-  formCta: "קבעו דמו",
+  formTitle: "רוצים הצעת מחיר?",
+  formSubtitle: "נשלח הצעה מותאמת לעסק שלכם — כמה קופות, אילו ערוצים, ומה זה עולה בפועל.",
+  formCta: "קבלו הצעת מחיר",
   successTitle: "קיבלנו! 🎉",
-  successText: "נחזור אליכם בהקדם לתאם דמו קצר של המערכת.",
+  successText: "נחזור אליכם בהקדם עם הצעת מחיר מותאמת לעסק שלכם.",
   select: branchSelect,
   painTitle: "מוכר לכם?",
   pains: [
@@ -130,18 +150,23 @@ export const posLanding: LandingContent = {
     { q: "יש לנו כמה סניפים — זה מתאים?", a: "כן. המערכת בנויה לניהול רב-סניפי: תפריט ומחירים ניתנים לשליטה מרכזית, והדוחות מאפשרים להשוות בין סניפים." },
     { q: "כמה זמן לוקחת ההטמעה?", a: "תלוי בגודל התפריט ובמספר הסניפים. בשיחת האפיון נגיד לכם לוח זמנים מדויק, לא הערכה כללית." },
   ],
-  closingTitle: "בואו נראה לכם את זה על התפריט שלכם",
-  closingText: "20 דקות דמו, בלי מצגות ובלי התחייבות — ותדעו אם זה מתאים לעסק שלכם.",
-  closingCta: "קבעו דמו",
+  closingTitle: "בואו נדע כמה זה עולה אצלכם",
+  closingText: "השאירו פרטים ותקבלו הצעה מותאמת — כמה קופות, אילו ערוצים, ומה המחיר בפועל.",
+  closingCta: "קבלו הצעת מחיר",
 };
 
 export const ordersLanding: LandingContent = {
   funnel: "דף נחיתה — הזמנות ללא עמלות",
   eventName: "lp_orders",
-  navCta: "לקבלת דמו",
+  navCta: "קבלו הצעת מחיר",
   eyebrow: "אתר · אפליקציה · קיוסק",
   h1: "ערוץ הזמנות משלכם — בלי לשלם עמלה על כל הזמנה",
   sub: "אפליקציות המשלוחים גובות אחוזים מכל הזמנה ומחזיקות את רשימת הלקוחות. EZOrders נותנת לכם אתר ואפליקציית הזמנות בשם שלכם, שמזרימים ישירות לקופה.",
+  price: {
+    from: "אתר הזמנות מ-₪450 לחודש",
+    setup: "· הקמה חד-פעמית מ-₪2,440",
+    note: "המחירים לפני מע״מ · תשלום חודשי קבוע, בלי אחוזים מההזמנה",
+  },
   heroBullets: [
     "אתר ואפליקציית הזמנות עם המותג, התפריט והמחירים שלכם",
     "ההזמנות נכנסות ישר לקופה ולמטבח — בלי הקלדה ידנית",
@@ -152,10 +177,10 @@ export const ordersLanding: LandingContent = {
   heroImage: { src: "/images/ai/ezorders-online-ordering-laptop.webp", alt: "אתר הזמנות של מסעדה על מסך לפטופ — תפריט, סל ותשלום", width: 1024, height: 1024 },
   proofImage: { src: "/images/admin/04-orders.webp", alt: "רשימת ההזמנות הנכנסות במערכת, מכל הערוצים באותו מסך", width: 407, height: 757 },
   formTitle: "רוצים ערוץ הזמנות משלכם?",
-  formSubtitle: "נראה לכם דמו על התפריט שלכם ונעבור על המספרים — כמה משלמים היום בעמלות.",
-  formCta: "קבעו דמו",
+  formSubtitle: "השאירו פרטים ותקבלו הצעה מותאמת — ונעבור על המספרים, כמה משלמים היום בעמלות.",
+  formCta: "קבלו הצעת מחיר",
   successTitle: "קיבלנו! 🎉",
-  successText: "נחזור אליכם בהקדם עם דמו של ערוץ ההזמנות שלכם.",
+  successText: "נחזור אליכם בהקדם עם הצעת מחיר לערוץ ההזמנות שלכם.",
   select: {
     name: "channels",
     label: "מה הכי מעניין",
@@ -201,8 +226,8 @@ export const ordersLanding: LandingContent = {
     { q: "מה עם תשלומים?", a: "האתר והאפליקציה תומכים בתשלום מקוון, ואנחנו מחברים אתכם לספק הסליקה במסגרת ההקמה." },
   ],
   closingTitle: "כל הזמנה ישירה היא הזמנה בלי עמלה",
-  closingText: "השאירו פרטים ונראה לכם בדיוק איך ערוץ ההזמנות שלכם ייראה.",
-  closingCta: "קבעו דמו",
+  closingText: "השאירו פרטים ותקבלו הצעה מותאמת — ונראה לכם בדיוק איך ערוץ ההזמנות שלכם ייראה.",
+  closingCta: "קבלו הצעת מחיר",
 };
 
 export const foodtruckLanding: LandingContent = {
@@ -212,6 +237,11 @@ export const foodtruckLanding: LandingContent = {
   eyebrow: "פודטראק · עגלת קפה · דוכן",
   h1: "מערכת הזמנות ותשלום שנוסעת איתכם",
   sub: "לעסק נייד אין חדר שרתים ואין מנהל משמרת — צריך קופה שנפתחת בדקה, עובדת מהנייד או מהטאבלט, ומקבלת תשלום במקום שבו אתם עומדים היום.",
+  price: {
+    from: "מ-₪350 לחודש",
+    setup: "· הקמה חד-פעמית מ-₪2,440",
+    note: "המחירים לפני מע״מ · בלי אחוזים מההזמנה",
+  },
   heroBullets: [
     "קופה שעובדת על טאבלט או נייד — בלי התקנה מסובכת",
     "QR להזמנה עצמית מהתור, בלי אפליקציה להוריד",
@@ -282,6 +312,11 @@ export const switchLanding: LandingContent = {
   eyebrow: "מחליפים מערכת?",
   h1: "כבר יש לכם מערכת — ואתם בודקים אם יש משהו טוב יותר",
   sub: "רוב העסקים שמגיעים אלינו לא מחפשים עוד מערכת. הם מחפשים אחת שמחליפה כמה: קופה, אתר הזמנות, אפליקציה וקיוסק שמדברים ביניהם.",
+  price: {
+    from: "מ-₪350 לחודש",
+    setup: "· הקמה חד-פעמית מ-₪2,440",
+    note: "המחירים לפני מע״מ · תשלום חודשי קבוע, בלי אחוזים מההזמנה",
+  },
   heroBullets: [
     "בדיקת התאמה כנה — נגיד לכם גם אם לא כדאי להחליף",
     "הקמה של התפריט והמחירים על ידינו, לא עליכם",
