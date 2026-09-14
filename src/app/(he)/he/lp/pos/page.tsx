@@ -7,7 +7,7 @@ import { posLanding } from "@/data/landingPages";
 export const metadata: Metadata = {
   title: "קופה חכמה למזון מהיר | EZOrders",
   description:
-    "קופה אחת שמחברת דלפק, אתר הזמנות, אפליקציה וקיוסק — תפריט אחד, דוח אחד. קבעו דמו קצר על התפריט שלכם.",
+    "קופה אחת שמחברת דלפק, אתר הזמנות, אפליקציה וקיוסק — תפריט אחד, דוח אחד. מ-₪350 לחודש, קבלו הצעת מחיר.",
   robots: { index: false, follow: true },
   alternates: { canonical: "/he/lp/pos" },
 };
