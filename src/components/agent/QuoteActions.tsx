@@ -112,12 +112,60 @@ export function QuoteActions({
     }
   };
 
+  /**
+   * Copying the link is sending the quote, so it has to open it too.
+   *
+   * This used to be the clipboard write alone. The quote stayed a draft, and a
+   * draft's public page answers 404 — so the agent pasted a dead link into a
+   * WhatsApp message and the customer was told the quote was unavailable,
+   * seconds after it was written.
+   *
+   * The clipboard write goes first and is not awaited behind the request:
+   * writeText only works inside the gesture that triggered it, and Safari
+   * revokes that permission across an await. So the copy happens immediately,
+   * and if opening the quote then fails the agent is told plainly not to send
+   * what they are holding.
+   */
   const copyLink = async () => {
+    setError(null);
+    setMessage(null);
+
+    let copied = true;
     try {
       await navigator.clipboard.writeText(publicUrl);
-      setMessage("הקישור הועתק");
     } catch {
-      setError("ההעתקה נכשלה — העתיקו את הקישור ידנית");
+      copied = false;
+    }
+
+    setBusy("link");
+    try {
+      const response = await fetch(`/api/agent/quotes/${quoteId}/send`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ channel: "link" }),
+      });
+      const payload = (await response.json()) as { ok?: boolean; error?: string };
+
+      if (!response.ok) {
+        setError(
+          copied
+            ? `הקישור הועתק אך ההצעה לא נפתחה ללקוח — אל תשלחו אותו עדיין. ${payload.error ?? ""}`.trim()
+            : (payload.error ?? "הפעולה נכשלה")
+        );
+        return;
+      }
+
+      setMessage(copied ? "הקישור הועתק — אפשר לשלוח" : "ההצעה נפתחה ללקוח, אך ההעתקה נכשלה — העתיקו ידנית");
+      // The status badge above says "טיוטה" until this lands.
+      router.refresh();
+    } catch {
+      setError(
+        copied
+          ? "הקישור הועתק אך ההצעה לא נפתחה ללקוח — בדקו את החיבור ונסו שוב לפני השליחה"
+          : "הפעולה נכשלה — בדקו את החיבור לרשת"
+      );
+    } finally {
+      setBusy(null);
     }
   };
 
@@ -158,10 +206,21 @@ export function QuoteActions({
       <button
         type="button"
         onClick={copyLink}
-        className="w-full rounded-pill border border-slate-200 px-4 py-2 text-sm font-semibold text-brand-muted transition-colors hover:bg-brand-grey hover:text-brand-dark"
+        disabled={busy !== null}
+        className="w-full rounded-pill border border-slate-200 px-4 py-2 text-sm font-semibold text-brand-muted transition-colors hover:bg-brand-grey hover:text-brand-dark disabled:opacity-50"
       >
-        העתקת קישור ללקוח
+        {busy === "link" ? "מעתיק…" : "העתקת קישור ללקוח"}
       </button>
+
+      {/* Said before the click, not after it. Copying opens the quote to the
+          customer, and from that moment its contents are frozen — the same
+          thing that happens when it is mailed. An agent who only wanted the
+          URL to look at should know that before they take it. */}
+      {status === "draft" ? (
+        <p className="px-1 text-xs leading-relaxed text-brand-muted">
+          העתקת הקישור פותחת את ההצעה ללקוח. אחרי זה לא ניתן לערוך אותה — רק לשכפל לטיוטה חדשה.
+        </p>
+      ) : null}
 
       <div className="mt-1 space-y-2 border-t border-slate-100 pt-3">
         {status === "draft" ? (

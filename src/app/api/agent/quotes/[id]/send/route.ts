@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 /**
  * Deliver a quote to the customer.
  *
- * Two channels, deliberately different in kind:
+ * Three channels, deliberately different in kind:
  *
  *   email    — sent server-side through Resend, the same provider the contact
  *              form already uses.
@@ -21,10 +21,18 @@ export const dynamic = "force-dynamic";
  *              from a server needs the Business API and an approved template;
  *              handing the agent a pre-filled message is the honest version of
  *              this feature until that exists.
+ *   link     — the agent takes the URL and sends it themselves, through their
+ *              own WhatsApp, an SMS, whatever they like.
  *
- * Both link to /q/<token> rather than attaching a file: a link records that the
- * customer opened it, which is the question the agent actually has, and it lets
- * a corrected quote replace the old one at the same address.
+ * That last one is a channel and not a convenience. It used to be a clipboard
+ * write in the browser and nothing else, which left the quote on 'draft' — and
+ * a draft's public page answers 404, so the link worked for nobody the moment
+ * it was pasted. Whatever puts the address in front of a customer has to go
+ * through here.
+ *
+ * All three link to /q/<token> rather than attaching a file: a link records that
+ * the customer opened it, which is the question the agent actually has, and it
+ * lets a corrected quote replace the old one at the same address.
  */
 
 function siteOrigin(request: Request): string {
@@ -86,7 +94,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   let channel = "email";
   try {
     const body = (await request.json()) as { channel?: string };
-    if (body.channel === "whatsapp") channel = "whatsapp";
+    if (body.channel === "whatsapp" || body.channel === "link") channel = body.channel;
   } catch {
     // default to email
   }
@@ -99,6 +107,15 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   const publicUrl = `${siteOrigin(request)}/q/${quote.public_token}`;
   const monthly = fmt(Number(quote.monthly_total));
   const setup = fmt(Number(quote.setup_total));
+
+  // The agent is about to paste this somewhere. Open the quote first, then hand
+  // over the address — in that order, so a link that reaches a customer is
+  // never one that answers 404.
+  if (channel === "link") {
+    await markQuoteSent(id, "link");
+    await alertIfHandPriced(quote, session, "link", siteOrigin(request));
+    return NextResponse.json({ ok: true, url: publicUrl });
+  }
 
   if (channel === "whatsapp") {
     const number = toWhatsappNumber(quote.customer_phone);
@@ -117,7 +134,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
     // Mark sent before returning: the agent is about to send it, and a quote
     // stuck on "draft" would keep its own customer link closed.
-    await markQuoteSent(id, "whatsapp", session.id);
+    await markQuoteSent(id, "whatsapp");
     await alertIfHandPriced(quote, session, "whatsapp", siteOrigin(request));
 
     return NextResponse.json({
@@ -177,7 +194,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: "שליחת המייל נכשלה" }, { status: 502 });
   }
 
-  await markQuoteSent(id, "email", session.id);
+  await markQuoteSent(id, "email");
   await alertIfHandPriced(quote, session, "email", siteOrigin(request));
   return NextResponse.json({ ok: true });
 }

@@ -394,22 +394,36 @@ export async function createQuote(
   return (priced ?? quote) as QuoteRow;
 }
 
-/** Mark a quote as sent. Idempotent for a quote that has already gone out. */
-export async function markQuoteSent(quoteId: string, channel: string, agentId: string): Promise<void> {
+/**
+ * Mark a quote as sent, and hand back the token that addresses it.
+ *
+ * Idempotent for a quote that has already gone out, and careful not to rewind
+ * 'viewed' to 'sent' — that would erase the fact that the customer had already
+ * opened it. Both of those rules live in quote_send (0032) rather than here,
+ * because this is no longer the only caller: copying the link is a way of
+ * sending too, and it has to reach the same place.
+ *
+ * The outcome is checked. The previous version ignored the result of its
+ * UPDATE, so a quote that failed to leave 'draft' still produced a cheerful
+ * "sent" on screen and a link that answered 404.
+ */
+export async function markQuoteSent(quoteId: string, channel: string): Promise<{ token: string }> {
   const supabase = await createSupabaseServerClient();
-
-  await supabase
-    .from("quotes")
-    .update({ status: "sent", sent_at: new Date().toISOString(), sent_channel: channel })
-    .eq("id", quoteId)
-    .eq("status", "draft");
-
-  await supabase.from("quote_events").insert({
-    quote_id: quoteId,
-    event_type: "sent",
-    actor_id: agentId,
-    channel,
+  const { data, error } = await supabase.rpc("quote_send", {
+    p_id: quoteId,
+    p_channel: channel,
   });
+  if (error) throw new Error(`השליחה נכשלה: ${error.message}`);
+
+  const result = (data ?? {}) as { ok?: boolean; code?: string; token?: string };
+  if (result.ok !== true) {
+    throw new Error(
+      result.code === "not_found" ? "ההצעה לא נמצאה"
+      : result.code === "not_yours" ? "אין לך הרשאה לשלוח את ההצעה הזו"
+      : "השליחה נכשלה"
+    );
+  }
+  return { token: result.token! };
 }
 
 /**
