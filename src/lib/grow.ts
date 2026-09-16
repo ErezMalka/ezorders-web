@@ -173,6 +173,155 @@ export async function createPaymentProcess(input: CreatePaymentInput): Promise<C
   };
 }
 
+// ── CreatePaymentLink ────────────────────────────────────────────────────────
+//
+// The only GROW service that can take a bank transfer.
+//
+// createPaymentProcess above opens a payment PAGE, and a page offers only the
+// methods GROW configured it with. Ours is a card page by their setup, so
+// asking it for a Bit or a transfer returns status 1 and a card page anyway —
+// months were spent reading that as our bug. GROW support, eventually: "you are
+// sending the wrong things in the call", and pointed here.
+//
+// Separate product, separate credentials (GROW_PR_*), separate host. Proven in
+// production on store.bite.co.il, which is the same company and the same GROW
+// account — this is a port of a working integration, not a first attempt.
+//
+// Two details of their contract that produce a rejection looking like something
+// else entirely:
+//
+//   • multipart/form-data, not url-encoded. The Content-Type header must NOT be
+//     set by hand, or fetch omits the boundary and nothing parses.
+//   • "Do not include any special characters in any parameter." A query string
+//     on a notify URL counts, which is why the link flow has a notify route of
+//     its own carrying no ?p=&s= and is matched by process id instead.
+
+const LINK_HOST = "https://api.grow.link";
+const LINK_PATH = "/api/light/server/1.0/CreatePaymentLink";
+
+/** GROW's transaction type ids. Named, so a bare 15 never appears in the code. */
+export const TRANSACTION_TYPE = {
+  card: 1,
+  paybox: 5,
+  bit: 6,
+  apple: 13,
+  google: 14,
+  bank: 15,
+} as const;
+
+export type PaymentMethod = keyof typeof TRANSACTION_TYPE;
+
+export interface GrowLinkConfig {
+  base: string;
+  userId: string;
+  pageCode: string;
+  apiKey: string;
+}
+
+/**
+ * Null when the payment-link service is not configured, which is not an error:
+ * the caller falls back to the card page and the site behaves exactly as it did
+ * before this existed.
+ */
+export function growLinkConfig(): GrowLinkConfig | null {
+  const apiKey = (process.env.GROW_PR_API_KEY ?? "").trim();
+  const userId = (process.env.GROW_PR_USER_ID ?? "").trim();
+  const pageCode = (process.env.GROW_PR_PAGE_CODE ?? "").trim();
+  if (!apiKey || !userId || !pageCode) return null;
+
+  let base = (process.env.GROW_PR_BASE_URL ?? "").trim() || LINK_HOST;
+  if (!/^https?:\/\//.test(base)) base = `https://${base}`;
+  return { base: base.replace(/\/+$/, ""), userId, pageCode, apiKey };
+}
+
+export function growLinkEnabled(): boolean {
+  return growLinkConfig() !== null;
+}
+
+export interface CreateLinkInput {
+  amount: number;
+  fullName: string;
+  phone: string;
+  email?: string | null;
+  /** Shown on the page and on the invoice GROW issues. */
+  title: string;
+  maxInstallments: number;
+  /** Must carry no query string. See the note above. */
+  notifyUrl: string;
+  methods: PaymentMethod[];
+  /** 1 = subject to VAT, 3 = exempt. */
+  vatType?: number;
+}
+
+export async function createPaymentLink(input: CreateLinkInput): Promise<CreatePaymentResult> {
+  const config = growLinkConfig();
+  if (!config) throw new GrowError("קישורי תשלום אינם מוגדרים (GROW_PR_*)");
+
+  const sum = Math.round(input.amount * 100) / 100;
+  if (!(sum > 0)) throw new GrowError("הסכום חייב להיות גדול מאפס");
+
+  const title = input.title.slice(0, 80);
+  const fields: Record<string, string> = {
+    userId: config.userId,
+    pageCode: config.pageCode,
+    paymentLinkType: "2",   // closed link, one payment
+    isActive: "1",
+    title,
+    "pageFieldSettings[fullName][value]": input.fullName,
+    "pageFieldSettings[phone][value]": input.phone,
+    "products[data][0][name]": title,
+    "products[data][0][price]": String(sum),
+    "products[data][0][vatType]": String(input.vatType ?? 1),
+    "paymentTypes[0][type]": "payments",
+    notifyUrl: input.notifyUrl,
+    invoiceNotifyUrl: input.notifyUrl,
+  };
+  if (input.email) fields["pageFieldSettings[email][value]"] = input.email;
+
+  // maxPaymentNum has a floor of 2 in this API; one payment is expressed as a
+  // fixed count instead, not as a maximum of one.
+  const installments = Math.max(1, Math.min(36, Math.floor(input.maxInstallments)));
+  if (installments >= 2) {
+    fields["paymentTypes[0][payments][paymentsMaxPaymentNum]"] = String(installments);
+  } else {
+    fields["paymentTypes[0][payments][paymentsPaymentNum]"] = "1";
+  }
+
+  input.methods.forEach((m, i) => { fields[`transactionType[${i}]`] = String(TRANSACTION_TYPE[m]); });
+
+  const form = new FormData();
+  for (const [k, v] of Object.entries(fields)) form.append(k, v);
+
+  let response: Response;
+  try {
+    response = await fetch(config.base + LINK_PATH, {
+      method: "POST",
+      // No Content-Type by hand — fetch writes it, with the boundary.
+      headers: { "x-api-key": config.apiKey },
+      body: form,
+      cache: "no-store",
+    });
+  } catch (error) {
+    throw new GrowError(`לא ניתן להגיע ל-GROW: ${String(error)}`);
+  }
+
+  const text = await response.text();
+  if (!response.ok) throw new GrowError(`GROW השיב ${response.status}`, response.status, text.slice(0, 500));
+
+  const data = parseGrowResponse(text);
+  const paymentUrl = String(data["url"] ?? "").trim();
+  if (!paymentUrl) throw new GrowError("GROW לא החזיר כתובת לקישור תשלום", null, JSON.stringify(data).slice(0, 500));
+
+  // Named paymentLinkProcess* here, but they are the same two handles the page
+  // returns, and getPaymentProcessInfo accepts them — which is what lets the
+  // notification and the agent's "check" button stay exactly as they were.
+  return {
+    paymentUrl,
+    processId: String(data["paymentLinkProcessId"] ?? data["processId"] ?? "").trim() || null,
+    processToken: String(data["paymentLinkProcessToken"] ?? data["processToken"] ?? "").trim() || null,
+  };
+}
+
 // ── getPaymentProcessInfo ────────────────────────────────────────────────────
 
 export type GrowOutcome = "paid" | "pending" | "cancelled";

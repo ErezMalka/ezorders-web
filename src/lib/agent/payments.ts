@@ -4,10 +4,12 @@ import { createHash } from "node:crypto";
 
 import {
   GrowError,
+  createPaymentLink,
   createPaymentProcess,
   getPaymentProcessInfo,
   growEnabled,
   growFullName,
+  growLinkEnabled,
   growPhone,
   type GrowNotification,
 } from "@/lib/grow";
@@ -237,9 +239,38 @@ export async function issuePaymentLink(contractId: string, opts: IssueOptions): 
   });
   if (insertError) throw new Error(`Could not record the payment: ${insertError.message}`);
 
+  // A payment link first, because it is the only GROW service that offers a
+  // bank transfer — the page below can only ever draw a card, whatever it is
+  // asked for. Same customer, same amount, same two handles come back, so
+  // everything downstream of here is unchanged.
+  //
+  // The fall-through is not politeness: until GROW_PR_* exists in this
+  // deployment the link cannot be minted, and a signed contract that cannot be
+  // paid at all is far worse than one that can only be paid by card. So a
+  // refusal is logged and the card page is opened exactly as before.
   let created;
+  const linkNotify = `${origin}/api/pay/grow/notify/link`;
+  if (growLinkEnabled()) {
+    try {
+      created = await createPaymentLink({
+        amount,
+        fullName: growFullName(contract.contact_name, contract.customer_name),
+        phone,
+        email: contract.customer_email,
+        title: `EZOrders — הסכם ${contract.contract_number}`,
+        maxInstallments,
+        // No query string. GROW refuses a link whose parameters carry special
+        // characters, and this one is matched by process id on arrival.
+        notifyUrl: linkNotify,
+        methods: ["card", "bit", "bank"],
+      });
+    } catch (error) {
+      console.error("[payments] payment link refused, falling back to the card page:", String(error));
+    }
+  }
+
   try {
-    created = await createPaymentProcess({
+    created ??= await createPaymentProcess({
       amount,
       fullName: growFullName(contract.contact_name, contract.customer_name),
       phone,
@@ -445,6 +476,34 @@ export async function recordGrowNotification(
  * call. GROW_NOTIFY_SECRET when set; otherwise derived from the service key,
  * which is already secret and already present wherever this runs.
  */
+/**
+ * Which payment a link notification belongs to.
+ *
+ * The page flow puts the payment id in the notify URL. The link flow cannot:
+ * GROW refuses a link whose parameters carry special characters, and a query
+ * string is exactly that. So the notification is matched on the process id
+ * GROW itself reports — the one stored when the link was minted.
+ *
+ * Losing the secret from the URL costs nothing that mattered. It was only ever
+ * a way to refuse a stray POST before spending a GROW call; the thing that
+ * actually protects the money is recordGrowNotification asking GROW's own API
+ * before writing "paid", and that is unchanged.
+ */
+export async function paymentIdForProcess(processId: string): Promise<string | null> {
+  if (!/^[A-Za-z0-9_-]{1,64}$/.test(processId)) return null;
+  const admin = createSupabaseAdminClient();
+  const { data } = await admin
+    .from("contract_payments")
+    .select("id")
+    .eq("grow_process_id", processId)
+    // A contract can be issued more than one link over its life; the newest is
+    // the one a customer is paying.
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  return (data as { id: string } | null)?.id ?? null;
+}
+
 export function notifySecret(): string {
   const explicit = (process.env.GROW_NOTIFY_SECRET ?? "").trim();
   if (explicit) return explicit;
