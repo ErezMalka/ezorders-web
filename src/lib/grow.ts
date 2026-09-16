@@ -73,9 +73,11 @@ export function growPhone(raw: string | null | undefined): string | null {
 }
 
 /**
- * GROW answers in two shapes. Success is { data: {...}, err: 0 }. A failure is
- * { err: NNN, description } — or, for a rejected parameter,
- * { status: 0, err: { id, message }, data: "" }. Both are read here.
+ * GROW answers in several shapes, and they are not consistent between its two
+ * services. Success from the payment page is { data: {...}, err: 0 }; success
+ * from the payment-link API is { status: 1, err: {}, data: {...} }. A failure
+ * is { err: NNN, description } — or, for a rejected parameter,
+ * { status: 0, err: { id, message }, data: "" }. All of them are read here.
  */
 function parseGrowResponse(rawText: string): Record<string, unknown> {
   let json: Record<string, unknown>;
@@ -87,6 +89,19 @@ function parseGrowResponse(rawText: string): Record<string, unknown> {
 
   const rawErr = json["err"] ?? json["error"];
   const errObj = rawErr && typeof rawErr === "object" ? (rawErr as Record<string, unknown>) : null;
+
+  // A third shape, and it is a SUCCESS: the payment-link API answers
+  // { status: 1, err: {}, data: {...} } — an EMPTY error object where the page
+  // API sends err: 0. Read as an error object it yields no id, the id defaults
+  // to -1, and -1 is not 0, so every successful link threw. The link was minted
+  // at GROW each time and thrown away here, and the caller's fallback quietly
+  // served a card page — which is exactly what it looks like when nothing
+  // works and nothing is broken.
+  const errIsEmpty = errObj !== null && Object.keys(errObj).length === 0;
+  if (String(json["status"] ?? "") === "1" && (errIsEmpty || rawErr == null)) {
+    return (json["data"] as Record<string, unknown> | undefined) ?? json;
+  }
+
   const code = errObj ? Number(errObj["id"] ?? -1) : Number(rawErr ?? -1);
 
   if (code !== 0) {

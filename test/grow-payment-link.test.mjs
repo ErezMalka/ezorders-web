@@ -102,3 +102,26 @@ test("typographic characters are folded before they reach GROW", () => {
   const fn = grow.slice(grow.indexOf("export function growSafeText"));
   assert.match(fn, /replace\(\/\[[^/]*\]\/g,\s*"-"\)/, "dashes fold to a hyphen");
 });
+
+test("a successful payment link is not read as an error", () => {
+  // GROW's two services disagree about what success looks like:
+  //   page: { err: 0, data: {...} }
+  //   link: { status: 1, err: {}, data: {...} }
+  // An EMPTY error object has no id, the id defaults to -1, and -1 is not 0 —
+  // so every successful link threw, was swallowed by the fallback, and served
+  // a card page. The link existed at GROW every time.
+  const parser = grow.slice(
+    grow.indexOf("function parseGrowResponse"),
+    grow.indexOf("async function post(")
+  );
+  assert.ok(parser.length > 0, "parseGrowResponse is gone");
+
+  assert.ok(parser.includes("errIsEmpty"), "the empty-error shape must be recognised");
+
+  // Order is the whole bug: the success branch has to return before the
+  // throw, or recognising the shape changes nothing.
+  const success = parser.indexOf("errIsEmpty");
+  const thrown = parser.indexOf("throw new GrowError(desc");
+  assert.ok(success > -1 && thrown > -1);
+  assert.ok(success < thrown, "the empty-error success branch must come before the throw");
+});
