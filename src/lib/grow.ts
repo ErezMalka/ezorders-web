@@ -253,6 +253,36 @@ export interface CreateLinkInput {
   vatType?: number;
 }
 
+/**
+ * Text GROW's link API will accept.
+ *
+ * "Do not include any special characters in any parameter" turns out to mean
+ * something narrower and much sharper than it sounds. Measured against the live
+ * API: quotes, commas, periods, parentheses and hyphens all pass, in Hebrew and
+ * in Latin. A single EM DASH does not — the whole call comes back
+ * `status 0, "גוף הבקשה אינו תקין"`, naming no field.
+ *
+ * Which is exactly how this shipped broken. The contract title is
+ * "EZOrders — הסכם A-2026-0017", typed with the typographic dash any careful
+ * writer reaches for, and every payment silently fell back to the card page.
+ * The same title with a plain hyphen returns a link.
+ *
+ * So the typographic characters a person actually types are folded to their
+ * ASCII twins rather than deleted — an owner should still read "EZOrders -
+ * הסכם" and not "EZOrders הסכם" — and anything else outside the tested-safe set
+ * becomes a space.
+ */
+export function growSafeText(raw: string): string {
+  return raw
+    .replace(/[‐-―−]/g, "-")      // ‐ ‑ ‒ – — ― and the minus sign
+    .replace(/[‘’‚‛]/g, "'") // ' ' ‚ ‛
+    .replace(/[“”„‟]/g, '"') // " " „ ‟
+    .replace(/…/g, "...")                   // …
+    .replace(/[^A-Za-z0-9֐-׿ \-.,()"']/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 export async function createPaymentLink(input: CreateLinkInput): Promise<CreatePaymentResult> {
   const config = growLinkConfig();
   if (!config) throw new GrowError("קישורי תשלום אינם מוגדרים (GROW_PR_*)");
@@ -260,14 +290,18 @@ export async function createPaymentLink(input: CreateLinkInput): Promise<CreateP
   const sum = Math.round(input.amount * 100) / 100;
   if (!(sum > 0)) throw new GrowError("הסכום חייב להיות גדול מאפס");
 
-  const title = input.title.slice(0, 80);
+  // Sanitised here rather than at the call sites: the rule belongs to GROW's
+  // API, and a caller that has to remember it is a caller that will forget.
+  const title = growSafeText(input.title).slice(0, 80);
   const fields: Record<string, string> = {
     userId: config.userId,
     pageCode: config.pageCode,
     paymentLinkType: "2",   // closed link, one payment
     isActive: "1",
     title,
-    "pageFieldSettings[fullName][value]": input.fullName,
+    // A customer's own name reaches this too, and business names are full of
+    // punctuation somebody pasted from a document.
+    "pageFieldSettings[fullName][value]": growSafeText(input.fullName),
     "pageFieldSettings[phone][value]": input.phone,
     "products[data][0][name]": title,
     "products[data][0][price]": String(sum),

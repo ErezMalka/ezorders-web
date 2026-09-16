@@ -85,3 +85,20 @@ test("the link's two handles are read under both of GROW's names", () => {
   assert.ok(body.includes("paymentLinkProcessId"));
   assert.ok(body.includes("paymentLinkProcessToken"));
 });
+
+test("typographic characters are folded before they reach GROW", () => {
+  // Measured against the live API: an em dash alone is refused with
+  // status 0 / "גוף הבקשה אינו תקין", naming no field — while quotes, commas,
+  // periods, parentheses and plain hyphens all pass. The contract title is
+  // "EZOrders — הסכם A-2026-0017", so every payment fell back to the card page.
+  assert.ok(grow.includes("export function growSafeText"), "the sanitiser is gone");
+
+  const body = createPaymentLinkBody();
+  assert.ok(body.includes("growSafeText(input.title)"), "the title must be sanitised");
+  assert.ok(body.includes("growSafeText(input.fullName)"), "the payer name must be sanitised");
+
+  // Folded to an ASCII twin, not deleted: "EZOrders - הסכם" reads; the title
+  // with the dash simply removed does not.
+  const fn = grow.slice(grow.indexOf("export function growSafeText"));
+  assert.match(fn, /replace\(\/\[[^/]*\]\/g,\s*"-"\)/, "dashes fold to a hyphen");
+});
