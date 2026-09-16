@@ -9,6 +9,7 @@ import {
 } from "@/lib/agent/contracts";
 import {
   PaymentError,
+  contractPaymentTotals,
   issuePaymentLink,
   listContractPayments,
   refreshPaymentStatus,
@@ -124,21 +125,34 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       if (!contract) return NextResponse.json({ error: "ההסכם לא נמצא" }, { status: 404 });
 
       if (action === "payment_link") {
-        const payload = body as { amount?: unknown; maxInstallments?: unknown };
+        const payload = body as {
+          amount?: unknown; maxInstallments?: unknown; mode?: unknown; forLabel?: unknown;
+        };
         const amount = Number(payload.amount);
         if (!Number.isFinite(amount) || amount <= 0) {
           return NextResponse.json({ error: "הסכום חייב להיות מספר גדול מאפס" }, { status: 400 });
         }
+        // "add" is a split: another live link beside the existing ones, for part
+        // of the bill. Anything else keeps the old behaviour of replacing.
+        const mode = payload.mode === "add" ? "add" : "replace";
+        const forLabel =
+          typeof payload.forLabel === "string" && payload.forLabel.trim()
+            ? payload.forLabel.trim().slice(0, 60)
+            : null;
+
         const origin = (process.env.NEXT_PUBLIC_SITE_URL ?? new URL(request.url).origin).replace(/\/$/, "");
         const payment = await issuePaymentLink(id, {
           amount,
           maxInstallments: Number(payload.maxInstallments) || 1,
+          mode,
+          forLabel,
           createdBy: session.id,
           origin,
           ip: request.headers.get("x-forwarded-for")?.split(",")[0]?.trim().slice(0, 64) ?? null,
           userAgent: request.headers.get("user-agent")?.slice(0, 400) ?? null,
         });
-        return NextResponse.json({ ok: true, payment });
+        const totals = await contractPaymentTotals(id);
+        return NextResponse.json({ ok: true, payment, totals });
       }
 
       const current = (await listContractPayments(id)).find((p) => p.status !== "cancelled");

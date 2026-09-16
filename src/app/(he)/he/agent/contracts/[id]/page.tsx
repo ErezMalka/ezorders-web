@@ -14,7 +14,9 @@ import {
   getQuoteNotes,
 } from "@/lib/agent/contracts";
 import { crmSyncEnabled } from "@/lib/agent/crm-sync";
-import { defaultPaymentAmount, listContractPayments, paymentsEnabled } from "@/lib/agent/payments";
+import {
+  contractPayableParts, contractPaymentTotals, defaultPaymentAmount, listContractPayments, paymentsEnabled,
+} from "@/lib/agent/payments";
 import { getQuote } from "@/lib/agent/quotes";
 import { requireAgentSession } from "@/lib/agent/session";
 
@@ -54,12 +56,14 @@ export default async function AgentContractPage({
   const contract = await getContract(id);
   if (!contract) notFound();
 
-  const [events, lines, quoteNotes, payments, quote] = await Promise.all([
+  const [events, lines, quoteNotes, payments, quote, payableParts, totals] = await Promise.all([
     getContractEvents(id),
     getContractLines(contract.quote_id),
     getQuoteNotes(contract.quote_id),
     listContractPayments(id),
     getQuote(contract.quote_id),
+    contractPayableParts(id),
+    contractPaymentTotals(id),
   ]);
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://ezorders.com";
 
@@ -107,6 +111,8 @@ export default async function AgentContractPage({
           enabled={paymentsEnabled()}
           defaultAmount={quote ? defaultPaymentAmount(quote) : 0}
           payments={payments}
+          payableParts={payableParts}
+          totals={totals}
         />
 
         <ContractCrmSync

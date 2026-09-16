@@ -114,6 +114,150 @@ async function currentPayment(contractId: string): Promise<ContractPaymentRow | 
   return (data as unknown as ContractPaymentRow | null) ?? null;
 }
 
+/**
+ * Where a contract stands when its money can arrive in more than one piece.
+ *
+ * A customer may want to put ₪1,000 on a card and send ₪1,500 by transfer, and
+ * GROW cannot do that on one link — its documentation has no partial payment,
+ * no open amount, and a product price is fixed. So a split is two links, which
+ * makes "is this contract paid" a question about a sum rather than about a row.
+ */
+export type ContractStanding = "unpaid" | "partial" | "paid";
+
+export interface PaymentTotals {
+  /** The one-time total the contract was priced at, VAT included. */
+  due: number;
+  /** Actually received. */
+  paid: number;
+  /** Still owed. Never negative — an overpayment is a conversation, not a debt. */
+  outstanding: number;
+  /** Owed and already has a live link waiting for the customer. */
+  awaiting: number;
+  /** Owed with no link yet: what a new link may be worth, at most. */
+  unclaimed: number;
+  standing: ContractStanding;
+}
+
+export async function contractPaymentTotals(contractId: string): Promise<PaymentTotals | null> {
+  const contract = await loadContractForPayment({ id: contractId });
+  if (!contract?.quote) return null;
+
+  const admin = createSupabaseAdminClient();
+  const { data } = await admin
+    .from("contract_payments")
+    .select("amount, status")
+    .eq("contract_id", contractId)
+    .neq("status", "cancelled");
+
+  const rows = (data ?? []) as Array<{ amount: number | string; status: PaymentStatus }>;
+  const sum = (s: PaymentStatus) =>
+    round2(rows.filter((r) => r.status === s).reduce((t, r) => t + Number(r.amount), 0));
+
+  const due = defaultPaymentAmount(contract.quote);
+  const paid = sum("paid");
+  const awaiting = sum("pending");
+  const outstanding = round2(Math.max(0, due - paid));
+
+  return {
+    due,
+    paid,
+    outstanding,
+    awaiting,
+    unclaimed: round2(Math.max(0, outstanding - awaiting)),
+    // Anything received at all, short of the whole, is "partial" — an agent who
+    // reads "ממתין לתשלום" on a contract that has already paid half will chase
+    // a customer who owes nothing yet.
+    standing: outstanding <= 0 ? "paid" : paid > 0 ? "partial" : "unpaid",
+  };
+}
+
+/**
+ * The one-time total, broken into the pieces a customer can recognise.
+ *
+ * Splitting by amount asks a customer to verify an arbitrary number: "₪1,000 of
+ * ₪2,879" is checkable only with a calculator and trust. Splitting by what they
+ * bought is self-evident — "הקמה" on one card, "עמדה" on another — and it is
+ * what an owner actually says out loud when they ask to split a bill.
+ *
+ * The decomposition, verified against four live quotes rather than assumed:
+ *   hardware_total = the sum of the hardware items exactly
+ *   setup_total    = a base setup fee + the setup of every non-hardware item
+ * so the base fee is what is left of setup_total once the items are taken out.
+ * It is derived here and never hardcoded, because it is a pricing setting and
+ * pricing settings move.
+ */
+export interface PayablePart {
+  /** Stable across reloads, so a selection survives one. */
+  key: string;
+  label: string;
+  /** VAT included, and the parts sum to the contract total exactly. */
+  amount: number;
+}
+
+export async function contractPayableParts(contractId: string): Promise<PayablePart[]> {
+  const admin = createSupabaseAdminClient();
+
+  const { data: contract } = await admin
+    .from("contracts")
+    .select("quote_id")
+    .eq("id", contractId)
+    .is("deleted_at", null)
+    .maybeSingle();
+  const quoteId = (contract as { quote_id: string | null } | null)?.quote_id;
+  if (!quoteId) return [];
+
+  const { data: quoteRow } = await admin
+    .from("quotes")
+    .select("setup_total, hardware_total, vat_percent")
+    .eq("id", quoteId)
+    .maybeSingle();
+  if (!quoteRow) return [];
+  const quote = quoteRow as { setup_total: number | string; hardware_total: number | string | null; vat_percent: number | string };
+
+  const { data: itemRows } = await admin
+    .from("quote_items")
+    .select("id, label, item_group, setup_total, sort_order")
+    .eq("quote_id", quoteId)
+    .order("sort_order", { ascending: true });
+
+  const items = ((itemRows ?? []) as Array<{
+    id: string; label: string; item_group: string; setup_total: number | string;
+  }>).filter((i) => Number(i.setup_total) > 0);
+
+  // Pre-VAT, because VAT is applied to the whole and then shared out — adding
+  // VAT per part and summing drifts from the contract total by a few agorot.
+  const nonHardware = items.filter((i) => i.item_group !== "hardware");
+  const itemsNet = nonHardware.reduce((t, i) => t + Number(i.setup_total), 0);
+  const baseNet = round2(Number(quote.setup_total) - itemsNet);
+
+  const net: Array<{ key: string; label: string; value: number }> = [];
+  if (baseNet > 0) net.push({ key: "base", label: "דמי הקמה", value: baseNet });
+  for (const i of items) net.push({ key: i.id, label: i.label, value: Number(i.setup_total) });
+
+  const netTotal = net.reduce((t, p) => t + p.value, 0);
+  if (netTotal <= 0) return [];
+
+  // The parts MUST sum to the contract total to the agora. If they do not, a
+  // customer who pays every part is still short, the contract never settles,
+  // and somebody chases them for four agorot. Largest remainder: floor each
+  // share, then hand the leftover agorot to the parts that lost the most.
+  const dueAgorot = Math.round(defaultPaymentAmount(quote) * 100);
+  const exact = net.map((p) => (p.value / netTotal) * dueAgorot);
+  const floored = exact.map((v) => Math.floor(v));
+  let left = dueAgorot - floored.reduce((t, v) => t + v, 0);
+
+  const order = exact
+    .map((v, idx) => ({ idx, frac: v - Math.floor(v) }))
+    .sort((a, b) => b.frac - a.frac);
+  for (const { idx } of order) {
+    if (left <= 0) break;
+    floored[idx]! += 1;
+    left -= 1;
+  }
+
+  return net.map((p, idx) => ({ key: p.key, label: p.label, amount: floored[idx]! / 100 }));
+}
+
 export interface PaymentSummary {
   status: PaymentStatus;
   amount: number;
@@ -194,6 +338,24 @@ export interface IssueOptions {
   origin: string;
   ip?: string | null;
   userAgent?: string | null;
+  /**
+   * "replace" retires whatever link was open — the old behaviour, and still the
+   * default, because re-issuing for a corrected amount must not leave the wrong
+   * price payable.
+   *
+   * "add" keeps the others, which is what a split is: two live links, each for
+   * part of the bill. It is refused if it would let the contract be
+   * over-collected, because two links that add up to more than the debt is how
+   * a customer pays twice and the second refund is a phone call.
+   */
+  mode?: "replace" | "add";
+  /**
+   * What this link is for, named the way the customer recognises it — "הקמה",
+   * "עמדת קופה". Reaches GROW, so it appears on the page and on the invoice
+   * they issue, which is the whole reason splitting by item beats splitting by
+   * an arbitrary number.
+   */
+  forLabel?: string | null;
 }
 
 /**
@@ -211,11 +373,31 @@ export async function issuePaymentLink(contractId: string, opts: IssueOptions): 
   if (contract.status !== "signed") throw new PaymentError("אפשר להנפיק קישור תשלום רק להסכם חתום");
   if (!contract.quote) throw new PaymentError("להסכם אין הצעת מחיר מקושרת");
 
+  const mode = opts.mode ?? "replace";
   const existing = await currentPayment(contract.id);
-  if (existing?.status === "paid") throw new PaymentError("ההסכם הזה כבר שולם");
 
-  const amount = round2(Number(opts.amount ?? defaultPaymentAmount(contract.quote)));
+  // Totals rather than the newest row: with a split, one part can be paid while
+  // another is still open, and "the newest is not paid" would happily issue a
+  // third link for a contract that owes nothing.
+  const totals = await contractPaymentTotals(contract.id);
+  if (totals && totals.outstanding <= 0) throw new PaymentError("ההסכם הזה כבר שולם במלואו");
+  if (mode === "replace" && existing?.status === "paid") {
+    throw new PaymentError("ההסכם הזה כבר שולם");
+  }
+
+  const amount = round2(Number(opts.amount ?? (mode === "add" ? totals?.unclaimed : null) ?? defaultPaymentAmount(contract.quote)));
   if (!(amount > 0)) throw new PaymentError("הסכום חייב להיות גדול מאפס");
+
+  // A split may never add up to more than the debt. Replacing is exempt: the
+  // link being retired is part of what "awaiting" counts, so its own amount
+  // would be double-counted against it.
+  if (mode === "add" && totals && amount > totals.unclaimed + 0.001) {
+    throw new PaymentError(
+      totals.unclaimed <= 0
+        ? "כל היתרה כבר מכוסה בקישורי תשלום קיימים"
+        : `הסכום גבוה מהיתרה שנותרה לחלוקה (${totals.unclaimed.toFixed(2)} ₪)`
+    );
+  }
   const maxInstallments = Math.max(1, Math.min(36, Math.floor(Number(opts.maxInstallments ?? 1) || 1)));
 
   const phone =
@@ -248,6 +430,14 @@ export async function issuePaymentLink(contractId: string, opts: IssueOptions): 
   // deployment the link cannot be minted, and a signed contract that cannot be
   // paid at all is far worse than one that can only be paid by card. So a
   // refusal is logged and the card page is opened exactly as before.
+  // Named for what it covers. "EZOrders - הסכם A-2026-0020 - הקמה" tells a
+  // customer holding two links which is which, and GROW prints it on the
+  // invoice. The em dashes are folded to hyphens by growSafeText before they
+  // are sent; they are written plainly here so the code reads like the rest.
+  const title = opts.forLabel
+    ? `EZOrders — הסכם ${contract.contract_number} — ${opts.forLabel}`
+    : `EZOrders — הסכם ${contract.contract_number}`;
+
   let created;
   const linkNotify = `${origin}/api/pay/grow/notify/link`;
   if (growLinkEnabled()) {
@@ -257,7 +447,7 @@ export async function issuePaymentLink(contractId: string, opts: IssueOptions): 
         fullName: growFullName(contract.contact_name, contract.customer_name),
         phone,
         email: contract.customer_email,
-        title: `EZOrders — הסכם ${contract.contract_number}`,
+        title,
         maxInstallments,
         // No query string. GROW refuses a link whose parameters carry special
         // characters, and this one is matched by process id on arrival.
@@ -275,7 +465,7 @@ export async function issuePaymentLink(contractId: string, opts: IssueOptions): 
       fullName: growFullName(contract.contact_name, contract.customer_name),
       phone,
       email: contract.customer_email,
-      description: `EZOrders — הסכם ${contract.contract_number}`,
+      description: title,
       maxInstallments,
       successUrl: `${origin}/c/${contract.public_token}?paid=1`,
       cancelUrl: `${origin}/c/${contract.public_token}?paid=0`,
@@ -288,8 +478,9 @@ export async function issuePaymentLink(contractId: string, opts: IssueOptions): 
     throw error;
   }
 
-  // Only now, with a page in hand, retire whatever came before it.
-  if (existing && existing.status === "pending") {
+  // Only now, with a page in hand, retire whatever came before it — and only
+  // when replacing. A split's whole point is that the sibling link stays alive.
+  if (mode === "replace" && existing && existing.status === "pending") {
     await admin
       .from("contract_payments")
       .update({ status: "cancelled", updated_at: new Date().toISOString() })
@@ -346,6 +537,44 @@ export async function paymentUrlForToken(
   } catch (error) {
     return { blocked: "failed", message: error instanceof Error ? error.message : String(error) };
   }
+}
+
+/**
+ * One specific part of a split, by its own stable address.
+ *
+ * /c/<token>/pay can only mean "the amount owed" and a split has two of those.
+ * Each link therefore gets an address of its own, still ours rather than
+ * GROW's, so a customer holding "הקמה" and "עמדה" has two URLs that keep
+ * working even if the GROW page behind either is reissued.
+ *
+ * The token is checked against the payment's contract: a payment id alone must
+ * not open somebody else's bill.
+ */
+export async function paymentUrlForPart(
+  token: string,
+  paymentId: string
+): Promise<{ url: string } | { blocked: "paid" | "not_found" | "cancelled" }> {
+  if (!/^[0-9a-f-]{36}$/.test(paymentId)) return { blocked: "not_found" };
+
+  const admin = createSupabaseAdminClient();
+  const { data } = await admin
+    .from("contract_payments")
+    .select("id, status, payment_url, contract:contracts!inner(public_token)")
+    .eq("id", paymentId)
+    .maybeSingle();
+  if (!data) return { blocked: "not_found" };
+
+  const row = data as unknown as {
+    status: PaymentStatus;
+    payment_url: string | null;
+    contract: { public_token: string } | { public_token: string }[];
+  };
+  const contract = Array.isArray(row.contract) ? row.contract[0] : row.contract;
+  if (!contract || contract.public_token !== token) return { blocked: "not_found" };
+
+  if (row.status === "paid") return { blocked: "paid" };
+  if (row.status === "cancelled") return { blocked: "cancelled" };
+  return row.payment_url ? { url: row.payment_url } : { blocked: "not_found" };
 }
 
 // ── settling ─────────────────────────────────────────────────────────────────

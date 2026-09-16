@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import type { ContractPaymentRow, PaymentStatus } from "@/lib/agent/payments";
+import type { ContractPaymentRow, PayablePart, PaymentStatus, PaymentTotals } from "@/lib/agent/payments";
 
 /**
  * The card payment for a signed contract, as the agent sees it.
@@ -37,6 +37,8 @@ export function ContractPayment({
   enabled,
   defaultAmount,
   payments,
+  payableParts,
+  totals,
 }: {
   contractId: string;
   contractStatus: string;
@@ -48,6 +50,10 @@ export function ContractPayment({
   defaultAmount: number;
   /** Newest first. */
   payments: ContractPaymentRow[];
+  /** The one-time total broken into pieces the customer recognises. */
+  payableParts: PayablePart[];
+  /** Null only when the contract has no quote, which the section already handles. */
+  totals: PaymentTotals | null;
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState<"issue" | "check" | null>(null);
@@ -58,8 +64,49 @@ export function ContractPayment({
   const [installments, setInstallments] = useState("1");
 
   const current = payments.find((p) => p.status !== "cancelled") ?? null;
-  const payLink = `${siteUrl.replace(/\/+$/, "")}/c/${token}/pay`;
+  const base = siteUrl.replace(/\/+$/, "");
+  const payLink = `${base}/c/${token}/pay`;
   const signed = contractStatus === "signed";
+
+  // ── splitting ──────────────────────────────────────────────────────────────
+  // The customer chooses what to pay for, not how much: "הקמה on the card, the
+  // עמדה by transfer" is something they can check at a glance, where "₪1,000 of
+  // ₪2,879" needs a calculator and trust. GROW has no partial payment — the
+  // documentation has no open amount and a product price is fixed — so each
+  // part is its own link, and each link carries the name of what it covers
+  // through to the page and the invoice.
+  const [splitting, setSplitting] = useState(false);
+  const [picked, setPicked] = useState<string[]>([]);
+
+  const live = payments.filter((p) => p.status === "pending" || p.status === "paid");
+  const pickedParts = payableParts.filter((p) => picked.includes(p.key));
+  const pickedTotal = Math.round(pickedParts.reduce((t, p) => t + p.amount, 0) * 100) / 100;
+  const unclaimed = totals?.unclaimed ?? 0;
+  const overBudget = pickedTotal > unclaimed + 0.001;
+
+  const toggle = (key: string) =>
+    setPicked((prev) => (prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]));
+
+  const issueSplit = () => {
+    if (!(pickedTotal > 0)) {
+      setError("בחרו לפחות פריט אחד");
+      return;
+    }
+    if (overBudget) {
+      setError("הפריטים שנבחרו עולים על היתרה שנותרה");
+      return;
+    }
+    void call(
+      {
+        action: "payment_link",
+        amount: pickedTotal,
+        maxInstallments: 1,
+        mode: "add",
+        forLabel: pickedParts.map((p) => p.label).join(", "),
+      },
+      "issue"
+    ).then(() => setPicked([]));
+  };
 
   const call = async (body: Record<string, unknown>, kind: "issue" | "check") => {
     setBusy(kind);
@@ -136,6 +183,140 @@ export function ContractPayment({
         </p>
       ) : (
         <div className="space-y-4">
+          {/* Where the contract stands, before any one link. With a split this
+              is the only honest headline: one row can say "שולם" while the
+              contract is half owed. */}
+          {totals && totals.due > 0 ? (
+            <div className="rounded-xl border border-slate-200 bg-brand-grey px-4 py-3">
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <span className="text-sm font-bold text-brand-dark">
+                  {totals.standing === "paid"
+                    ? "שולם במלואו"
+                    : totals.standing === "partial"
+                      ? "שולם חלקית"
+                      : "טרם שולם"}
+                </span>
+                <span className="text-xs text-brand-muted">
+                  {ILS.format(totals.paid)} מתוך {ILS.format(totals.due)}
+                  {totals.outstanding > 0 ? ` · נותרו ${ILS.format(totals.outstanding)}` : ""}
+                </span>
+              </div>
+              {totals.standing === "partial" ? (
+                <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-200">
+                  <div
+                    className="h-full rounded-full bg-emerald-500"
+                    style={{ width: `${Math.min(100, (totals.paid / totals.due) * 100)}%` }}
+                  />
+                </div>
+              ) : null}
+              {totals.unclaimed > 0 && totals.awaiting > 0 ? (
+                <p className="mt-2 text-xs text-brand-muted">
+                  {ILS.format(totals.awaiting)} ממתינים בקישורים קיימים · {ILS.format(totals.unclaimed)} עדיין בלי קישור
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+
+          {/* Splitting by item. Offered only while something is still unclaimed,
+              because a picker that can only refuse is worse than no picker. */}
+          {payableParts.length > 1 && unclaimed > 0 ? (
+            <div className="rounded-xl border border-slate-200 p-4">
+              {!splitting ? (
+                <button
+                  type="button"
+                  onClick={() => setSplitting(true)}
+                  className="text-sm font-semibold text-brand-pinkStrong"
+                >
+                  פיצול תשלום — קישור נפרד לפריט מסוים
+                </button>
+              ) : (
+                <>
+                  <p className="mb-1 text-sm font-bold text-brand-dark">מה הלקוח משלם בקישור הזה?</p>
+                  <p className="mb-3 text-xs leading-relaxed text-brand-muted">
+                    בחרו פריטים ותקבלו קישור נפרד עבורם — למשל הקמה באשראי, ועמדה בהעברה בנקאית.
+                    כל קישור מציע אשראי, ביט והעברה בנקאית, והלקוח בוחר בעצמו.
+                  </p>
+
+                  <ul className="mb-3 space-y-1.5">
+                    {payableParts.map((part) => (
+                      <li key={part.key}>
+                        <label className="flex cursor-pointer items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-brand-grey">
+                          <input
+                            type="checkbox"
+                            checked={picked.includes(part.key)}
+                            onChange={() => toggle(part.key)}
+                            className="h-4 w-4 shrink-0"
+                          />
+                          <span className="flex-1 text-sm text-brand-dark">{part.label}</span>
+                          <span className="text-sm font-semibold text-brand-dark">{ILS.format(part.amount)}</span>
+                        </label>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-3">
+                    <span className={`text-sm font-bold ${overBudget ? "text-red-700" : "text-brand-dark"}`}>
+                      נבחרו {ILS.format(pickedTotal)}
+                      {overBudget ? ` — מעל היתרה (${ILS.format(unclaimed)})` : ""}
+                    </span>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => { setSplitting(false); setPicked([]); }}
+                        className="rounded-pill border border-slate-200 px-4 py-2 text-xs font-semibold text-brand-muted"
+                      >
+                        ביטול
+                      </button>
+                      <button
+                        type="button"
+                        onClick={issueSplit}
+                        disabled={busy !== null || !(pickedTotal > 0) || overBudget}
+                        className="rounded-pill bg-brand-pinkStrong px-5 py-2 text-xs font-semibold text-white disabled:opacity-50"
+                      >
+                        {busy === "issue" ? "מנפיק…" : "הנפקת קישור לפריטים שנבחרו"}
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          ) : null}
+
+          {/* Every live link, because a split has more than one and each needs
+              its own address to send. */}
+          {live.length > 1 ? (
+            <div className="rounded-xl border border-slate-200 p-4">
+              <p className="mb-2 text-xs font-semibold text-brand-muted">קישורי התשלום ({live.length})</p>
+              <ul className="space-y-2">
+                {live.map((p) => {
+                  const url = `${base}/c/${token}/pay/${p.id}`;
+                  return (
+                    <li key={p.id} className="flex flex-wrap items-center gap-2 border-t border-slate-100 pt-2 first:border-0 first:pt-0">
+                      <span className={`rounded-pill border px-2.5 py-0.5 text-[11px] font-semibold ${STATUS[p.status].tone}`}>
+                        {STATUS[p.status].label}
+                      </span>
+                      <span className="text-sm font-semibold text-brand-dark">{ILS.format(Number(p.amount))}</span>
+                      {p.status === "pending" ? (
+                        <>
+                          <code dir="ltr" className="flex-1 overflow-x-auto rounded-lg border border-slate-200 bg-brand-grey px-2 py-1 font-mono text-[11px] text-brand-dark">
+                            {url}
+                          </code>
+                          <button
+                            type="button"
+                            onClick={() => void navigator.clipboard.writeText(url).catch(() => setError("ההעתקה נכשלה — סמנו את הקישור והעתיקו ידנית"))}
+                            className="rounded-pill bg-brand-dark px-4 py-1.5 text-[11px] font-semibold text-white"
+                          >
+                            העתקה
+                          </button>
+                        </>
+                      ) : null}
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ) : null}
+
           {current ? (
             <dl className="grid gap-x-8 gap-y-3 sm:grid-cols-3">
               <div>

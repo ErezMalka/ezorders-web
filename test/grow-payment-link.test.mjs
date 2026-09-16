@@ -125,3 +125,66 @@ test("a successful payment link is not read as an error", () => {
   assert.ok(success > -1 && thrown > -1);
   assert.ok(success < thrown, "the empty-error success branch must come before the throw");
 });
+
+// ── splitting a bill ────────────────────────────────────────────────────────
+// GROW has no partial payment: no open amount, no allowPartialPayment, and a
+// product price is fixed. So paying הקמה by card and עמדה by transfer is two
+// links, which makes "is this contract paid" a question about a sum.
+
+test("the parts sum to the contract total exactly", () => {
+  // Agorot lost to rounding are a contract that can never settle: the customer
+  // pays every part and is still four agorot short, forever. Largest remainder
+  // floors each share and hands the leftover to whoever lost the most.
+  const fn = payments.slice(
+    payments.indexOf("export async function contractPayableParts"),
+    payments.indexOf("export interface PaymentSummary")
+  );
+  assert.ok(fn.length > 0, "contractPayableParts is gone");
+  assert.ok(fn.includes("Math.floor"), "shares must be floored, then topped up");
+  assert.ok(/left\s*-=\s*1/.test(fn), "the leftover agorot must be handed out");
+  assert.ok(fn.includes("dueAgorot"), "the target is the contract total in agorot");
+
+  // Derived, never assumed: the base fee is a pricing setting and moves.
+  assert.ok(!/1950/.test(fn), "the base setup fee must not be hardcoded");
+});
+
+test("a split never collects more than the contract owes", () => {
+  assert.ok(
+    payments.includes('mode === "add" && totals && amount > totals.unclaimed'),
+    "adding a link must be checked against what is still unclaimed"
+  );
+  // Two links adding up past the debt is how a customer pays twice, and the
+  // refund is a phone call.
+  assert.ok(payments.includes("unclaimed"), "totals must expose what has no link yet");
+});
+
+test("adding a link does not retire its siblings", () => {
+  // The old behaviour cancels the previous pending link, which is right when
+  // replacing a wrong amount and fatal when splitting.
+  assert.match(
+    payments,
+    /mode === "replace" && existing && existing\.status === "pending"/,
+    "only a replacement may cancel what came before"
+  );
+});
+
+test("a paid contract is judged on the sum, not on the newest row", () => {
+  // With a split, one row can read "paid" while half the bill is open — and
+  // the reverse, which would issue a third link for a settled contract.
+  assert.ok(
+    payments.includes("totals.outstanding <= 0"),
+    "settlement must be decided by the outstanding total"
+  );
+});
+
+test("each part of a split has its own customer-facing address", () => {
+  // /c/<token>/pay means "what is owed" and a split has two of those.
+  const route = new URL("../src/app/(site)/c/[token]/pay/[paymentId]/route.ts", import.meta.url);
+  const src = readFileSync(fileURLToPath(route), "utf8");
+  assert.ok(src.includes("paymentUrlForPart"));
+  // A payment id alone must not open somebody else's bill.
+  assert.ok(
+    payments.includes("contract.public_token !== token"),
+    "the token must be checked against the payment's contract"
+  );
+});
