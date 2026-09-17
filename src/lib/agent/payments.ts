@@ -423,6 +423,41 @@ export async function issuePaymentLink(contractId: string, opts: IssueOptions): 
   if (!contract.quote) throw new PaymentError("להסכם אין הצעת מחיר מקושרת");
 
   const mode = opts.mode ?? "replace";
+  const admin0 = createSupabaseAdminClient();
+
+  /**
+   * A part already sitting in a live link is superseded, never refused.
+   *
+   * Refusing assumed the earlier link still works, which is the one thing that
+   * cannot be assumed: it may have lapsed, or gone to an inbox nobody reads. A
+   * customer who wants to pay must always be able to, and the honest answer to
+   * "there is already a link for this" is to replace it.
+   *
+   * Cancelling first is also what keeps the arithmetic right — the amount that
+   * link was holding returns to the unclaimed balance before the new link is
+   * priced against it. Only PENDING links: a paid one has money behind it.
+   */
+  if (mode === "add" && opts.partKeys?.length) {
+    const { data: pendingRows } = await admin0
+      .from("contract_payments")
+      .select("id, part_keys")
+      .eq("contract_id", contract.id)
+      .eq("status", "pending");
+
+    const wanted = new Set(opts.partKeys);
+    const superseded = ((pendingRows ?? []) as Array<{ id: string; part_keys: string[] | null }>)
+      // No parts means the link covers the whole bill, so it covers these too.
+      .filter((r) => !r.part_keys || r.part_keys.some((k) => wanted.has(k)))
+      .map((r) => r.id);
+
+    if (superseded.length) {
+      await admin0
+        .from("contract_payments")
+        .update({ status: "cancelled", updated_at: new Date().toISOString() })
+        .in("id", superseded);
+    }
+  }
+
   const existing = await currentPayment(contract.id);
 
   // Totals rather than the newest row: with a split, one part can be paid while
@@ -690,33 +725,16 @@ export async function issueCustomerSelection(
   // now identify. Without this, a contract carrying one of those older links
   // refuses the customer who simply wants to pay the whole remaining balance,
   // which is the least acceptable dead end on a payment page.
-  const coversEverythingOpen = [...openKeys].every((k) => keys.includes(k));
-
-  // The amount guard is not enough on its own, and this is where it leaks: a
-  // customer who unticks the expensive item and keeps two cheap ones can land
-  // under the unclaimed total while one of those two is already sitting in a
-  // live link. Same item, two links, paid twice. Amounts do not catch it —
-  // only the parts do.
-  //
-  // Selecting everything open is exempt, because that supersedes the live links
-  // rather than joining them.
-  if (!coversEverythingOpen) {
-    const taken = chosen.filter((p) => p.claimedBy);
-    if (taken.length) {
-      return {
-        error:
-          taken.length === 1
-            ? `על ${taken[0]!.label} כבר נשלח קישור תשלום. בחרו פריט אחר, או סמנו את הכל כדי לשלם את מלוא היתרה.`
-            : "על חלק מהפריטים שבחרתם כבר נשלח קישור תשלום. סמנו את הכל כדי לשלם את מלוא היתרה.",
-      };
-    }
-  }
-
+  // Superseding whatever already covers these parts happens inside
+  // issuePaymentLink, so the agent's picker and this page cannot drift apart.
   try {
     const row = await issuePaymentLink(contract.id, {
       amount,
       maxInstallments: 1,
-      mode: coversEverythingOpen ? "replace" : "add",
+      // Everything overlapping is already cancelled above, so this only ever
+      // joins what is left. "replace" would wipe the sibling links of a split
+      // that has nothing to do with this selection.
+      mode: "add",
       forLabel: chosen.map((p) => p.label).join(", "),
       partKeys: chosen.map((p) => p.key),
       createdBy: null,

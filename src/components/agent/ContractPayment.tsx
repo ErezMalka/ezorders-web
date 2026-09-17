@@ -100,24 +100,27 @@ export function ContractPayment({
    * in beside it — the agent has just said they want parts instead of the
    * whole — and only once parts exist does a further part get added to them.
    */
-  const wholeBillLink =
-    pendingLinks.length === 1 && Math.abs(Number(pendingLinks[0]!.amount) - outstanding) < 0.01
-      ? pendingLinks[0]!
-      : null;
+  /**
+   * A pending link covering any part being picked is superseded on the server,
+   * so it is not competing for the balance — its amount is about to come back.
+   * Only the links that survive still hold money against this selection.
+   *
+   * A link with no parts covers the whole bill, so any selection supersedes it.
+   */
+  const survivingHold = pendingLinks
+    .filter((p) => p.part_keys?.length && !p.part_keys.some((k) => picked.includes(k)))
+    .reduce((t, p) => t + Number(p.amount), 0);
 
-  // Picking everything still open supersedes every live link, whatever they
-  // were for — the same rule the customer's own page uses, so the two screens
-  // cannot disagree about what a selection means.
-  const openParts = payableParts.filter((p) => p.claimedBy?.status !== "paid");
-  const coversEverythingOpen =
-    openParts.length > 0 && openParts.every((p) => picked.includes(p.key));
-
-  const splitMode: "replace" | "add" = wholeBillLink || coversEverythingOpen ? "replace" : "add";
-
-  // What this link may be worth: everything still owed when the whole-bill link
-  // is about to be retired, otherwise only what no link covers yet.
-  const budget = splitMode === "replace" ? outstanding : (totals?.unclaimed ?? 0);
+  const budget = Math.round((outstanding - survivingHold) * 100) / 100;
   const overBudget = pickedTotal > budget + 0.001;
+
+  // Always "add": anything this selection overlaps is cancelled first, and a
+  // blanket replace would wipe the sibling links of a split that has nothing to
+  // do with what was picked.
+  const splitMode: "replace" | "add" = "add";
+  const willSupersede = pendingLinks.some(
+    (p) => !p.part_keys?.length || p.part_keys.some((k) => picked.includes(k))
+  );
 
   const toggle = (key: string) =>
     setPicked((prev) => (prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]));
@@ -277,18 +280,20 @@ export function ContractPayment({
                       the whole bill, and asking for parts is asking to stop
                       offering the whole — so it goes. An agent who has already
                       sent it to the customer needs to know that. */}
-                  {wholeBillLink ? (
+                  {willSupersede ? (
                     <p className="mb-3 rounded-lg bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-900">
-                      קיים קישור פתוח על מלוא הסכום ({ILS.format(Number(wholeBillLink.amount))}).
-                      הנפקת פיצול תבטל אותו — אם כבר שלחתם אותו ללקוח, שלחו במקומו את הקישורים החדשים.
+                      על חלק מהפריטים שסימנתם כבר קיים קישור פתוח. הוא יבוטל ויונפק חדש במקומו —
+                      אם כבר שלחתם אותו ללקוח, שלחו לו את הקישור החדש.
                     </p>
                   ) : null}
 
                   <ul className="mb-3 space-y-1.5">
                     {payableParts.map((part) => {
-                      // A part the whole-bill link "covers" is not really taken:
-                      // that link is about to be replaced by this very split.
-                      const taken = splitMode === "add" ? part.claimedBy : null;
+                      // Only a settled part is closed. One that merely has a
+                      // link out stays selectable — that link may have lapsed,
+                      // and issuing a new one supersedes it. Disabling it would
+                      // bet on an old link still working.
+                      const taken = part.claimedBy?.status === "paid" ? part.claimedBy : null;
                       return (
                         <li key={part.key}>
                           <label
@@ -306,9 +311,9 @@ export function ContractPayment({
                             <span className="flex-1 text-sm text-brand-dark">
                               {part.label}
                               {taken ? (
-                                <span className="ms-2 text-xs font-semibold text-brand-muted">
-                                  {taken.status === "paid" ? "· שולם" : "· כבר בקישור קיים"}
-                                </span>
+                                <span className="ms-2 text-xs font-semibold text-emerald-700">· שולם</span>
+                              ) : part.claimedBy ? (
+                                <span className="ms-2 text-xs text-brand-muted">· קישור קודם יוחלף</span>
                               ) : null}
                             </span>
                             <span className="text-sm font-semibold text-brand-dark">{ILS.format(part.amount)}</span>

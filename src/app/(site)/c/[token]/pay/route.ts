@@ -125,15 +125,11 @@ function chooser(token: string, parts: PayablePart[], error: string | null): Res
   const rows = parts
     .map((part) => {
       const paid = part.claimedBy?.status === "paid";
-      // A part already sitting in a live link can still be chosen — but only as
-      // part of "everything", which replaces that link rather than joining it.
-      // Saying so here beats discovering it on submit.
-      const sent = !paid && !!part.claimedBy;
-      const tag = paid
-        ? ' <em class="tag paid-tag">שולם</em>'
-        : sent
-          ? ' <em class="tag sent-tag">קישור כבר נשלח</em>'
-          : "";
+      // Only a part that has actually been PAID is closed. A part with a link
+      // already out stays fully selectable: that link may have lapsed, or gone
+      // to an inbox nobody reads, and a customer who wants to pay must always
+      // be able to. Choosing it simply replaces the old link with a fresh one.
+      const tag = paid ? ' <em class="tag paid-tag">שולם</em>' : "";
       return `<label class="row${paid ? " paid" : ""}">
         <input type="checkbox" name="part" value="${esc(part.key)}" ${paid ? "disabled" : "checked"}>
         <span class="label">${esc(part.label)}${tag}</span>

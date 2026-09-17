@@ -254,18 +254,39 @@ test("every GROW link names the contract it belongs to", () => {
   );
 });
 
-test("a part already in a live link cannot join a second one", () => {
-  // The amount guard leaks here: untick the expensive item, keep two cheap
-  // ones, and the total lands under the unclaimed balance while one of those
-  // two is already sitting in a live link. Same item, two links, paid twice.
-  // Amounts cannot see it — only the parts can.
+test("a part with a link already out is superseded, never refused", () => {
+  // Refusing assumed the old link still worked. It may have lapsed, or gone to
+  // an inbox nobody reads — and then the customer cannot pay at all, which is
+  // a worse failure than issuing a second link. So the overlapping pending
+  // links are cancelled first and a fresh one takes their place.
   const fn = payments.slice(
-    payments.indexOf("export async function issueCustomerSelection"),
-    payments.indexOf("// ── settling ")
+    payments.indexOf("export async function issuePaymentLink"),
+    payments.indexOf("export async function paymentUrlForToken")
   );
-  assert.ok(fn.includes("chosen.filter((p) => p.claimedBy)"), "chosen parts must be checked for a live claim");
+  assert.ok(fn.length > 0, "issuePaymentLink moved; re-point this test");
+  assert.ok(fn.includes("const superseded"), "overlapping links must be identified");
   assert.ok(
-    fn.includes("if (!coversEverythingOpen)"),
-    "selecting everything open is the one exemption — it replaces those links"
+    fn.includes('.eq("status", "pending")'),
+    "only pending links may be superseded — a paid one has money behind it"
   );
+  assert.ok(
+    fn.includes("!r.part_keys || r.part_keys.some((k) => wanted.has(k))"),
+    "a whole-bill link covers every part, so any selection supersedes it"
+  );
+
+  // And nothing may refuse a selection for being already claimed.
+  assert.ok(
+    !payments.includes("כבר נשלח קישור תשלום"),
+    "the refusal must be gone, not merely unreachable"
+  );
+});
+
+test("only a paid part is closed to selection", () => {
+  const route = readFileSync(
+    fileURLToPath(new URL("../src/app/(site)/c/[token]/pay/route.ts", import.meta.url)),
+    "utf8"
+  );
+  // The checkbox is disabled on "paid" and on nothing else.
+  assert.match(route, /const paid = part\.claimedBy\?\.status === "paid"/);
+  assert.match(route, /\$\{paid \? "disabled" : "checked"\}/);
 });
