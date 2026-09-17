@@ -153,41 +153,87 @@ function chooser(token: string, parts: PayablePart[], error: string | null): Res
      <meta name="viewport" content="width=device-width,initial-scale=1">
      <title>תשלום</title>
      <style>
-       :root { color-scheme: light; }
-       body { font-family: Arial, Helvetica, sans-serif; margin: 0; background: #F6F7F9; color: #191D2A; }
-       .wrap { max-width: 520px; margin: 0 auto; padding: 32px 16px 48px; }
-       h1 { font-size: 20px; margin: 0 0 6px; }
-       p.sub { color: #5F6575; font-size: 14px; line-height: 1.6; margin: 0 0 20px; }
-       .card { background: #fff; border: 1px solid #E4E7EC; border-radius: 16px; padding: 8px; }
-       .row { display: flex; align-items: center; gap: 12px; padding: 14px 12px; border-radius: 12px; cursor: pointer; }
-       .row + .row { border-top: 1px solid #F0F1F4; }
-       .row:hover { background: #FAFAFB; }
-       .row.paid { cursor: default; opacity: .55; }
-       .row input { width: 20px; height: 20px; flex: none; accent-color: #F05D86; }
-       .label { flex: 1; font-size: 15px; }
+       /* No web font. This page opens from a WhatsApp message on a phone that
+          may be on one bar, and a render-blocking font request on the screen
+          where someone is about to type a card number is not worth the
+          typography. The stack below picks up Rubik or Assistant when the
+          device already has them, which covers most Hebrew phones. */
+       :root {
+         color-scheme: light;
+         --ink: #191D2A; --muted: #5F6575; --faint: #8A90A0;
+         --line: #E4E7EC; --hair: #F0F1F4; --bg: #F6F7F9;
+         --pink: #F05D86; --pink-ink: #C92A5C;
+       }
+       * { box-sizing: border-box; }
+       body {
+         font-family: Rubik, Assistant, "Segoe UI", Arial, Helvetica, sans-serif;
+         margin: 0; background: var(--bg); color: var(--ink);
+         -webkit-font-smoothing: antialiased;
+       }
+       .wrap { max-width: 480px; margin: 0 auto; padding: 28px 16px 40px; }
+
+       .brand { text-align: center; margin-bottom: 22px; }
+       .brand img { width: 124px; height: auto; }
+
+       h1 { font-size: 21px; line-height: 1.35; margin: 0 0 6px; letter-spacing: -0.01em; }
+       p.sub { color: var(--muted); font-size: 14px; line-height: 1.65; margin: 0 0 18px; }
+
+       .card { background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 6px;
+               box-shadow: 0 1px 2px rgba(25,29,42,.04), 0 8px 24px rgba(25,29,42,.05); }
+
+       .row { display: flex; align-items: center; gap: 13px; padding: 15px 13px; border-radius: 13px;
+              cursor: pointer; transition: background .12s ease; }
+       .row + .row { border-top: 1px solid var(--hair); }
+       .row:hover { background: #FBFBFC; }
+       .row:has(input:checked) { background: #FFF7F9; }
+       .row.paid { cursor: default; opacity: .5; }
+       .row.paid:hover, .row.paid:has(input:checked) { background: none; }
+       .row input { width: 21px; height: 21px; flex: none; accent-color: var(--pink); cursor: inherit; }
+       .row:focus-within { outline: 2px solid var(--pink); outline-offset: 2px; }
+
+       .label { flex: 1; font-size: 15px; line-height: 1.4; }
        .tag { font-style: normal; font-size: 12px; font-weight: 700; }
        .paid-tag { color: #0F7B50; }
-       .sent-tag { color: #8A6100; }
-       .amount { font-size: 15px; font-weight: 700; white-space: nowrap; text-align: start; }
-       .net { display: block; font-style: normal; font-size: 12px; font-weight: 400; color: #8A90A0; margin-top: 2px; }
+       .amount { font-size: 15.5px; font-weight: 700; white-space: nowrap; text-align: start; }
+       .net, .figure em { display: block; font-style: normal; font-size: 11.5px;
+                          font-weight: 400; color: var(--faint); margin-top: 3px; }
        .figure { text-align: start; }
-       button { width: 100%; margin-top: 20px; padding: 15px; border: 0; border-radius: 999px;
-                background: #191D2A; color: #fff; font-size: 16px; font-weight: 700; cursor: pointer; }
-       button:disabled { opacity: .5; cursor: default; }
-       .err { background: #FEF2F2; color: #B91C1C; border-radius: 12px; padding: 12px 14px; font-size: 14px; margin-bottom: 16px; }
-       .note { color: #5F6575; font-size: 13px; line-height: 1.6; margin-top: 16px; text-align: center; }
+
        /* .total sets display:flex, which beats the default display:none that
           the hidden attribute relies on — so "יישאר לתשלום ₪0.00" stayed on
-          screen with everything ticked. Nothing else here toggles visibility,
-          so this is stated once, loudly, rather than per rule. */
+          screen with everything ticked. Stated once, loudly, rather than per
+          rule, because nothing else here toggles visibility. */
        [hidden] { display: none !important; }
-       .totals { margin-top: 12px; padding: 4px 8px 8px; }
-       .total { display: flex; justify-content: space-between; align-items: baseline; padding: 10px 12px; font-size: 15px; }
-       .total.now strong { font-size: 19px; }
-       .total.rest { border-top: 1px solid #F0F1F4; color: #5F6575; font-size: 14px; }
+
+       .totals { margin-top: 12px; padding: 6px 8px; }
+       .total { display: flex; justify-content: space-between; align-items: baseline;
+                padding: 11px 13px; font-size: 15px; }
+       .total.now strong { font-size: 21px; letter-spacing: -0.02em; }
+       .total.rest { border-top: 1px solid var(--hair); color: var(--muted); font-size: 14px; }
        .total.rest span:last-child { font-weight: 700; }
+
+       button { width: 100%; margin-top: 18px; padding: 16px; border: 0; border-radius: 999px;
+                background: var(--ink); color: #fff; font-size: 16.5px; font-weight: 700;
+                font-family: inherit; cursor: pointer; transition: opacity .12s ease; }
+       button:hover:not(:disabled) { opacity: .9; }
+       button:disabled { opacity: .45; cursor: default; }
+
+       .err { background: #FEF2F2; color: #B91C1C; border: 1px solid #FECACA; border-radius: 14px;
+              padding: 13px 15px; font-size: 14px; line-height: 1.6; margin-bottom: 16px; }
+
+       .note { color: var(--muted); font-size: 13px; line-height: 1.7; margin-top: 18px; text-align: center; }
+       .secure { display: flex; align-items: center; justify-content: center; gap: 6px;
+                 color: var(--faint); font-size: 12.5px; margin-top: 14px; }
+       .secure svg { width: 13px; height: 13px; flex: none; }
+
+       @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
      </style></head>
      <body><div class="wrap">
+       <!-- The same mark as the site and the signed agreement. A payment screen
+            that does not look like the company that sent it is a payment screen
+            people abandon. -->
+       <div class="brand"><img src="/images/logo.webp" alt="EZOrders" width="124" height="39"></div>
+
        <h1>מה תרצו לשלם עכשיו?</h1>
        <p class="sub">אפשר לשלם הכל יחד, או לבחור חלק ולשלם את השאר בהמשך — גם באמצעי תשלום אחר.</p>
        ${error ? `<div class="err">${esc(error)}</div>` : ""}
@@ -254,6 +300,14 @@ function chooser(token: string, parts: PayablePart[], error: string | null): Res
          })();
        </script>
        <p class="note">בעמוד הבא אפשר לשלם בכרטיס אשראי, בביט או בהעברה בנקאית.</p>
+       <p class="secure">
+         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+           <rect x="4" y="10" width="16" height="11" rx="2"></rect>
+           <path d="M8 10V7a4 4 0 0 1 8 0v3"></path>
+         </svg>
+         התשלום מאובטח ומתבצע בעמוד של GROW
+       </p>
      </div></body></html>`,
     {
       status: 200,
@@ -266,15 +320,33 @@ function chooser(token: string, parts: PayablePart[], error: string | null): Res
   );
 }
 
+/** The dead ends and the good news, wearing the same clothes as the chooser. */
 function page(title: string, text: string, status: number, back?: string): Response {
   return new Response(
     `<!DOCTYPE html><html lang="he" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-     <title>${esc(title)}</title></head>
-     <body style="font-family:Arial,sans-serif;padding:48px 24px;text-align:center;color:#191D2A">
-     <h1 style="font-size:20px">${esc(title)}</h1>
-     <p style="color:#5F6575">${esc(text)}</p>
-     ${back ? `<p><a href="${esc(back)}" style="color:#F05D86;font-weight:600">חזרה להסכם</a></p>` : ""}
-     </body></html>`,
+     <title>${esc(title)}</title>
+     <style>
+       :root { color-scheme: light; }
+       body { font-family: Rubik, Assistant, "Segoe UI", Arial, Helvetica, sans-serif; margin: 0;
+              background: #F6F7F9; color: #191D2A; -webkit-font-smoothing: antialiased; }
+       .wrap { max-width: 440px; margin: 0 auto; padding: 48px 20px; text-align: center; }
+       .brand img { width: 124px; height: auto; margin-bottom: 26px; }
+       .card { background: #fff; border: 1px solid #E4E7EC; border-radius: 18px; padding: 30px 22px;
+               box-shadow: 0 1px 2px rgba(25,29,42,.04), 0 8px 24px rgba(25,29,42,.05); }
+       h1 { font-size: 19px; margin: 0 0 8px; letter-spacing: -0.01em; }
+       p { color: #5F6575; font-size: 14.5px; line-height: 1.7; margin: 0; }
+       a { display: inline-block; margin-top: 20px; color: #C92A5C; font-weight: 700;
+           font-size: 14.5px; text-decoration: none; }
+       a:hover { text-decoration: underline; }
+     </style></head>
+     <body><div class="wrap">
+       <div class="brand"><img src="/images/logo.webp" alt="EZOrders" width="124" height="39"></div>
+       <div class="card">
+         <h1>${esc(title)}</h1>
+         <p>${esc(text)}</p>
+         ${back ? `<a href="${esc(back)}">חזרה להסכם</a>` : ""}
+       </div>
+     </div></body></html>`,
     {
       status,
       headers: {

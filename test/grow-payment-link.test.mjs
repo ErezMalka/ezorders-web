@@ -341,3 +341,24 @@ test("a zero remainder is hidden, not printed", () => {
   );
   assert.ok(route.includes("restRow.hidden = left <= 0"), "and be toggled when nothing is left");
 });
+
+test("the payment pages carry the real logo file", () => {
+  // A payment screen that does not look like the company that sent it is a
+  // payment screen people abandon — and a src pointing at a file that is not
+  // there is worse than no logo at all.
+  const route = readFileSync(
+    fileURLToPath(new URL("../src/app/(site)/c/[token]/pay/route.ts", import.meta.url)),
+    "utf8"
+  );
+  const refs = route.match(/src="(\/images\/[^"]+)"/g) ?? [];
+  assert.ok(refs.length >= 2, "the chooser and the status pages both carry it");
+
+  for (const ref of refs) {
+    const path = ref.slice(5, -1);
+    const onDisk = new URL(`../public${path}`, import.meta.url);
+    assert.ok(readFileSync(fileURLToPath(onDisk)).length > 0, `${path} is not in public/`);
+  }
+
+  // Width and height are set so the layout does not jump when it arrives.
+  assert.match(route, /width="124" height="39"/);
+});
