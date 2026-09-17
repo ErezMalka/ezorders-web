@@ -6,13 +6,19 @@ import { useState } from "react";
 import type { ContractPaymentRow, PayablePart, PaymentStatus, PaymentTotals } from "@/lib/agent/payments";
 
 /**
- * The card payment for a signed contract, as the agent sees it.
+ * Paying for a signed contract, as the agent sees it.
  *
- * One link at a time. Issuing a new one — because the amount changed, or the
- * customer let the page lapse — retires the old one on the server; the history
- * stays underneath so a "why does the customer have two links" has an answer.
+ * Usually one link, which a new one replaces — because the amount changed, or
+ * the customer let the page lapse. The history stays underneath so "why does
+ * the customer have two links" has an answer.
  *
- * The amount is editable before the link is made and not after: a link is a
+ * But a bill can be split, and then there are several live at once: the
+ * customer puts הקמה on a card and sends the עמדה by transfer. GROW has no
+ * partial payment, so each part is a link of its own with its own address, and
+ * the headline moves from the newest row to the sum — one part can read "שולם"
+ * while half the contract is still owed.
+ *
+ * The amount is editable before a link is made and not after: a link is a
  * promise of a price, and changing the price means a new promise. Instalments
  * are a cap the GROW page offers, never a schedule we keep.
  */
@@ -81,8 +87,29 @@ export function ContractPayment({
   const live = payments.filter((p) => p.status === "pending" || p.status === "paid");
   const pickedParts = payableParts.filter((p) => picked.includes(p.key));
   const pickedTotal = Math.round(pickedParts.reduce((t, p) => t + p.amount, 0) * 100) / 100;
-  const unclaimed = totals?.unclaimed ?? 0;
-  const overBudget = pickedTotal > unclaimed + 0.001;
+
+  const outstanding = totals?.outstanding ?? 0;
+  const pendingLinks = payments.filter((p) => p.status === "pending");
+
+  /**
+   * A contract is issued a link for the whole bill the moment it is signed, so
+   * by the time anyone wants to split it there is nothing left "unclaimed" and
+   * the picker had no reason to appear. It never appeared. That is the bug.
+   *
+   * Splitting therefore REPLACES that one whole-bill link rather than squeezing
+   * in beside it — the agent has just said they want parts instead of the
+   * whole — and only once parts exist does a further part get added to them.
+   */
+  const wholeBillLink =
+    pendingLinks.length === 1 && Math.abs(Number(pendingLinks[0]!.amount) - outstanding) < 0.01
+      ? pendingLinks[0]!
+      : null;
+  const splitMode: "replace" | "add" = wholeBillLink ? "replace" : "add";
+
+  // What this link may be worth: everything still owed when the whole-bill link
+  // is about to be retired, otherwise only what no link covers yet.
+  const budget = splitMode === "replace" ? outstanding : (totals?.unclaimed ?? 0);
+  const overBudget = pickedTotal > budget + 0.001;
 
   const toggle = (key: string) =>
     setPicked((prev) => (prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]));
@@ -101,7 +128,7 @@ export function ContractPayment({
         action: "payment_link",
         amount: pickedTotal,
         maxInstallments: 1,
-        mode: "add",
+        mode: splitMode,
         forLabel: pickedParts.map((p) => p.label).join(", "),
       },
       "issue"
@@ -217,9 +244,9 @@ export function ContractPayment({
             </div>
           ) : null}
 
-          {/* Splitting by item. Offered only while something is still unclaimed,
+          {/* Splitting by item. Offered whenever anything is still owed —
               because a picker that can only refuse is worse than no picker. */}
-          {payableParts.length > 1 && unclaimed > 0 ? (
+          {payableParts.length > 1 && outstanding > 0 ? (
             <div className="rounded-xl border border-slate-200 p-4">
               {!splitting ? (
                 <button
@@ -236,6 +263,17 @@ export function ContractPayment({
                     בחרו פריטים ותקבלו קישור נפרד עבורם — למשל הקמה באשראי, ועמדה בהעברה בנקאית.
                     כל קישור מציע אשראי, ביט והעברה בנקאית, והלקוח בוחר בעצמו.
                   </p>
+
+                  {/* Said before the click. The link that already exists covers
+                      the whole bill, and asking for parts is asking to stop
+                      offering the whole — so it goes. An agent who has already
+                      sent it to the customer needs to know that. */}
+                  {wholeBillLink ? (
+                    <p className="mb-3 rounded-lg bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-900">
+                      קיים קישור פתוח על מלוא הסכום ({ILS.format(Number(wholeBillLink.amount))}).
+                      הנפקת פיצול תבטל אותו — אם כבר שלחתם אותו ללקוח, שלחו במקומו את הקישורים החדשים.
+                    </p>
+                  ) : null}
 
                   <ul className="mb-3 space-y-1.5">
                     {payableParts.map((part) => (
@@ -257,7 +295,7 @@ export function ContractPayment({
                   <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-3">
                     <span className={`text-sm font-bold ${overBudget ? "text-red-700" : "text-brand-dark"}`}>
                       נבחרו {ILS.format(pickedTotal)}
-                      {overBudget ? ` — מעל היתרה (${ILS.format(unclaimed)})` : ""}
+                      {overBudget ? ` — מעל היתרה (${ILS.format(budget)})` : ""}
                     </span>
                     <div className="flex gap-2">
                       <button
