@@ -158,14 +158,25 @@ test("a split never collects more than the contract owes", () => {
   assert.ok(payments.includes("unclaimed"), "totals must expose what has no link yet");
 });
 
-test("adding a link does not retire its siblings", () => {
-  // The old behaviour cancels the previous pending link, which is right when
-  // replacing a wrong amount and fatal when splitting.
-  assert.match(
-    payments,
-    /mode === "replace" && existing && existing\.status === "pending"/,
+test("adding a link does not retire its siblings, and replacing retires all of them", () => {
+  // Cancelling the previous link is right when replacing a wrong amount and
+  // fatal when splitting, so the cancel is gated on the mode.
+  const block = payments.slice(
+    payments.indexOf("Only now, with a page in hand"),
+    payments.indexOf("const { data: row, error: updateError }")
+  );
+  assert.ok(block.length > 0, "the cancel step moved; re-point this test");
+  assert.ok(
+    block.includes('if (mode === "replace")'),
     "only a replacement may cancel what came before"
   );
+
+  // And it must cancel EVERY pending link, not just the newest: with a split
+  // there are several, and one left behind is a customer paying twice for the
+  // same item.
+  assert.ok(block.includes('.eq("status", "pending")'), "all pending links, not just the newest");
+  // Excluding the row just created, which is itself already pending.
+  assert.ok(block.includes('.neq("id", id)'), "the new link must not cancel itself");
 });
 
 test("a paid contract is judged on the sum, not on the newest row", () => {

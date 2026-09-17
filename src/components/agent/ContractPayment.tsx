@@ -104,7 +104,15 @@ export function ContractPayment({
     pendingLinks.length === 1 && Math.abs(Number(pendingLinks[0]!.amount) - outstanding) < 0.01
       ? pendingLinks[0]!
       : null;
-  const splitMode: "replace" | "add" = wholeBillLink ? "replace" : "add";
+
+  // Picking everything still open supersedes every live link, whatever they
+  // were for — the same rule the customer's own page uses, so the two screens
+  // cannot disagree about what a selection means.
+  const openParts = payableParts.filter((p) => p.claimedBy?.status !== "paid");
+  const coversEverythingOpen =
+    openParts.length > 0 && openParts.every((p) => picked.includes(p.key));
+
+  const splitMode: "replace" | "add" = wholeBillLink || coversEverythingOpen ? "replace" : "add";
 
   // What this link may be worth: everything still owed when the whole-bill link
   // is about to be retired, otherwise only what no link covers yet.

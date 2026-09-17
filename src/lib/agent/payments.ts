@@ -529,13 +529,20 @@ export async function issuePaymentLink(contractId: string, opts: IssueOptions): 
     throw error;
   }
 
-  // Only now, with a page in hand, retire whatever came before it — and only
-  // when replacing. A split's whole point is that the sibling link stays alive.
-  if (mode === "replace" && existing && existing.status === "pending") {
+  // Only now, with a page in hand, retire what came before — and only when
+  // replacing. A split's whole point is that the sibling link stays alive.
+  //
+  // Every pending link, not just the newest. "Replace" means this one
+  // supersedes what was open, and with a split there can be several; leaving
+  // one behind is a customer paying for the same item twice. The new row is
+  // excluded by id rather than by timing, because it is already pending.
+  if (mode === "replace") {
     await admin
       .from("contract_payments")
       .update({ status: "cancelled", updated_at: new Date().toISOString() })
-      .eq("id", existing.id);
+      .eq("contract_id", contract.id)
+      .eq("status", "pending")
+      .neq("id", id);
   }
 
   const { data: row, error: updateError } = await admin
@@ -678,24 +685,18 @@ export async function issueCustomerSelection(
   const amount = round2(chosen.reduce((t, p) => t + p.amount, 0));
   if (!(amount > 0)) return { error: "הסכום אינו תקין" };
 
-  // The link the contract was given on signing covers everything. Choosing a
-  // subset means replacing it; choosing beside existing parts means adding.
-  const admin = createSupabaseAdminClient();
-  const { data: pendingRows } = await admin
-    .from("contract_payments")
-    .select("id, amount, part_keys")
-    .eq("contract_id", contract.id)
-    .eq("status", "pending");
-
-  const pending = (pendingRows ?? []) as Array<{ id: string; amount: number | string; part_keys: string[] | null }>;
-  const wholeBill = pending.length === 1 && !pending[0]!.part_keys
-    && Math.abs(Number(pending[0]!.amount) - totals.outstanding) < 0.01;
+  // Choosing everything that is still open supersedes whatever links exist —
+  // including any from before parts were recorded, whose contents nothing can
+  // now identify. Without this, a contract carrying one of those older links
+  // refuses the customer who simply wants to pay the whole remaining balance,
+  // which is the least acceptable dead end on a payment page.
+  const coversEverythingOpen = [...openKeys].every((k) => keys.includes(k));
 
   try {
     const row = await issuePaymentLink(contract.id, {
       amount,
       maxInstallments: 1,
-      mode: wholeBill ? "replace" : "add",
+      mode: coversEverythingOpen ? "replace" : "add",
       forLabel: chosen.map((p) => p.label).join(", "),
       partKeys: chosen.map((p) => p.key),
       createdBy: null,
