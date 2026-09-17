@@ -55,13 +55,18 @@ export interface ContractPaymentRow {
   created_by: string | null;
   created_at: string;
   updated_at: string;
+  /** What this link covers, read the way the customer reads it. Null = the whole bill. */
+  for_label: string | null;
+  /** The same thing as keys, which is what a selection is matched against. */
+  part_keys: string[] | null;
 }
 
 export class PaymentError extends Error {}
 
 const PAYMENT_COLUMNS =
   "id, contract_id, amount, currency, max_installments, status, grow_process_id, grow_process_token, " +
-  "payment_url, grow_transaction_id, grow_transaction_token, paid_at, created_by, created_at, updated_at";
+  "payment_url, grow_transaction_id, grow_transaction_token, paid_at, created_by, created_at, updated_at, " +
+  "for_label, part_keys";
 
 function round2(n: number): number {
   return Math.round((n + Number.EPSILON) * 100) / 100;
@@ -192,6 +197,15 @@ export interface PayablePart {
   label: string;
   /** VAT included, and the parts sum to the contract total exactly. */
   amount: number;
+  /**
+   * Already settled, or already sitting in a link somebody is waiting on.
+   *
+   * Without this the picker offered everything, the server refused whatever
+   * overlapped a live link, and the agent read "the selection exceeds the
+   * balance" with no way to see which item was the problem. A part that cannot
+   * be picked has to say so itself.
+   */
+  claimedBy?: { status: PaymentStatus; paymentId: string } | null;
 }
 
 export async function contractPayableParts(contractId: string): Promise<PayablePart[]> {
@@ -255,7 +269,33 @@ export async function contractPayableParts(contractId: string): Promise<PayableP
     left -= 1;
   }
 
-  return net.map((p, idx) => ({ key: p.key, label: p.label, amount: floored[idx]! / 100 }));
+  // Which parts a live link already covers. A link with no part_keys is a
+  // whole-bill link and claims nothing in particular — splitting replaces it,
+  // so marking every part as taken would make the picker refuse itself.
+  const { data: liveRows } = await admin
+    .from("contract_payments")
+    .select("id, status, part_keys")
+    .eq("contract_id", contractId)
+    .in("status", ["pending", "paid"]);
+
+  const claimed = new Map<string, { status: PaymentStatus; paymentId: string }>();
+  for (const row of (liveRows ?? []) as Array<{ id: string; status: PaymentStatus; part_keys: string[] | null }>) {
+    for (const key of row.part_keys ?? []) {
+      // "paid" wins over "pending": a part somebody has actually paid for must
+      // never read as merely waiting.
+      const held = claimed.get(key);
+      if (!held || (held.status !== "paid" && row.status === "paid")) {
+        claimed.set(key, { status: row.status, paymentId: row.id });
+      }
+    }
+  }
+
+  return net.map((p, idx) => ({
+    key: p.key,
+    label: p.label,
+    amount: floored[idx]! / 100,
+    claimedBy: claimed.get(p.key) ?? null,
+  }));
 }
 
 export interface PaymentSummary {
@@ -350,6 +390,15 @@ export interface IssueOptions {
    */
   mode?: "replace" | "add";
   /**
+   * Which payable parts this link covers, by key.
+   *
+   * Stored, not just sent. Without it the picker has no way to show that הקמה
+   * is already claimed — it offers every item, the server refuses the overlap,
+   * and the agent is told their selection exceeds a balance nothing on screen
+   * explains.
+   */
+  partKeys?: string[] | null;
+  /**
    * What this link is for, named the way the customer recognises it — "הקמה",
    * "עמדת קופה". Reaches GROW, so it appears on the page and on the invoice
    * they issue, which is the whole reason splitting by item beats splitting by
@@ -418,6 +467,8 @@ export async function issuePaymentLink(contractId: string, opts: IssueOptions): 
     max_installments: maxInstallments,
     status: "pending",
     created_by: opts.createdBy ?? null,
+    for_label: opts.forLabel ?? null,
+    part_keys: opts.partKeys?.length ? opts.partKeys : null,
   });
   if (insertError) throw new Error(`Could not record the payment: ${insertError.message}`);
 
@@ -575,6 +626,86 @@ export async function paymentUrlForPart(
   if (row.status === "paid") return { blocked: "paid" };
   if (row.status === "cancelled") return { blocked: "cancelled" };
   return row.payment_url ? { url: row.payment_url } : { blocked: "not_found" };
+}
+
+/** The contract behind a customer's token, for callers that only need the id. */
+export async function contractIdForToken(token: string): Promise<string | null> {
+  const admin = createSupabaseAdminClient();
+  const { data } = await admin
+    .from("contracts")
+    .select("id")
+    .eq("public_token", token)
+    .is("deleted_at", null)
+    .maybeSingle();
+  return (data as { id: string } | null)?.id ?? null;
+}
+
+/**
+ * The customer choosing what to pay for, on their own.
+ *
+ * The agent can split a bill before sending it, but they have to know in
+ * advance how the customer wants to divide it. This is the other half: the
+ * customer opens one link, sees what they bought, ticks what they want to pay
+ * now, and gets a GROW page for exactly that. They come back to the same
+ * address later for the rest, possibly by a different method.
+ *
+ * The amount is computed here from the keys and never read from the request.
+ * The page posts a selection, not a price — a price in a form is a price a
+ * customer can edit.
+ */
+export async function issueCustomerSelection(
+  token: string,
+  keys: string[],
+  origin: string,
+  meta: { ip?: string | null; userAgent?: string | null } = {}
+): Promise<{ url: string } | { error: string }> {
+  const contract = await loadContractForPayment({ token });
+  if (!contract) return { error: "ההסכם לא נמצא" };
+  if (contract.status !== "signed") return { error: "אפשר לשלם רק אחרי חתימה על ההסכם" };
+
+  const [parts, totals] = await Promise.all([
+    contractPayableParts(contract.id),
+    contractPaymentTotals(contract.id),
+  ]);
+  if (!totals || totals.outstanding <= 0) return { error: "ההסכם הזה כבר שולם" };
+
+  // Only what is genuinely still open. A key that is already paid, or that the
+  // customer never had, simply is not in here.
+  const openKeys = new Set(parts.filter((p) => p.claimedBy?.status !== "paid").map((p) => p.key));
+  const chosen = parts.filter((p) => keys.includes(p.key) && openKeys.has(p.key));
+  if (!chosen.length) return { error: "לא נבחר שום פריט לתשלום" };
+
+  const amount = round2(chosen.reduce((t, p) => t + p.amount, 0));
+  if (!(amount > 0)) return { error: "הסכום אינו תקין" };
+
+  // The link the contract was given on signing covers everything. Choosing a
+  // subset means replacing it; choosing beside existing parts means adding.
+  const admin = createSupabaseAdminClient();
+  const { data: pendingRows } = await admin
+    .from("contract_payments")
+    .select("id, amount, part_keys")
+    .eq("contract_id", contract.id)
+    .eq("status", "pending");
+
+  const pending = (pendingRows ?? []) as Array<{ id: string; amount: number | string; part_keys: string[] | null }>;
+  const wholeBill = pending.length === 1 && !pending[0]!.part_keys
+    && Math.abs(Number(pending[0]!.amount) - totals.outstanding) < 0.01;
+
+  try {
+    const row = await issuePaymentLink(contract.id, {
+      amount,
+      maxInstallments: 1,
+      mode: wholeBill ? "replace" : "add",
+      forLabel: chosen.map((p) => p.label).join(", "),
+      partKeys: chosen.map((p) => p.key),
+      createdBy: null,
+      origin,
+      ...meta,
+    });
+    return row.payment_url ? { url: row.payment_url } : { error: "לא הצלחנו לפתוח דף תשלום" };
+  } catch (error) {
+    return { error: error instanceof PaymentError ? error.message : "לא הצלחנו לפתוח דף תשלום" };
+  }
 }
 
 // ── settling ─────────────────────────────────────────────────────────────────

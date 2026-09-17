@@ -130,6 +130,7 @@ export function ContractPayment({
         maxInstallments: 1,
         mode: splitMode,
         forLabel: pickedParts.map((p) => p.label).join(", "),
+        partKeys: pickedParts.map((p) => p.key),
       },
       "issue"
     ).then(() => setPicked([]));
@@ -276,20 +277,37 @@ export function ContractPayment({
                   ) : null}
 
                   <ul className="mb-3 space-y-1.5">
-                    {payableParts.map((part) => (
-                      <li key={part.key}>
-                        <label className="flex cursor-pointer items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-brand-grey">
-                          <input
-                            type="checkbox"
-                            checked={picked.includes(part.key)}
-                            onChange={() => toggle(part.key)}
-                            className="h-4 w-4 shrink-0"
-                          />
-                          <span className="flex-1 text-sm text-brand-dark">{part.label}</span>
-                          <span className="text-sm font-semibold text-brand-dark">{ILS.format(part.amount)}</span>
-                        </label>
-                      </li>
-                    ))}
+                    {payableParts.map((part) => {
+                      // A part the whole-bill link "covers" is not really taken:
+                      // that link is about to be replaced by this very split.
+                      const taken = splitMode === "add" ? part.claimedBy : null;
+                      return (
+                        <li key={part.key}>
+                          <label
+                            className={`flex items-center gap-2.5 rounded-lg px-2 py-1.5 ${
+                              taken ? "opacity-60" : "cursor-pointer hover:bg-brand-grey"
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={picked.includes(part.key)}
+                              onChange={() => toggle(part.key)}
+                              disabled={!!taken}
+                              className="h-4 w-4 shrink-0"
+                            />
+                            <span className="flex-1 text-sm text-brand-dark">
+                              {part.label}
+                              {taken ? (
+                                <span className="ms-2 text-xs font-semibold text-brand-muted">
+                                  {taken.status === "paid" ? "· שולם" : "· כבר בקישור קיים"}
+                                </span>
+                              ) : null}
+                            </span>
+                            <span className="text-sm font-semibold text-brand-dark">{ILS.format(part.amount)}</span>
+                          </label>
+                        </li>
+                      );
+                    })}
                   </ul>
 
                   <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-3">

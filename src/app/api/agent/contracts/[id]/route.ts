@@ -126,7 +126,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
       if (action === "payment_link") {
         const payload = body as {
-          amount?: unknown; maxInstallments?: unknown; mode?: unknown; forLabel?: unknown;
+          amount?: unknown; maxInstallments?: unknown; mode?: unknown;
+          forLabel?: unknown; partKeys?: unknown;
         };
         const amount = Number(payload.amount);
         if (!Number.isFinite(amount) || amount <= 0) {
@@ -140,12 +141,20 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
             ? payload.forLabel.trim().slice(0, 60)
             : null;
 
+        // Bounded and string-checked: these are written to the row and later
+        // matched against part keys, and an array of anything is a body a
+        // client controls.
+        const partKeys = Array.isArray(payload.partKeys)
+          ? payload.partKeys.filter((k): k is string => typeof k === "string" && k.length > 0 && k.length <= 64).slice(0, 50)
+          : null;
+
         const origin = (process.env.NEXT_PUBLIC_SITE_URL ?? new URL(request.url).origin).replace(/\/$/, "");
         const payment = await issuePaymentLink(id, {
           amount,
           maxInstallments: Number(payload.maxInstallments) || 1,
           mode,
           forLabel,
+          partKeys,
           createdBy: session.id,
           origin,
           ip: request.headers.get("x-forwarded-for")?.split(",")[0]?.trim().slice(0, 64) ?? null,

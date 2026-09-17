@@ -188,3 +188,57 @@ test("each part of a split has its own customer-facing address", () => {
     "the token must be checked against the payment's contract"
   );
 });
+
+// ── the customer choosing for themselves ────────────────────────────────────
+
+test("the customer posts a selection, never a price", () => {
+  // A price in a form is a price a customer can edit. The amount has to be
+  // computed on the server from the keys, or a ₪10,000 contract can be settled
+  // for ₪1 by anyone who opens the developer tools.
+  const fn = payments.slice(
+    payments.indexOf("export async function issueCustomerSelection"),
+    payments.indexOf("// ── settling ")
+  );
+  assert.ok(fn.length > 0, "issueCustomerSelection is gone");
+  assert.ok(
+    fn.includes("chosen.reduce((t, p) => t + p.amount, 0)"),
+    "the amount must be summed from the parts the server resolved"
+  );
+
+  const route = readFileSync(
+    fileURLToPath(new URL("../src/app/(site)/c/[token]/pay/route.ts", import.meta.url)),
+    "utf8"
+  );
+  assert.ok(route.includes('form.getAll("part")'), "the form posts keys");
+  assert.ok(!/form\.get\(["']amount["']\)/.test(route), "the form must not post an amount");
+});
+
+test("a part that is already paid cannot be selected again", () => {
+  const fn = payments.slice(
+    payments.indexOf("export async function issueCustomerSelection"),
+    payments.indexOf("// ── settling ")
+  );
+  assert.ok(
+    fn.includes('p.claimedBy?.status !== "paid"'),
+    "paid parts must be excluded from what a selection can contain"
+  );
+});
+
+test("what a link covers is stored, not only sent to GROW", () => {
+  // The picker could not show that הקמה was already claimed, because nothing
+  // recorded which parts a link covered. The agent saw three open checkboxes
+  // and was refused for reasons the screen could not explain.
+  assert.ok(payments.includes("part_keys: opts.partKeys"), "part keys must be written to the row");
+  assert.ok(payments.includes("for_label: opts.forLabel"), "the readable label too");
+  assert.ok(payments.includes("claimedBy"), "parts must report who holds them");
+});
+
+test("every GROW link names the contract it belongs to", () => {
+  // So a charge in GROW's dashboard can be traced back to an agreement without
+  // opening this system at all.
+  assert.match(
+    payments,
+    /const title = opts\.forLabel[\s\S]{0,200}הסכם \$\{contract\.contract_number\}/,
+    "the contract number must be in the title GROW receives"
+  );
+});
