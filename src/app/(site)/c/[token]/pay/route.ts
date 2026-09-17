@@ -130,8 +130,12 @@ function chooser(token: string, parts: PayablePart[], error: string | null): Res
       // to an inbox nobody reads, and a customer who wants to pay must always
       // be able to. Choosing it simply replaces the old link with a fresh one.
       const tag = paid ? ' <em class="tag paid-tag">שולם</em>' : "";
+      // Agorot as an integer: the running total is summed in the browser, and
+      // adding 2301.00 + 578.20 in floating point is how a footer ends up
+      // reading ₪2,879.1999999999998.
       return `<label class="row${paid ? " paid" : ""}">
-        <input type="checkbox" name="part" value="${esc(part.key)}" ${paid ? "disabled" : "checked"}>
+        <input type="checkbox" name="part" value="${esc(part.key)}"
+               data-agorot="${Math.round(part.amount * 100)}" ${paid ? "disabled" : "checked"}>
         <span class="label">${esc(part.label)}${tag}</span>
         <span class="amount">${esc(ILS.format(part.amount))}</span>
       </label>`;
@@ -167,8 +171,11 @@ function chooser(token: string, parts: PayablePart[], error: string | null): Res
        button:disabled { opacity: .5; cursor: default; }
        .err { background: #FEF2F2; color: #B91C1C; border-radius: 12px; padding: 12px 14px; font-size: 14px; margin-bottom: 16px; }
        .note { color: #5F6575; font-size: 13px; line-height: 1.6; margin-top: 16px; text-align: center; }
-       .total { display: flex; justify-content: space-between; padding: 14px 12px 4px; font-size: 15px; }
-       .total strong { font-size: 17px; }
+       .totals { margin-top: 12px; padding: 4px 8px 8px; }
+       .total { display: flex; justify-content: space-between; align-items: baseline; padding: 10px 12px; font-size: 15px; }
+       .total.now strong { font-size: 19px; }
+       .total.rest { border-top: 1px solid #F0F1F4; color: #5F6575; font-size: 14px; }
+       .total.rest span:last-child { font-weight: 700; }
      </style></head>
      <body><div class="wrap">
        <h1>מה תרצו לשלם עכשיו?</h1>
@@ -177,10 +184,57 @@ function chooser(token: string, parts: PayablePart[], error: string | null): Res
        <form method="POST">
          <div class="card">
            ${rows}
-           <div class="total"><span>סה״כ לתשלום</span><strong>${esc(ILS.format(openTotal))}</strong></div>
          </div>
-         <button type="submit">המשך לתשלום</button>
+
+         <!-- The sum of what is ticked, and what that leaves behind. It said
+              "סה״כ לתשלום" against the whole bill whatever was selected, so a
+              customer paying one item of three read a number four times what
+              they were about to be charged. -->
+         <div class="card totals">
+           <div class="total now">
+             <span>לתשלום עכשיו</span>
+             <strong id="now">${esc(ILS.format(openTotal))}</strong>
+           </div>
+           <div class="total rest" id="rest-row" hidden>
+             <span>יישאר לתשלום</span>
+             <span id="rest"></span>
+           </div>
+         </div>
+
+         <button type="submit" id="go">המשך לתשלום</button>
        </form>
+       <script>
+         (function () {
+           var boxes = [].slice.call(document.querySelectorAll('input[name="part"]:not([disabled])'));
+           var now = document.getElementById('now');
+           var rest = document.getElementById('rest');
+           var restRow = document.getElementById('rest-row');
+           var go = document.getElementById('go');
+           var open = boxes.reduce(function (t, b) { return t + Number(b.dataset.agorot || 0); }, 0);
+
+           function money(agorot) {
+             return (agorot / 100).toLocaleString('he-IL', {
+               style: 'currency', currency: 'ILS', maximumFractionDigits: 2,
+             });
+           }
+
+           function render() {
+             var picked = boxes.reduce(function (t, b) {
+               return t + (b.checked ? Number(b.dataset.agorot || 0) : 0);
+             }, 0);
+             now.textContent = money(picked);
+             var left = open - picked;
+             restRow.hidden = left <= 0;
+             rest.textContent = money(left);
+             // Nothing ticked is not a payment; the button says so rather than
+             // sending an empty selection to be refused.
+             go.disabled = picked <= 0;
+           }
+
+           boxes.forEach(function (b) { b.addEventListener('change', render); });
+           render();
+         })();
+       </script>
        <p class="note">בעמוד הבא אפשר לשלם בכרטיס אשראי, בביט או בהעברה בנקאית.</p>
      </div></body></html>`,
     {

@@ -290,3 +290,23 @@ test("only a paid part is closed to selection", () => {
   assert.match(route, /const paid = part\.claimedBy\?\.status === "paid"/);
   assert.match(route, /\$\{paid \? "disabled" : "checked"\}/);
 });
+
+test("the customer's total follows what they ticked", () => {
+  // It read "סה״כ לתשלום" against the whole bill whatever was selected, so a
+  // customer paying one item of three saw a number four times what they were
+  // about to be charged.
+  const route = readFileSync(
+    fileURLToPath(new URL("../src/app/(site)/c/[token]/pay/route.ts", import.meta.url)),
+    "utf8"
+  );
+  assert.ok(route.includes('id="now"'), "what is being paid now must have its own figure");
+  assert.ok(route.includes('id="rest"'), "and what it leaves behind");
+
+  // Summed in agorot. 2301.00 + 578.20 in floating point renders as
+  // ₪2,879.1999999999998 in a footer.
+  assert.ok(route.includes("data-agorot"), "amounts must travel as integers");
+  assert.ok(!/data-amount="\$\{part\.amount\}/.test(route), "not as floats");
+
+  // An empty selection is not a payment.
+  assert.ok(route.includes("go.disabled = picked <= 0"), "nothing ticked must not be submittable");
+});
