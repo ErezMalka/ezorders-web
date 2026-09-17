@@ -135,9 +135,12 @@ function chooser(token: string, parts: PayablePart[], error: string | null): Res
       // reading ₪2,879.1999999999998.
       return `<label class="row${paid ? " paid" : ""}">
         <input type="checkbox" name="part" value="${esc(part.key)}"
-               data-agorot="${Math.round(part.amount * 100)}" ${paid ? "disabled" : "checked"}>
+               data-agorot="${Math.round(part.amount * 100)}"
+               data-net="${Math.round(part.net * 100)}" ${paid ? "disabled" : "checked"}>
         <span class="label">${esc(part.label)}${tag}</span>
-        <span class="amount">${esc(ILS.format(part.amount))}</span>
+        <span class="amount">${esc(ILS.format(part.amount))}
+          <em class="net">(${esc(ILS.format(part.net))} לפני מע״מ)</em>
+        </span>
       </label>`;
     })
     .join("");
@@ -165,12 +168,19 @@ function chooser(token: string, parts: PayablePart[], error: string | null): Res
        .tag { font-style: normal; font-size: 12px; font-weight: 700; }
        .paid-tag { color: #0F7B50; }
        .sent-tag { color: #8A6100; }
-       .amount { font-size: 15px; font-weight: 700; white-space: nowrap; }
+       .amount { font-size: 15px; font-weight: 700; white-space: nowrap; text-align: start; }
+       .net { display: block; font-style: normal; font-size: 12px; font-weight: 400; color: #8A90A0; margin-top: 2px; }
+       .figure { text-align: start; }
        button { width: 100%; margin-top: 20px; padding: 15px; border: 0; border-radius: 999px;
                 background: #191D2A; color: #fff; font-size: 16px; font-weight: 700; cursor: pointer; }
        button:disabled { opacity: .5; cursor: default; }
        .err { background: #FEF2F2; color: #B91C1C; border-radius: 12px; padding: 12px 14px; font-size: 14px; margin-bottom: 16px; }
        .note { color: #5F6575; font-size: 13px; line-height: 1.6; margin-top: 16px; text-align: center; }
+       /* .total sets display:flex, which beats the default display:none that
+          the hidden attribute relies on — so "יישאר לתשלום ₪0.00" stayed on
+          screen with everything ticked. Nothing else here toggles visibility,
+          so this is stated once, loudly, rather than per rule. */
+       [hidden] { display: none !important; }
        .totals { margin-top: 12px; padding: 4px 8px 8px; }
        .total { display: flex; justify-content: space-between; align-items: baseline; padding: 10px 12px; font-size: 15px; }
        .total.now strong { font-size: 19px; }
@@ -193,7 +203,10 @@ function chooser(token: string, parts: PayablePart[], error: string | null): Res
          <div class="card totals">
            <div class="total now">
              <span>לתשלום עכשיו</span>
-             <strong id="now">${esc(ILS.format(openTotal))}</strong>
+             <span class="figure">
+               <strong id="now">${esc(ILS.format(openTotal))}</strong>
+               <em class="net" id="now-net"></em>
+             </span>
            </div>
            <div class="total rest" id="rest-row" hidden>
              <span>יישאר לתשלום</span>
@@ -210,6 +223,7 @@ function chooser(token: string, parts: PayablePart[], error: string | null): Res
            var rest = document.getElementById('rest');
            var restRow = document.getElementById('rest-row');
            var go = document.getElementById('go');
+           var nowNet = document.getElementById('now-net');
            var open = boxes.reduce(function (t, b) { return t + Number(b.dataset.agorot || 0); }, 0);
 
            function money(agorot) {
@@ -222,7 +236,11 @@ function chooser(token: string, parts: PayablePart[], error: string | null): Res
              var picked = boxes.reduce(function (t, b) {
                return t + (b.checked ? Number(b.dataset.agorot || 0) : 0);
              }, 0);
+             var pickedNet = boxes.reduce(function (t, b) {
+               return t + (b.checked ? Number(b.dataset.net || 0) : 0);
+             }, 0);
              now.textContent = money(picked);
+             nowNet.textContent = '(' + money(pickedNet) + ' לפני מע״מ)';
              var left = open - picked;
              restRow.hidden = left <= 0;
              rest.textContent = money(left);

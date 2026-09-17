@@ -198,6 +198,12 @@ export interface PayablePart {
   /** VAT included, and the parts sum to the contract total exactly. */
   amount: number;
   /**
+   * The same part before VAT, allocated separately so this column adds up on
+   * its own. A customer reading "לפני מע״מ" beside a price does the arithmetic,
+   * and a total that is an agora out is the kind of thing they ring about.
+   */
+  net: number;
+  /**
    * Already settled, or already sitting in a link somebody is waiting on.
    *
    * Without this the picker offered everything, the server refused whatever
@@ -255,19 +261,27 @@ export async function contractPayableParts(contractId: string): Promise<PayableP
   // customer who pays every part is still short, the contract never settles,
   // and somebody chases them for four agorot. Largest remainder: floor each
   // share, then hand the leftover agorot to the parts that lost the most.
-  const dueAgorot = Math.round(defaultPaymentAmount(quote) * 100);
-  const exact = net.map((p) => (p.value / netTotal) * dueAgorot);
-  const floored = exact.map((v) => Math.floor(v));
-  let left = dueAgorot - floored.reduce((t, v) => t + v, 0);
+  /** Largest remainder: floor every share, then hand the leftover agorot to
+   *  whoever lost the most. Applied to the gross and to the net separately, so
+   *  each column adds up on its own — a "before VAT" figure that does not sum
+   *  to the pre-VAT total is exactly the sort of thing a customer checks. */
+  const allocate = (targetAgorot: number): number[] => {
+    const exact = net.map((p) => (p.value / netTotal) * targetAgorot);
+    const floored = exact.map((v) => Math.floor(v));
+    let left = targetAgorot - floored.reduce((t, v) => t + v, 0);
+    const order = exact
+      .map((v, idx) => ({ idx, frac: v - Math.floor(v) }))
+      .sort((a, b) => b.frac - a.frac);
+    for (const { idx } of order) {
+      if (left <= 0) break;
+      floored[idx]! += 1;
+      left -= 1;
+    }
+    return floored;
+  };
 
-  const order = exact
-    .map((v, idx) => ({ idx, frac: v - Math.floor(v) }))
-    .sort((a, b) => b.frac - a.frac);
-  for (const { idx } of order) {
-    if (left <= 0) break;
-    floored[idx]! += 1;
-    left -= 1;
-  }
+  const floored = allocate(Math.round(defaultPaymentAmount(quote) * 100));
+  const flooredNet = allocate(Math.round(netTotal * 100));
 
   // Which parts a live link already covers. A link with no part_keys is a
   // whole-bill link and claims nothing in particular — splitting replaces it,
@@ -294,6 +308,7 @@ export async function contractPayableParts(contractId: string): Promise<PayableP
     key: p.key,
     label: p.label,
     amount: floored[idx]! / 100,
+    net: flooredNet[idx]! / 100,
     claimedBy: claimed.get(p.key) ?? null,
   }));
 }

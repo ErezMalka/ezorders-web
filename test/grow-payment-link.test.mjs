@@ -142,7 +142,10 @@ test("the parts sum to the contract total exactly", () => {
   assert.ok(fn.length > 0, "contractPayableParts is gone");
   assert.ok(fn.includes("Math.floor"), "shares must be floored, then topped up");
   assert.ok(/left\s*-=\s*1/.test(fn), "the leftover agorot must be handed out");
-  assert.ok(fn.includes("dueAgorot"), "the target is the contract total in agorot");
+  assert.ok(
+    fn.includes("allocate(Math.round(defaultPaymentAmount(quote) * 100))"),
+    "the target is the contract total in agorot"
+  );
 
   // Derived, never assumed: the base fee is a pricing setting and moves.
   assert.ok(!/1950/.test(fn), "the base setup fee must not be hardcoded");
@@ -309,4 +312,32 @@ test("the customer's total follows what they ticked", () => {
 
   // An empty selection is not a payment.
   assert.ok(route.includes("go.disabled = picked <= 0"), "nothing ticked must not be submittable");
+});
+
+test("the pre-VAT column adds up on its own", () => {
+  // A customer reading "לפני מע״מ" beside a price does the arithmetic. Deriving
+  // each net figure by dividing its own gross leaves the column an agora or two
+  // out of the pre-VAT total, which is exactly what gets noticed.
+  const fn = payments.slice(
+    payments.indexOf("export async function contractPayableParts"),
+    payments.indexOf("export interface PaymentSummary")
+  );
+  assert.ok(fn.includes("const allocate ="), "one allocator, used for both columns");
+  assert.ok(fn.includes("allocate(Math.round(defaultPaymentAmount(quote) * 100))"), "gross");
+  assert.ok(fn.includes("allocate(Math.round(netTotal * 100))"), "and net, allocated separately");
+});
+
+test("a zero remainder is hidden, not printed", () => {
+  const route = readFileSync(
+    fileURLToPath(new URL("../src/app/(site)/c/[token]/pay/route.ts", import.meta.url)),
+    "utf8"
+  );
+  // .total sets display:flex, which beats the default display:none behind the
+  // hidden attribute — so "יישאר לתשלום ₪0.00" stayed on screen with
+  // everything ticked.
+  assert.ok(
+    route.includes("[hidden] { display: none !important; }"),
+    "hidden must survive the flex rule on .total"
+  );
+  assert.ok(route.includes("restRow.hidden = left <= 0"), "and be toggled when nothing is left");
 });

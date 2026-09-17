@@ -316,7 +316,12 @@ export function ContractPayment({
                                 <span className="ms-2 text-xs text-brand-muted">· קישור קודם יוחלף</span>
                               ) : null}
                             </span>
-                            <span className="text-sm font-semibold text-brand-dark">{ILS.format(part.amount)}</span>
+                            <span className="text-end text-sm font-semibold text-brand-dark">
+                              {ILS.format(part.amount)}
+                              <span className="block text-xs font-normal text-brand-muted">
+                                {ILS.format(part.net)} לפני מע״מ
+                              </span>
+                            </span>
                           </label>
                         </li>
                       );
