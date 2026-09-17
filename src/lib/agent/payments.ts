@@ -692,6 +692,26 @@ export async function issueCustomerSelection(
   // which is the least acceptable dead end on a payment page.
   const coversEverythingOpen = [...openKeys].every((k) => keys.includes(k));
 
+  // The amount guard is not enough on its own, and this is where it leaks: a
+  // customer who unticks the expensive item and keeps two cheap ones can land
+  // under the unclaimed total while one of those two is already sitting in a
+  // live link. Same item, two links, paid twice. Amounts do not catch it —
+  // only the parts do.
+  //
+  // Selecting everything open is exempt, because that supersedes the live links
+  // rather than joining them.
+  if (!coversEverythingOpen) {
+    const taken = chosen.filter((p) => p.claimedBy);
+    if (taken.length) {
+      return {
+        error:
+          taken.length === 1
+            ? `על ${taken[0]!.label} כבר נשלח קישור תשלום. בחרו פריט אחר, או סמנו את הכל כדי לשלם את מלוא היתרה.`
+            : "על חלק מהפריטים שבחרתם כבר נשלח קישור תשלום. סמנו את הכל כדי לשלם את מלוא היתרה.",
+      };
+    }
+  }
+
   try {
     const row = await issuePaymentLink(contract.id, {
       amount,

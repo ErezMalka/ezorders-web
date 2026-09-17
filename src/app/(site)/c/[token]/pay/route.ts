@@ -125,9 +125,18 @@ function chooser(token: string, parts: PayablePart[], error: string | null): Res
   const rows = parts
     .map((part) => {
       const paid = part.claimedBy?.status === "paid";
+      // A part already sitting in a live link can still be chosen — but only as
+      // part of "everything", which replaces that link rather than joining it.
+      // Saying so here beats discovering it on submit.
+      const sent = !paid && !!part.claimedBy;
+      const tag = paid
+        ? ' <em class="tag paid-tag">שולם</em>'
+        : sent
+          ? ' <em class="tag sent-tag">קישור כבר נשלח</em>'
+          : "";
       return `<label class="row${paid ? " paid" : ""}">
         <input type="checkbox" name="part" value="${esc(part.key)}" ${paid ? "disabled" : "checked"}>
-        <span class="label">${esc(part.label)}${paid ? ' <em class="tag">שולם</em>' : ""}</span>
+        <span class="label">${esc(part.label)}${tag}</span>
         <span class="amount">${esc(ILS.format(part.amount))}</span>
       </label>`;
     })
@@ -153,7 +162,9 @@ function chooser(token: string, parts: PayablePart[], error: string | null): Res
        .row.paid { cursor: default; opacity: .55; }
        .row input { width: 20px; height: 20px; flex: none; accent-color: #F05D86; }
        .label { flex: 1; font-size: 15px; }
-       .tag { font-style: normal; font-size: 12px; color: #0F7B50; font-weight: 700; }
+       .tag { font-style: normal; font-size: 12px; font-weight: 700; }
+       .paid-tag { color: #0F7B50; }
+       .sent-tag { color: #8A6100; }
        .amount { font-size: 15px; font-weight: 700; white-space: nowrap; }
        button { width: 100%; margin-top: 20px; padding: 15px; border: 0; border-radius: 999px;
                 background: #191D2A; color: #fff; font-size: 16px; font-weight: 700; cursor: pointer; }

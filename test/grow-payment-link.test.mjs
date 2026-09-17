@@ -253,3 +253,19 @@ test("every GROW link names the contract it belongs to", () => {
     "the contract number must be in the title GROW receives"
   );
 });
+
+test("a part already in a live link cannot join a second one", () => {
+  // The amount guard leaks here: untick the expensive item, keep two cheap
+  // ones, and the total lands under the unclaimed balance while one of those
+  // two is already sitting in a live link. Same item, two links, paid twice.
+  // Amounts cannot see it — only the parts can.
+  const fn = payments.slice(
+    payments.indexOf("export async function issueCustomerSelection"),
+    payments.indexOf("// ── settling ")
+  );
+  assert.ok(fn.includes("chosen.filter((p) => p.claimedBy)"), "chosen parts must be checked for a live claim");
+  assert.ok(
+    fn.includes("if (!coversEverythingOpen)"),
+    "selecting everything open is the one exemption — it replaces those links"
+  );
+});
