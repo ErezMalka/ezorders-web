@@ -51,10 +51,21 @@ for f in test/sql/00_supabase_stub.sql \
          supabase/migrations/0021_hardware_kds_payment_printer.sql \
          supabase/migrations/0022_quote_edit_and_phone.sql \
          supabase/migrations/0023_software_families.sql \
-         supabase/migrations/0024_direct_contract.sql; do
+         supabase/migrations/0024_direct_contract.sql \
+         supabase/migrations/0025_contract_price_breakdown.sql \
+         supabase/migrations/0026_agent_price_overrides.sql \
+         supabase/migrations/0027_english_labels.sql \
+         supabase/migrations/0028_pos_registers.sql \
+         supabase/migrations/0029_contract_payments.sql \
+         supabase/migrations/0030_software_labels.sql \
+         supabase/migrations/0031_crm_sync.sql \
+         supabase/migrations/0032_quote_send.sql \
+         supabase/migrations/0033_payment_parts.sql \
+         supabase/migrations/0034_tenbis_accounts.sql; do
   psql -q -v ON_ERROR_STOP=1 -d "$DB" -f "$f" > /dev/null
 done
 for t in test/sql/10_orders.sql test/sql/20_privileges.sql test/sql/30_contracts.sql \
-         test/sql/40_quote_editing.sql test/sql/50_direct_contract.sql; do
+         test/sql/40_quote_editing.sql test/sql/50_direct_contract.sql \
+         test/sql/60_tenbis.sql; do
   psql -q -v ON_ERROR_STOP=1 -d "$DB" -f "$t" 2>&1 | grep -E 'NOTICE:  ok|ERROR|── ' | sed 's/^psql:[^ ]* //'
 done
