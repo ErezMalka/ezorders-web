@@ -296,6 +296,14 @@ in the feature still works. Do not let it block steps 1–6.
 Each step is useful on its own, which is deliberate — if we stop after any of
 them, what exists still works.
 
+**All eight are built.** Step 6 arrived inside step 4 — the instructions message
+is the copy button on the panel, which records `instructed` as it copies, since
+an agent who copied the message is an agent about to send it. Two things are
+still configuration rather than code: `TENBIS_ENC_KEY` and
+`BITE_SUPABASE_URL` / `BITE_SUPABASE_SERVICE_ROLE_KEY` in Vercel. Without the
+first the panel says the feature is unconfigured; without the second everything
+works except the last hop, and the delivery button says why it is disabled.
+
 1. Migration + crypto module + their tests. Nothing visible yet.
 2. `tenbis-api.ts` with the login call, and a test against a stubbed fetch.
 3. `lib/agent/tenbis.ts` + the GET/POST/verify routes.
@@ -313,9 +321,13 @@ them, what exists still works.
 - ~~Does the CRM hold the Bite branch id?~~ **Checked: yes.** bite_branches_cache,
   1,170 branches, 98% with a phone. Match on phone, confirm with a person (§7).
 - Who sets `TENBIS_ENC_KEY` in Vercel, and is there an existing key-rotation
-  practice to match?
-- Should delivery to Bite be a button, or automatic on verify? Button, unless
-  there is a reason — automatic writes to another system on a keystroke.
+  practice to match? **Still open, and now the only thing between the feature
+  and its first real use.**
+- ~~Should delivery to Bite be a button, or automatic on verify?~~ **Settled: a
+  button.** It writes into another company-critical system against a branch
+  confirmed from a phone number, and the module refuses unless the credentials
+  were verified, a person confirmed the branch, and the key is configured — the
+  route restates none of those.
 - Is one 10bis account ever shared across several branches? `tenbis_tokens` in
   Bite is keyed by restaurant id and shared, which assumes it can be. If so, the
   same credentials may legitimately land on two orders.

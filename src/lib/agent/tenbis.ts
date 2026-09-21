@@ -1,5 +1,6 @@
 import "server-only";
 
+import { BITE_TENBIS_TABLE, biteEnabled, createBiteClient } from "@/lib/bite";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { verifyTenbisCredentials } from "@/lib/tenbis-api";
 import {
@@ -386,4 +387,115 @@ export async function setBiteBranch(
 
   if (error) throw new TenbisError(`לא הצלחנו לשמור את מזהה הסניף: ${error.message}`);
   return present(data as AccountRow);
+}
+
+/**
+ * Hand the credentials to the operational system.
+ *
+ * This is the last hop, and the one that has always been a person retyping a
+ * password out of an email into another database. It is a button and not an
+ * automatic consequence of a successful verification: this writes into a
+ * different company-critical system, against a branch id somebody confirmed
+ * from a phone number, and a write like that should happen because an agent
+ * decided it should.
+ *
+ * Three preconditions, each of which is a different mistake being refused:
+ *
+ * - **Configured.** No key, no delivery, and the feature says so rather than
+ *   half-writing.
+ * - **A confirmed branch.** Writing another company's credentials against a
+ *   branch nobody looked at is exactly what the suggest-and-confirm shape
+ *   exists to prevent; a guess must not become a write here either.
+ * - **Verified.** Unproven credentials must not be delivered. The operational
+ *   system has no way to tell a typo from a password that has since changed —
+ *   it will simply fail to pull orders, quietly, weeks later.
+ *
+ * `delivered` is allowed back in on purpose: a branch confirmed wrongly, or a
+ * password reissued by תן ביס, both have to be re-delivered, and a rule that
+ * only ever runs once would send that back to being done by hand.
+ */
+export async function deliverTenbisAccount(
+  orderId: string,
+  actorId: string,
+): Promise<TenbisAccount> {
+  if (!biteEnabled()) {
+    throw new TenbisError("ההעברה למערכת התפעולית אינה מוגדרת (חסר BITE_SUPABASE_SERVICE_ROLE_KEY)");
+  }
+  const key = tenbisKey();
+  if (!key) throw new TenbisError("תן ביס אינו מוגדר במערכת (חסר TENBIS_ENC_KEY)");
+
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("tenbis_accounts")
+    .select(SELECT)
+    .eq("order_id", orderId)
+    .maybeSingle();
+
+  if (error) throw new TenbisError(`לא הצלחנו לטעון את הגדרות תן ביס: ${error.message}`);
+  if (!data) throw new TenbisError("אין עדיין פרטי תן ביס להזמנה הזו");
+
+  const row = data as AccountRow;
+  if (!row.bite_branch_id) {
+    throw new TenbisError("צריך לקבוע סניף במערכת התפעולית לפני ההעברה");
+  }
+  if (row.state !== "verified" && row.state !== "delivered") {
+    throw new TenbisError("אפשר להעביר רק פרטים שנבדקו בהצלחה מול תן ביס");
+  }
+  if (!row.password_enc) throw new TenbisError("חסרה סיסמה להעברה");
+
+  let password: string;
+  try {
+    password = decryptSecret(row.password_enc, key);
+  } catch (e) {
+    if (e instanceof TenbisCryptoError) {
+      throw new TenbisError("לא ניתן לפענח את הסיסמה השמורה. ייתכן שמפתח ההצפנה השתנה — יש להזין אותה מחדש.");
+    }
+    throw e;
+  }
+
+  // Upsert on the branch, because this is the answer to "what are this
+  // branch's credentials" and not a log of attempts. A branch whose password
+  // was reissued has one row, holding the password that works.
+  const bite = createBiteClient();
+  const { error: biteError } = await bite
+    .from(BITE_TENBIS_TABLE)
+    .upsert(
+      {
+        branch_id: row.bite_branch_id,
+        tenbis_user: row.tenbis_user,
+        tenbis_password: password,
+        restaurant_id: row.restaurant_id,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "branch_id" },
+    );
+
+  if (biteError) {
+    // The message, never the payload. An error from a failed write is one of
+    // the places a plaintext password has historically ended up in a log.
+    throw new TenbisError(`ההעברה למערכת התפעולית נכשלה: ${biteError.message}`);
+  }
+
+  const { data: updated, error: markError } = await supabase
+    .from("tenbis_accounts")
+    .update({
+      state: "delivered",
+      delivered_at: new Date().toISOString(),
+      last_error: null,
+      updated_by: actorId,
+    })
+    .eq("order_id", orderId)
+    .select(SELECT)
+    .single();
+
+  // The credentials are over there either way. Losing the record of it is a
+  // bad outcome but not an undeliverable one, and saying "failed" would have an
+  // agent deliver it twice.
+  if (markError) {
+    throw new TenbisError(
+      `הפרטים הועברו למערכת התפעולית, אך לא הצלחנו לעדכן את הסטטוס: ${markError.message}`,
+    );
+  }
+
+  return present(updated as AccountRow);
 }

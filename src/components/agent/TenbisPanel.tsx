@@ -101,11 +101,14 @@ export function TenbisPanel({
   orderId,
   customerName,
   configured,
+  deliveryConfigured = false,
   account: initial,
 }: {
   orderId: string;
   customerName: string;
   configured: boolean;
+  /** Whether the operational system can be written to at all — its own key. */
+  deliveryConfigured?: boolean;
   account: TenbisAccount | null;
 }) {
   const router = useRouter();
@@ -113,7 +116,7 @@ export function TenbisPanel({
   const [user, setUser] = useState(initial?.tenbis_user ?? "");
   const [restaurantId, setRestaurantId] = useState(initial?.restaurant_id ?? "");
   const [password, setPassword] = useState("");
-  const [busy, setBusy] = useState<null | "save" | "verify" | "instruct" | "branch">(null);
+  const [busy, setBusy] = useState<null | "save" | "verify" | "instruct" | "branch" | "deliver">(null);
   const [error, setError] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -307,7 +310,43 @@ export function TenbisPanel({
     }
   };
 
+  /**
+   * Hand the credentials to the operational system.
+   *
+   * Deliberately a press. It writes into a different system against a branch
+   * somebody confirmed from a phone number, and the rules about when it is
+   * allowed live on the server — this only says what came back.
+   */
+  const deliver = async () => {
+    setBusy("deliver");
+    setError(null);
+    setNote(null);
+    try {
+      const { res, json } = await post("/deliver");
+      if (!res.ok) throw new Error(String(json.error ?? "ההעברה נכשלה"));
+      setAccount(json.account as TenbisAccount);
+      setNote("הפרטים הועברו למערכת התפעולית.");
+      router.refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "ההעברה נכשלה");
+    } finally {
+      setBusy(null);
+    }
+  };
+
   const canVerify = !!account?.hasPassword && !!account.tenbis_user && !!account.restaurant_id;
+
+  // Why delivery is not available yet, most fundamental first: an unconfigured
+  // server is not something an agent can work around, so saying "run a
+  // verification" there would send them down a path that ends in a wall. A
+  // disabled button that does not say what is missing is a support call.
+  const deliverBlocker = !deliveryConfigured
+    ? "ההעברה האוטומטית אינה מוגדרת בשרת"
+    : account?.state !== "verified" && account?.state !== "delivered"
+      ? "צריך קודם בדיקת חיבור מוצלחת מול תן ביס"
+      : !account?.bite_branch_id
+        ? "צריך לקבוע סניף במערכת התפעולית"
+        : null;
 
   return (
     <section className="rounded-card border border-slate-200 bg-white p-5 shadow-sm">
@@ -388,6 +427,25 @@ export function TenbisPanel({
         >
           {busy === "verify" ? "בודק מול תן ביס…" : "בדיקת חיבור"}
         </button>
+        <button
+          type="button"
+          onClick={deliver}
+          disabled={busy !== null || deliverBlocker !== null}
+          title={deliverBlocker ?? undefined}
+          className="rounded-pill border border-slate-200 px-4 py-2 text-sm font-semibold text-brand-muted transition-colors hover:bg-brand-grey disabled:opacity-50"
+        >
+          {busy === "deliver"
+            ? "מעביר…"
+            : account?.state === "delivered"
+              ? "העברה מחדש להקמה"
+              : "העברה להקמה"}
+        </button>
+        {/* Only once something has started. On an untouched order the whole
+            panel already says what to do first, and a second reminder that
+            delivery is not available yet is noise. */}
+        {deliverBlocker && account ? (
+          <span className="text-xs text-brand-muted">{deliverBlocker}</span>
+        ) : null}
       </div>
 
       {/* ── The branch, suggested and confirmed ──────────────────────────────

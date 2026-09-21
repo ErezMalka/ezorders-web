@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 import { AgentShell } from "@/components/agent/AgentShell";
 import { OrderStatusControl } from "@/components/agent/OrderStatusControl";
 import { TenbisPanel } from "@/components/agent/TenbisPanel";
+import { biteEnabled } from "@/lib/bite";
 import { getOrder } from "@/lib/agent/orders";
 import { getTenbisAccount, orderHasTenbis, tenbisEnabled } from "@/lib/agent/tenbis";
 import { requireAgentSession } from "@/lib/agent/session";
@@ -50,6 +51,9 @@ export default async function AgentOrderPage({ params }: { params: Promise<{ id:
     getTenbisAccount(order.id),
   ]);
   const tenbisConfigured = tenbisEnabled();
+  // Delivery is its own switch: the operational system is a different project
+  // with its own key, and everything up to the last hop works without it.
+  const tenbisDelivery = biteEnabled();
 
   return (
     <AgentShell
@@ -146,6 +150,7 @@ export default async function AgentOrderPage({ params }: { params: Promise<{ id:
               orderId={order.id}
               customerName={order.customer_name}
               configured={tenbisConfigured}
+              deliveryConfigured={tenbisDelivery}
               account={tenbisAccount}
             />
           ) : null}

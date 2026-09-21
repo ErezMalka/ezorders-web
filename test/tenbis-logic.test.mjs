@@ -55,13 +55,15 @@ test("the password has exactly one way out of the database, and it is not a resp
   assert.ok(iface.includes("hasPassword"));
 });
 
-test("decryptSecret is called in exactly one place — the verification", () => {
+test("decryptSecret is called in exactly two places — the verification and the delivery", () => {
   // Every additional caller is another chance for a plaintext password to end
-  // up somewhere it is not expected. Delivery to Bite will add the second, and
-  // when it does this number changes deliberately rather than quietly.
+  // up somewhere it is not expected. Delivery to Bite added the second, which
+  // is why this number moved — deliberately, in the step that earned it. The
+  // delivery's own half of the rule lives in test/tenbis-delivery.test.mjs.
   const calls = lib.match(/decryptSecret\(/g) ?? [];
-  assert.equal(calls.length, 1, `decryptSecret is called ${calls.length} times`);
+  assert.equal(calls.length, 2, `decryptSecret is called ${calls.length} times`);
   assert.ok(body(lib, "verifyTenbisAccount").includes("decryptSecret("));
+  assert.ok(body(lib, "deliverTenbisAccount").includes("decryptSecret("));
 });
 
 test("no route returns a password, or the row that holds one", () => {
