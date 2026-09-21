@@ -61,7 +61,8 @@ for f in test/sql/00_supabase_stub.sql \
          supabase/migrations/0031_crm_sync.sql \
          supabase/migrations/0032_quote_send.sql \
          supabase/migrations/0033_payment_parts.sql \
-         supabase/migrations/0034_tenbis_accounts.sql; do
+         supabase/migrations/0034_tenbis_accounts.sql \
+         supabase/migrations/0035_tenbis_provisioning.sql; do
   psql -q -v ON_ERROR_STOP=1 -d "$DB" -f "$f" > /dev/null
 done
 for t in test/sql/10_orders.sql test/sql/20_privileges.sql test/sql/30_contracts.sql \

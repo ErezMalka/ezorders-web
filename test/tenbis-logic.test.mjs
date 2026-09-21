@@ -139,7 +139,13 @@ test("the routes run as the caller, never as the service role", () => {
 test("the module does no scoping of its own", () => {
   // "where agent_id = me" in here would be a second, divergent copy of a rule
   // the policy already states — and the one that gets forgotten.
-  assert.ok(!/agent_id/.test(lib), "the module filters by agent_id itself");
+  //
+  // Checked as a FILTER rather than as any mention of the column: the list row
+  // legitimately carries agent_id, and the first version of this test failed on
+  // that field the moment it was added. Reading a column is not scoping by it.
+  assert.ok(!/\.eq\(\s*["']agent_id/.test(lib), "the module filters by agent_id");
+  assert.ok(!/agent_id\s*(=|===)/.test(lib), "the module compares agent_id itself");
+  assert.ok(!/auth\.uid|session\.id\s*===/.test(lib), "the module decides scope itself");
 });
 
 test("the catalogue key matches the column the quotes actually use", () => {
@@ -150,4 +156,50 @@ test("the catalogue key matches the column the quotes actually use", () => {
   const code = lib.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/[^\n]*/g, "");
   assert.match(code, /quote_items\.component_key/);
   assert.ok(!/product_key/i.test(code), "the query still mentions a product_key");
+});
+
+// ── the provisioning list ────────────────────────────────────────────────────
+
+const view = src("../supabase/migrations/0035_tenbis_provisioning.sql");
+
+test("the list view never carries the ciphertext", () => {
+  // It is read by a table of every sold integration. There is no reason for an
+  // encrypted password to travel to a list screen, and a `select *` on the view
+  // is exactly how one would.
+  assert.match(view, /\(t\.password_enc is not null\)\s+as has_password/);
+  const selected = view.slice(view.indexOf("select"), view.indexOf("from public.orders"));
+  assert.ok(
+    !/^\s*t\.password_enc\s*,/m.test(selected),
+    "the view selects password_enc itself",
+  );
+});
+
+test("the list runs as the caller, so scope is the policy's business", () => {
+  // Without security_invoker a view runs as its definer and quietly hands every
+  // agent every customer — the same class of mistake as a check in a route.
+  assert.match(view, /with \(security_invoker = true\)/);
+  assert.ok(!/agent_id\s*=/.test(view), "the view filters by agent itself");
+});
+
+test("an order can only appear once", () => {
+  // A quote may carry the line more than once. Joining quote_items would then
+  // show the customer twice and double every count on the screen.
+  assert.match(view, /where exists \(/);
+  assert.ok(!/join public\.quote_items/.test(view), "the view joins quote_items");
+});
+
+test("worst first, and ours before theirs", () => {
+  // The ordering is the screen's argument: anything broken, then everything
+  // waiting on us, then what is waiting on the customer, then what is done.
+  const ranks = [...view.matchAll(/when '(\w+)'\s+then (\d)/g)].map((m) => [m[1], Number(m[2])]);
+  const rank = Object.fromEntries(ranks);
+  assert.equal(rank.failed, 0, "a broken integration is not at the top");
+  for (const ours of ["entered", "verified", "sold"]) {
+    assert.ok(rank[ours] < rank.instructed, `${ours} sorts below "waiting on the customer"`);
+  }
+  assert.ok(rank.delivered > rank.instructed, "finished work is not last");
+});
+
+test("cancelled orders are not chased", () => {
+  assert.match(view, /o\.status <> 'cancelled'/);
 });

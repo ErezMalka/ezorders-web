@@ -135,6 +135,50 @@ export async function getTenbisAccount(orderId: string): Promise<TenbisAccount |
   return data ? present(data as AccountRow) : null;
 }
 
+export interface TenbisProvisioningRow {
+  order_id: string;
+  order_number: string;
+  customer_name: string;
+  customer_phone: string | null;
+  agent_id: string;
+  accepted_at: string;
+  order_status: string;
+  state: TenbisState;
+  last_error: string | null;
+  instructed_at: string | null;
+  verified_at: string | null;
+  delivered_at: string | null;
+  bite_branch_id: number | null;
+  account_updated_at: string | null;
+  has_password: boolean;
+  sort_rank: number;
+}
+
+/**
+ * Everything sold, and where each one stands. Worst first.
+ *
+ * The question nobody could answer before: an integration paid for four months
+ * ago and never connected looked exactly like one sold yesterday, because the
+ * sale is here, the onboarding task is in the CRM, and the credentials reach
+ * the operational system by hand.
+ *
+ * Scope is the view's business — it is security_invoker, so the same policies
+ * that govern orders and tenbis_accounts choose the rows. An agent gets their
+ * own, a manager gets everyone's, and this function states neither rule.
+ */
+export async function listTenbisProvisioning(limit = 200): Promise<TenbisProvisioningRow[]> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("tenbis_provisioning")
+    .select("*")
+    .order("sort_rank", { ascending: true })
+    .order("accepted_at", { ascending: false })
+    .limit(limit);
+
+  if (error) throw new TenbisError(`לא הצלחנו לטעון את רשימת ההקמות: ${error.message}`);
+  return (data ?? []) as TenbisProvisioningRow[];
+}
+
 // ── writes ────────────────────────────────────────────────────────────────────
 
 export interface SaveInput {
