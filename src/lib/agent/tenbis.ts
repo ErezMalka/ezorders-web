@@ -337,3 +337,53 @@ export async function markInstructed(orderId: string, actorId: string): Promise<
   if (error) throw new TenbisError(`לא הצלחנו לעדכן את הסטטוס: ${error.message}`);
   return present(data as AccountRow);
 }
+
+/**
+ * The phone the order was taken on — the one thing that can find the branch.
+ *
+ * Read through the caller's own session, which is what makes the branch
+ * suggestion safe: an agent who cannot see the order gets no phone, so there is
+ * nothing to look up. The route above it holds no check of its own, and should
+ * not grow one.
+ */
+export async function getOrderPhone(orderId: string): Promise<string | null> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("orders")
+    .select("customer_phone")
+    .eq("id", orderId)
+    .maybeSingle();
+
+  if (error) throw new TenbisError(`לא הצלחנו לטעון את פרטי ההזמנה: ${error.message}`);
+  return (data?.customer_phone as string | null) ?? null;
+}
+
+/**
+ * Record the branch a person confirmed.
+ *
+ * Separate from saveTenbisAccount because it happens at a different moment and
+ * for a different reason: the branch can be settled the day the order is
+ * accepted, long before תן ביס has sent the customer anything to type in. Going
+ * through the credentials form would mean either blocking the confirmation on
+ * fields nobody has yet, or letting an empty form overwrite them.
+ *
+ * It deliberately does not touch `state`. Knowing which branch this is does not
+ * make unproven credentials proven, and a confirmation is not progress through
+ * the state machine — it is a fact recorded beside it.
+ */
+export async function setBiteBranch(
+  orderId: string,
+  biteBranchId: number | null,
+  actorId: string,
+): Promise<TenbisAccount> {
+  const supabase = await createSupabaseServerClient();
+
+  const { data, error } = await supabase
+    .from("tenbis_accounts")
+    .upsert({ order_id: orderId, bite_branch_id: biteBranchId, updated_by: actorId }, { onConflict: "order_id" })
+    .select(SELECT)
+    .single();
+
+  if (error) throw new TenbisError(`לא הצלחנו לשמור את מזהה הסניף: ${error.message}`);
+  return present(data as AccountRow);
+}

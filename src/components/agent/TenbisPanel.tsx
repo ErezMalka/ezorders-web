@@ -1,9 +1,10 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import type { TenbisAccount, TenbisState } from "@/lib/agent/tenbis";
+import type { BranchSuggestion } from "@/lib/bite-branches";
 
 /**
  * Setting up the תן ביס interface for a customer who bought it.
@@ -112,12 +113,97 @@ export function TenbisPanel({
   const [user, setUser] = useState(initial?.tenbis_user ?? "");
   const [restaurantId, setRestaurantId] = useState(initial?.restaurant_id ?? "");
   const [password, setPassword] = useState("");
-  const [busy, setBusy] = useState<null | "save" | "verify" | "instruct">(null);
+  const [busy, setBusy] = useState<null | "save" | "verify" | "instruct" | "branch">(null);
   const [error, setError] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
+  // The branch half. `branch` is what has been confirmed, `suggestions` is what
+  // the phone number proposes, and `picking` is whether the agent is looking at
+  // the second — three separate things, because "we have not looked yet" and
+  // "we looked and found nothing" must not render the same.
+  const [branch, setBranch] = useState<BranchSuggestion | null>(null);
+  const [suggestions, setSuggestions] = useState<BranchSuggestion[] | null>(null);
+  const [picking, setPicking] = useState(false);
+  const [manualId, setManualId] = useState("");
+  const [crmOff, setCrmOff] = useState(false);
+  const [branchError, setBranchError] = useState<string | null>(null);
+
   const state = stateLine(account);
+
+  /**
+   * Ask which branches share this customer's phone.
+   *
+   * `quiet` is the load that happens on mount to put a name beside an id
+   * confirmed weeks ago: it must not open the picker, and it must not report
+   * the CRM being down — nobody asked it anything.
+   */
+  const lookupBranch = useCallback(
+    async (quiet: boolean) => {
+      if (!quiet) {
+        setBusy("branch");
+        setBranchError(null);
+      }
+      try {
+        const res = await fetch(`/api/agent/orders/${orderId}/tenbis/branch`);
+        const json = (await res.json()) as {
+          crmConfigured?: boolean;
+          suggestions?: BranchSuggestion[];
+          current?: BranchSuggestion | null;
+          error?: string;
+        };
+        if (!res.ok) throw new Error(String(json.error ?? "לא הצלחנו לאתר את הסניף"));
+
+        if (json.current) setBranch(json.current);
+        if (quiet) return;
+
+        setCrmOff(json.crmConfigured === false);
+        setSuggestions(json.suggestions ?? []);
+        setPicking(true);
+      } catch (e) {
+        if (!quiet) setBranchError(e instanceof Error ? e.message : "לא הצלחנו לאתר את הסניף");
+      } finally {
+        if (!quiet) setBusy(null);
+      }
+    },
+    [orderId],
+  );
+
+  // A stored id is a number until somebody says which restaurant it is. One
+  // request on mount, and only when there is something to resolve.
+  useEffect(() => {
+    if (initial?.bite_branch_id) void lookupBranch(true);
+  }, [initial?.bite_branch_id, lookupBranch]);
+
+  /** Record the branch a person just pointed at. */
+  const confirmBranch = async (id: number | null) => {
+    setBusy("branch");
+    setBranchError(null);
+    try {
+      const res = await fetch(`/api/agent/orders/${orderId}/tenbis/branch`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ biteBranchId: id }),
+      });
+      const json = (await res.json()) as {
+        account?: TenbisAccount;
+        current?: BranchSuggestion | null;
+        error?: string;
+      };
+      if (!res.ok) throw new Error(String(json.error ?? "שמירת הסניף נכשלה"));
+
+      if (json.account) setAccount(json.account);
+      setBranch(json.current ?? (id === null ? null : { biteBranchId: id, franchiseId: null, franchiseName: null, branchPhone: null }));
+      setPicking(false);
+      setSuggestions(null);
+      setManualId("");
+      router.refresh();
+    } catch (e) {
+      setBranchError(e instanceof Error ? e.message : "שמירת הסניף נכשלה");
+    } finally {
+      setBusy(null);
+    }
+  };
 
   if (!configured) {
     return (
@@ -302,6 +388,145 @@ export function TenbisPanel({
         >
           {busy === "verify" ? "בודק מול תן ביס…" : "בדיקת חיבור"}
         </button>
+      </div>
+
+      {/* ── The branch, suggested and confirmed ──────────────────────────────
+          EZORDERS holds no Bite branch id — a second branch is a second quote
+          with identical details — and delivery has to write against exactly
+          one. The CRM's branch cache knows it from the phone, but a chain with
+          four branches on one number is ordinary, so this proposes and a person
+          decides. What is stored afterwards is a fact, not a guess. */}
+      <div className="mt-5 border-t border-slate-100 pt-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h3 className="text-xs font-bold text-brand-dark">סניף במערכת התפעולית</h3>
+          {branch ? (
+            <button
+              type="button"
+              onClick={() => void lookupBranch(false)}
+              disabled={busy !== null}
+              className="text-xs font-semibold text-brand-muted underline underline-offset-4 disabled:opacity-50"
+            >
+              שינוי
+            </button>
+          ) : null}
+        </div>
+
+        {branch ? (
+          <p className="mt-2 text-sm text-brand-dark">
+            <span className="font-semibold">{branch.franchiseName ?? "סניף"}</span>
+            <span className="mx-1 text-brand-muted">·</span>
+            <span dir="ltr" className="tabular-nums text-brand-muted">
+              #{branch.biteBranchId}
+            </span>
+            {branch.branchPhone ? (
+              <span dir="ltr" className="ms-2 text-xs text-brand-muted">
+                {branch.branchPhone}
+              </span>
+            ) : null}
+          </p>
+        ) : (
+          <p className="mt-2 text-sm text-brand-muted">
+            עדיין לא נקבע סניף. בלעדיו אפשר להשלים הכול חוץ מההעברה האוטומטית להקמה.
+          </p>
+        )}
+
+        {!branch && !picking ? (
+          <button
+            type="button"
+            onClick={() => void lookupBranch(false)}
+            disabled={busy !== null}
+            className="mt-3 rounded-pill border border-slate-200 px-4 py-2 text-sm font-semibold text-brand-muted transition-colors hover:bg-brand-grey disabled:opacity-50"
+          >
+            {busy === "branch" ? "מחפש…" : "איתור סניף לפי הטלפון"}
+          </button>
+        ) : null}
+
+        {picking ? (
+          <div className="mt-3 space-y-2">
+            {suggestions && suggestions.length > 0 ? (
+              <>
+                <p className="text-xs text-brand-muted">
+                  {suggestions.length === 1
+                    ? "נמצא סניף אחד עם הטלפון של ההזמנה. כדאי לוודא שזה הוא:"
+                    : `נמצאו ${suggestions.length} סניפים עם אותו טלפון. צריך לבחור את הנכון:`}
+                </p>
+                <ul className="space-y-2">
+                  {suggestions.map((s) => (
+                    <li
+                      key={s.biteBranchId}
+                      className="flex flex-wrap items-center justify-between gap-2 rounded-card border border-slate-200 px-3 py-2"
+                    >
+                      <span className="text-sm text-brand-dark">
+                        <span className="font-semibold">{s.franchiseName ?? "ללא שם"}</span>
+                        <span className="mx-1 text-brand-muted">·</span>
+                        <span dir="ltr" className="tabular-nums text-brand-muted">
+                          #{s.biteBranchId}
+                        </span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => void confirmBranch(s.biteBranchId)}
+                        disabled={busy !== null}
+                        className="rounded-pill bg-brand-dark px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
+                      >
+                        זה הסניף
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            ) : (
+              <p className="text-xs text-brand-muted">
+                {crmOff
+                  ? "החיבור ל-CRM אינו מוגדר, ולכן אי אפשר לחפש לפי טלפון. אפשר להזין את מזהה הסניף ידנית."
+                  : "לא נמצא סניף עם הטלפון של ההזמנה. אפשר להזין את המזהה ידנית מהמערכת התפעולית."}
+              </p>
+            )}
+
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <input
+                value={manualId}
+                onChange={(e) => setManualId(e.target.value.replace(/\D+/g, ""))}
+                inputMode="numeric"
+                dir="ltr"
+                placeholder="מזהה סניף"
+                className="w-32 rounded-card border border-slate-200 px-3 py-2 text-sm text-brand-dark"
+              />
+              <button
+                type="button"
+                onClick={() => void confirmBranch(Number(manualId))}
+                disabled={busy !== null || !manualId}
+                className="rounded-pill border border-slate-200 px-4 py-2 text-sm font-semibold text-brand-muted transition-colors hover:bg-brand-grey disabled:opacity-50"
+              >
+                שמירת מזהה
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setPicking(false);
+                  setSuggestions(null);
+                  setBranchError(null);
+                }}
+                disabled={busy !== null}
+                className="text-xs font-semibold text-brand-muted underline underline-offset-4 disabled:opacity-50"
+              >
+                ביטול
+              </button>
+              {branch ? (
+                <button
+                  type="button"
+                  onClick={() => void confirmBranch(null)}
+                  disabled={busy !== null}
+                  className="text-xs font-semibold text-rose-700 underline underline-offset-4 disabled:opacity-50"
+                >
+                  הסרת הסניף
+                </button>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
+
+        {branchError ? <p className="mt-2 text-sm font-semibold text-rose-700">{branchError}</p> : null}
       </div>
 
       {note ? <p className="mt-3 text-sm font-semibold text-emerald-700">{note}</p> : null}
