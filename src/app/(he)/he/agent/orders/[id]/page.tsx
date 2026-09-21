@@ -4,7 +4,9 @@ import type { Metadata } from "next";
 
 import { AgentShell } from "@/components/agent/AgentShell";
 import { OrderStatusControl } from "@/components/agent/OrderStatusControl";
+import { TenbisPanel } from "@/components/agent/TenbisPanel";
 import { getOrder } from "@/lib/agent/orders";
+import { getTenbisAccount, orderHasTenbis, tenbisEnabled } from "@/lib/agent/tenbis";
 import { requireAgentSession } from "@/lib/agent/session";
 import { ORDER_STATUS, heDate, heDateTime } from "@/lib/agent/status";
 import { fmt, fmtExact } from "@/lib/pricing";
@@ -40,6 +42,14 @@ export default async function AgentOrderPage({ params }: { params: Promise<{ id:
   if (!order) notFound();
 
   const acceptance = order.acceptance;
+
+  // Both reads go through the caller's session, so an agent who cannot see this
+  // order gets nothing here either — the same policy, not a second opinion.
+  const [tenbisSold, tenbisAccount] = await Promise.all([
+    orderHasTenbis(order.id),
+    getTenbisAccount(order.id),
+  ]);
+  const tenbisConfigured = tenbisEnabled();
 
   return (
     <AgentShell
@@ -126,6 +136,19 @@ export default async function AgentOrderPage({ params }: { params: Promise<{ id:
               <p className="text-xs text-brand-muted">אין רישום אישור להזמנה הזו.</p>
             )}
           </section>
+
+          {/* Only for an order that actually bought it. An agent shown this
+              form on every order would eventually fill one in, and a customer's
+              credentials would end up attached to a sale that never included
+              the integration. */}
+          {tenbisSold ? (
+            <TenbisPanel
+              orderId={order.id}
+              customerName={order.customer_name}
+              configured={tenbisConfigured}
+              account={tenbisAccount}
+            />
+          ) : null}
 
           <section className="rounded-card border border-slate-200 bg-white p-5 shadow-sm">
             <h2 className="mb-3 text-sm font-bold text-brand-dark">יומן</h2>
