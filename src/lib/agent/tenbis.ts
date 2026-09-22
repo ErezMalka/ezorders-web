@@ -499,3 +499,49 @@ export async function deliverTenbisAccount(
 
   return present(updated as AccountRow);
 }
+
+/**
+ * What the order page needs, with no way to take the page down.
+ *
+ * The two reads above throw, which is right for the API routes — a screen
+ * asking for this feature's data deserves to be told the query failed. It is
+ * wrong for the order page, where they are two of a dozen things being loaded
+ * and the other eleven are what the agent came for. Shipped as it was, a single
+ * failing read turned the whole order into a 500; the two migrations behind
+ * this feature sat unapplied in production for days, and the only reason nobody
+ * met that page is that no agent happened to open one.
+ *
+ * Settled separately, because the two failures mean different things. An order
+ * that never bought תן ביס shows nothing at all even while the accounts table
+ * is unreadable — the sale is recorded in quote_items and that read is fine. It
+ * is only an order that DID buy it, whose setup cannot be read, that has
+ * something worth saying: `unavailable`, which the page turns into a line
+ * rather than a panel. Silence there would read as "this order did not buy the
+ * integration", which is the one wrong answer available.
+ */
+export interface TenbisPanelData {
+  sold: boolean;
+  account: TenbisAccount | null;
+  /** The sale is real but its setup could not be read. */
+  unavailable: boolean;
+}
+
+export async function getTenbisPanelData(orderId: string): Promise<TenbisPanelData> {
+  const [soldResult, accountResult] = await Promise.allSettled([
+    orderHasTenbis(orderId),
+    getTenbisAccount(orderId),
+  ]);
+
+  if (soldResult.status === "rejected") {
+    // Nothing can be said about this order, so say nothing and keep the page.
+    console.error("[agent/tenbis] panel: sold check failed", soldResult.reason);
+    return { sold: false, account: null, unavailable: false };
+  }
+
+  if (accountResult.status === "rejected") {
+    console.error("[agent/tenbis] panel: account read failed", accountResult.reason);
+    return { sold: soldResult.value, account: null, unavailable: soldResult.value };
+  }
+
+  return { sold: soldResult.value, account: accountResult.value, unavailable: false };
+}

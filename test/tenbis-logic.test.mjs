@@ -205,3 +205,39 @@ test("worst first, and ours before theirs", () => {
 test("cancelled orders are not chased", () => {
   assert.match(view, /o\.status <> 'cancelled'/);
 });
+
+// ── the order page survives this feature ─────────────────────────────────────
+
+test("no read in this feature can take the order page down", () => {
+  // The failure that made this test exist: both migrations behind תן ביס sat
+  // unapplied in production while the code that reads their tables was live.
+  // getTenbisAccount throws on a failed query — correct for a route, fatal for
+  // a server component — so the first agent to open ANY order would have got a
+  // 500 on the contract, the payment and the log as well. Nobody did, which is
+  // luck and not a property of the code.
+  const page = src("../src/app/(he)/he/agent/orders/[id]/page.tsx");
+
+  // The page may only reach this feature through the settling wrapper.
+  assert.match(page, /getTenbisPanelData\(order\.id\)/);
+  assert.ok(!/getTenbisAccount|orderHasTenbis/.test(page), "the page calls a throwing read directly");
+
+  const fn = body(lib, "getTenbisPanelData");
+  assert.match(fn, /Promise\.allSettled/);
+  // Settled separately, and it matters: an order that never bought תן ביס must
+  // show nothing even while the accounts table is unreadable.
+  assert.match(fn, /soldResult\.status === "rejected"/);
+  assert.match(fn, /accountResult\.status === "rejected"/);
+  assert.ok(!/throw /.test(fn), "the wrapper throws");
+});
+
+test("a sale whose setup cannot be read says so, rather than disappearing", () => {
+  // Silence would read as "this order did not buy the integration", and the
+  // agent would stop looking — the one wrong answer available.
+  const fn = body(lib, "getTenbisPanelData");
+  assert.match(fn, /unavailable: soldResult\.value/);
+
+  const page = src("../src/app/(he)/he/agent/orders/[id]/page.tsx");
+  assert.match(page, /tenbis\.sold && !tenbis\.unavailable/);
+  assert.match(page, /tenbis\.unavailable \?/);
+  assert.match(page, /ההזמנה כוללת את ממשק תן ביס/);
+});
