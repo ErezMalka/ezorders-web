@@ -52,14 +52,6 @@ export default async function AgentOrdersPage() {
       active="/he/agent/orders"
       title="הזמנות"
       lead={session.isManager ? "כל ההזמנות שנסגרו, מכל הסוכנים" : "הצעות שהלקוח אישר"}
-      action={
-        <Link
-          href="/he/agent/orders/tenbis"
-          className="rounded-pill border border-slate-200 px-4 py-2 text-sm font-semibold text-brand-muted transition-colors hover:bg-brand-grey"
-        >
-          הקמות תן ביס
-        </Link>
-      }
     >
       <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Tile label="בהקמה" value={String(open.length)} sub="אושרו, עדיין לא באוויר" />

@@ -4,10 +4,7 @@ import type { Metadata } from "next";
 
 import { AgentShell } from "@/components/agent/AgentShell";
 import { OrderStatusControl } from "@/components/agent/OrderStatusControl";
-import { TenbisPanel } from "@/components/agent/TenbisPanel";
-import { biteEnabled } from "@/lib/bite";
 import { getOrder } from "@/lib/agent/orders";
-import { getTenbisPanelData, tenbisEnabled } from "@/lib/agent/tenbis";
 import { requireAgentSession } from "@/lib/agent/session";
 import { ORDER_STATUS, heDate, heDateTime } from "@/lib/agent/status";
 import { fmt, fmtExact } from "@/lib/pricing";
@@ -43,19 +40,6 @@ export default async function AgentOrderPage({ params }: { params: Promise<{ id:
   if (!order) notFound();
 
   const acceptance = order.acceptance;
-
-  // Both reads go through the caller's session, so an agent who cannot see this
-  // order gets nothing here either — the same policy, not a second opinion.
-  //
-  // And neither may take this page down. תן ביס is one section of an order
-  // screen; an agent opening it wants the contract, the payment and the log,
-  // and a failure to read one integration's setup is not a reason to withhold
-  // them. getTenbisPanelData settles both reads and says what it knows.
-  const tenbis = await getTenbisPanelData(order.id);
-  const tenbisConfigured = tenbisEnabled();
-  // Delivery is its own switch: the operational system is a different project
-  // with its own key, and everything up to the last hop works without it.
-  const tenbisDelivery = biteEnabled();
 
   return (
     <AgentShell
@@ -142,33 +126,6 @@ export default async function AgentOrderPage({ params }: { params: Promise<{ id:
               <p className="text-xs text-brand-muted">אין רישום אישור להזמנה הזו.</p>
             )}
           </section>
-
-          {/* Only for an order that actually bought it. An agent shown this
-              form on every order would eventually fill one in, and a customer's
-              credentials would end up attached to a sale that never included
-              the integration. */}
-          {tenbis.sold && !tenbis.unavailable ? (
-            <TenbisPanel
-              orderId={order.id}
-              customerName={order.customer_name}
-              configured={tenbisConfigured}
-              deliveryConfigured={tenbisDelivery}
-              account={tenbis.account}
-            />
-          ) : null}
-
-          {/* Sold, but its setup could not be read. Saying nothing here would
-              read as "this order did not buy תן ביס", which is the one wrong
-              answer available — the agent would stop looking. */}
-          {tenbis.unavailable ? (
-            <section className="rounded-card border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900">
-              <h2 className="mb-1 text-sm font-bold">ממשק תן ביס</h2>
-              <p>
-                ההזמנה כוללת את ממשק תן ביס, אך לא הצלחנו לטעון את סטטוס ההקמה שלו. שאר ההזמנה
-                תקינה. כדאי לרענן — אם זה חוזר, יש תקלה בצד שלנו וצריך לדווח.
-              </p>
-            </section>
-          ) : null}
 
           <section className="rounded-card border border-slate-200 bg-white p-5 shadow-sm">
             <h2 className="mb-3 text-sm font-bold text-brand-dark">יומן</h2>
