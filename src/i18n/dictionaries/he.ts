@@ -8,7 +8,11 @@ export const he: Dictionary = {
                             "EZorders הופכת אופליין לאונליין — תפריטים דיגיטליים, הזמנות אונליין, עמדות קיוסק ואפליקציות למסעדות מודרניות.",
           },
     },
-    header: { cta: "קבעו דמו עכשיו", ctaHref: "/he/contact" },
+    header: {
+      cta: "קבעו דמו עכשיו",
+      ctaHref: "/he/contact",
+      login: { label: "כניסה למערכת", href: "https://admin.ezorders.com/#/" },
+    },
     nav: [
       { label: "דף הבית", href: "/he" },
       {

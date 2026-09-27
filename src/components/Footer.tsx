@@ -8,7 +8,8 @@ import type { Dictionary } from "@/i18n/dictionaries/en";
 type FooterLink = { label: string; href: string };
 
 export function Footer({ dictionary, locale = "en" }: { dictionary?: Dictionary; locale?: "en" | "he" }) {
-      const f = (dictionary ?? getDictionary("en")).footer;
+      const d = dictionary ?? getDictionary("en");
+      const f = d.footer;
 
   return createElement(
           "footer",
@@ -33,7 +34,18 @@ export function Footer({ dictionary, locale = "en" }: { dictionary?: Dictionary;
                                 "div",
                                 null,
                                 createElement("h2", { className: "mb-4 font-semibold" }, f.contactTitle),
-                                createElement("p", { className: "text-brand-muted" }, f.tel)
+                                createElement("p", { className: "text-brand-muted" }, f.tel),
+                                // Existing customers: the way into the admin.
+                                createElement(
+                                  "a",
+                                  {
+                                    href: d.header.login.href,
+                                    target: "_blank",
+                                    rel: "noopener",
+                                    className: "mt-4 inline-block font-medium text-brand-dark underline underline-offset-4 hover:text-brand-pinkInk",
+                                  },
+                                  d.header.login.label
+                                )
                               )
                   ),
           createElement(
