@@ -47,7 +47,7 @@ export default async function HeKioskStandsPage() {
     "section",
     { style: sectionStyle },
     createElement("span", { style: tagStyle }, "שירות עמדות קיוסק"),
-    createElement("h1", { style: h1Style }, "עמדת קיוסק למסעדה: סוף לתורים הארוכים"),
+    createElement("h1", { style: h1Style }, "עמדות קיוסק להזמנה עצמית למסעדות"),
     createElement("p", { style: leadStyle }, "עמדת קיוסק היא מסך שהסועד מזמין ומשלם בו בעצמו, במקום לחכות בתור לדלפק. העמוד הזה מסביר מה העמדה עושה, כמה עמדות מסעדה באמת צריכה, מה כדאי לבדוק מול כל ספק לפני שבוחרים, ואיך נראית הטמעה שלא משבשת את השירות באמצע."),
     createElement("img", { src: "/images/ai/ezorders-self-service-kiosk.webp", width: 928, height: 1152, alt: "עמדת קיוסק להזמנה עצמית של EZOrders — לקוחה מזמינה במסך מגע ממותג במסעדה", style: imgStyle, loading: "lazy" }),
     createElement("h2", { style: h2Style }, "יכולות עמדת הקיוסק"),
