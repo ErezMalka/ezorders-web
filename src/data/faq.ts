@@ -68,3 +68,56 @@ export const GENERAL_FAQ: Record<"he" | "en", FaqItem[]> = {
     },
   ],
 };
+
+/**
+ * Kiosk-specific questions, shown above GENERAL_FAQ on /he/kiosk-stands.
+ *
+ * SCOPE, DELIBERATELY NARROW. Every answer here is either definitional or points at a page
+ * that holds the real figure. None of them asserts a product capability, because the
+ * capability claims a kiosk buyer actually asks about — which payment methods run on the
+ * kiosk screen rather than on the ordering site, whether a kiosk order reaches the kitchen
+ * display without re-keying, whether the kiosk flow is genuinely multilingual — are not
+ * recorded in the approved knowledge. A capability claim needs a source; a question with no
+ * sourced answer belongs in the open-questions list, not in an accordion.
+ *
+ * The questions were chosen from what Search Console shows this site is actually surfaced
+ * for: "עמדת קיוסק מחיר", "עמדת קיוסק לעסק", "קיוסק שירות עצמי".
+ */
+export const KIOSK_FAQ: Record<"he" | "en", FaqItem[]> = {
+  he: [
+    {
+      q: "מה ההבדל בין עמדת קיוסק לקופה?",
+      a: "הקיוסק הוא המסך שהסועד מזמין בו בעצמו; הקופה היא המסך שהצוות עובד בו. הקיוסק מחליף את שלב קבלת ההזמנה בדלפק ולא את הקופה — רוב המסעדות מפעילות את שניהם זה לצד זה, כי חלק מהסועדים תמיד יעדיפו להזמין מול אדם.",
+    },
+    {
+      q: "כמה עמדות קיוסק צריך למסעדה?",
+      a: "זה נגזר מהשיא ולא מגודל המסעדה. ספרו כמה סועדים מגיעים לדלפק בחצי השעה העמוסה ביותר, וכמה זמן לוקחת הזמנה ממוצעת — המכפלה היא מספר העמדות שצריך כדי שלא ייווצר תור חדש מול המסכים. אפשר לעשות את החשבון הזה במחשבון התור שבאתר.",
+    },
+    {
+      q: "האם עמדת קיוסק מתאימה גם למסעדה קטנה?",
+      a: "השאלה היא לא כמה מקומות ישיבה יש אלא האם יש שעת עומס. מסעדה עם תור של עשר דקות בצהריים מרוויחה מקיוסק יותר ממסעדה גדולה שהתנועה בה מתפזרת על פני היום. אם אין אצלכם שעת שיא, קיוסק יפתור בעיה שאין לכם.",
+    },
+    {
+      q: "כמה עולה עמדת קיוסק?",
+      a: "המחיר העדכני מופיע בעמוד התמחור של EZOrders, יחד עם שאר רכיבי המערכת. שימו לב שתוספות כמו אמצעי תשלום מתומחרות בנפרד מהעמדה עצמה, אז שווה לבנות את החישוב החודשי המלא לפני ההחלטה.",
+    },
+  ],
+  en: [
+    {
+      q: "What is the difference between a kiosk and a POS?",
+      a: "The kiosk is the screen a guest orders on; the POS is the screen your team works on. A kiosk replaces order-taking at the counter, not the POS — most restaurants run both, because some guests will always prefer to order from a person.",
+    },
+    {
+      q: "How many kiosks does a restaurant need?",
+      a: "It follows your peak, not your size. Count the guests who reach the counter in your busiest half hour and how long an average order takes; the product is the number of stations needed so a new queue does not form at the screens instead.",
+    },
+    {
+      q: "Is a kiosk worth it for a small restaurant?",
+      a: "The question is not how many covers you have but whether you have a rush. A restaurant with a ten-minute queue at lunch gains more from a kiosk than a larger one whose traffic spreads across the day. With no peak, a kiosk solves a problem you do not have.",
+    },
+    {
+      q: "What does a kiosk cost?",
+      a: "Current pricing is on the EZOrders pricing page, alongside the rest of the system. Add-ons such as payment methods are priced separately from the station itself, so it is worth building the full monthly figure before deciding.",
+    },
+  ],
+};
