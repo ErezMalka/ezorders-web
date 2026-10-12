@@ -9,7 +9,7 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "validate:content": "node scripts/validate-content.mjs",
-    "test": "node --test \"test/**/*.test.mjs\""
+    "test": "node --test"
   },
   "dependencies": {
     "@fontsource/assistant": "^5.3.0",

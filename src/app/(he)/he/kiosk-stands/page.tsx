@@ -6,12 +6,12 @@ import { RelatedLinks } from "@/components/sections/RelatedLinks";
 import { HardwareShowcase } from "@/components/sections/HardwareShowcase";
 import { loadHardwareShowcase } from "@/lib/agent/products";
 import { FaqSection } from "@/components/sections/FaqSection";
-import { GENERAL_FAQ } from "@/data/faq";
+import { GENERAL_FAQ, KIOSK_FAQ } from "@/data/faq";
 import { breadcrumbSchema } from "@/lib/seo/breadcrumbs";
 
 export const metadata: Metadata = {
   title: "עמדות קיוסק למסעדות — הזמנה עצמית שמקצרת תורים | EZOrders",
-  description: "עמדת קיוסק למסעדה בשירות עצמי שהופכת עומסי שעות שיא להזמנות מהירות, מדויקות ובעלות סל גבוה — ומפנה זמן לצוות.",
+  description: "עמדת קיוסק למסעדה בשירות עצמי: איך זה עובד, כמה עמדות צריך, מה לבדוק לפני שבוחרים ואיך נראית הטמעה שלא משבשת את השירות.",
   alternates: {
     canonical: "./", languages: { en: "/en/kiosk-stands", he: "/he/kiosk-stands", "x-default": "/he/kiosk-stands" } },
 };
@@ -27,6 +27,8 @@ const bodyStyle = { color: "#555", lineHeight: 1.8, marginBottom: "1.5rem" } as 
 const ctaWrapStyle = { marginTop: "3rem", display: "flex", flexWrap: "wrap", gap: "0.75rem", alignItems: "center" } as const;
 const ctaStyle = { display: "inline-block", background: "#D22F63", color: "#fff", padding: "0.9rem 2rem", borderRadius: "999px", fontWeight: 600, textDecoration: "none" } as const;
 const imgStyle = { width: "100%", height: "auto", borderRadius: "1rem", marginBottom: "2.5rem" } as const;
+const linkStyle = { color: "#D22F63", textDecoration: "underline" } as const;
+const olStyle = { color: "#555", lineHeight: 1.8, marginBottom: "1.5rem", paddingInlineStart: "1.25rem" } as const;
 
 /**
  * Rebuilt at most once an hour.
@@ -45,8 +47,8 @@ export default async function HeKioskStandsPage() {
     "section",
     { style: sectionStyle },
     createElement("span", { style: tagStyle }, "שירות עמדות קיוסק"),
-    createElement("h1", { style: h1Style }, "עידן התורים הארוכים נגמר"),
-    createElement("p", { style: leadStyle }, "עמדת קיוסק מודרנית בשירות עצמי שהופכת את פקקי שעות השיא להזמנות מהירות, מדויקות ובעלות המרה גבוהה. הלקוחות נהנים מתהליך אינטואיטיבי, והצוות שלכם מקבל בחזרה זמן יקר להתמקד באירוח."),
+    createElement("h1", { style: h1Style }, "עמדות קיוסק להזמנה עצמית למסעדות"),
+    createElement("p", { style: leadStyle }, "עמדת קיוסק היא מסך שהסועד מזמין ומשלם בו בעצמו, במקום לחכות בתור לדלפק. העמוד הזה מסביר מה העמדה עושה, כמה עמדות מסעדה באמת צריכה, מה כדאי לבדוק מול כל ספק לפני שבוחרים, ואיך נראה תהליך הטמעה מומלץ שלא משבש את השירות באמצע."),
     createElement("img", { src: "/images/ai/ezorders-self-service-kiosk.webp", width: 928, height: 1152, alt: "עמדת קיוסק להזמנה עצמית של EZOrders — לקוחה מזמינה במסך מגע ממותג במסעדה", style: imgStyle, loading: "lazy" }),
     createElement("h2", { style: h2Style }, "יכולות עמדת הקיוסק"),
     createElement("p", { style: introStyle }, "עמדת קיוסק טובה היא הרבה יותר ממסך מגע גדול — היא מלווה כל סועד מהמגע הראשון ועד הקבלה, בלי חיכוך."),
@@ -56,6 +58,19 @@ export default async function HeKioskStandsPage() {
     createElement("p", { style: bodyStyle }, "ממשק מותאם למגע עם כפתורים גדולים, היררכיית קטגוריות ברורה ותשלום מהיר שומרים על תנועה בתור. סימון בחירות חובה מול אופציונליות ואייקוני אלרגנים מפחיתים טעויות בהזמנה."),
     createElement("h3", { style: h3Style }, "הגדלת מכירות חכמה"),
     createElement("p", { style: bodyStyle }, "חבילות וקומבינציות מוכנות מראש מגדילות את הסל הממוצע באופן טבעי — בלי מכירה אגרסיבית, רק הצעה מועילה ברגע הנכון."),
+    createElement("h2", { style: h2Style }, "איך בוחרים עמדת קיוסק"),
+    createElement("p", { style: introStyle }, "רוב ההחלטות כאן נסגרות על המסך והמחיר, ואלה דווקא החלקים הקלים. ארבע השאלות הבאות הן אלה שמבדילות בין עמדה שמקצרת את התור לבין עמדה שמעבירה אותו למקום אחר."),
+    createElement("h3", { style: h3Style }, "כמה עמדות, ולפי מה"),
+    createElement("p", { style: bodyStyle }, "התאימו את מספר העמדות להיקף ההזמנות בשעות העומס."),
+    createElement("h3", { style: h3Style }, "לאן ההזמנה ממשיכה"),
+    createElement("p", { style: bodyStyle }, "הקיוסק הוא תחילת השרשרת, לא סופה. בקשו לראות בהדגמה מה קורה להזמנה אחרי שהסועד מסיים — איפה היא מופיעה לצוות, ואיך היא מגיעה למטבח. זו הנקודה שבה קיוסק שנקנה בנפרד מהמערכת מתחיל לדרוש הקלדה חוזרת.", createElement("span", null, " אפשר לראות את שני הצדדים האלה ב"), createElement("a", { href: "/he/pos", style: linkStyle }, "קופה למסעדה"), createElement("span", null, " וב"), createElement("a", { href: "/he/kitchen-display", style: linkStyle }, "מסך המטבח"), createElement("span", null, ".")),
+    createElement("h3", { style: h3Style }, "תשלומים — שאלו לפי ערוץ"),
+    createElement("p", { style: bodyStyle }, "בדקו אילו אמצעי תשלום זמינים בפתרון המוצע ומה עלותם.", createElement("span", null, " הרכיבים והמחירים מפורטים ב"), createElement("a", { href: "/he/price", style: linkStyle }, "עמוד התמחור"), createElement("span", null, ".")),
+    createElement("h3", { style: h3Style }, "מה כבר מחובר אצלכם"),
+    createElement("p", { style: bodyStyle }, "אם אתם כבר עובדים עם אפליקציות משלוחים או עם כרטיסי הסעדה, בדקו מראש איך הן יושבות לצד הקיוסק — כדי שסוף היום יישאר דוח אחד ולא שלושה.", createElement("span", null, " רשימת החיבורים נמצאת ב"), createElement("a", { href: "/he/integrations", style: linkStyle }, "עמוד האינטגרציות"), createElement("span", null, ".")),
+    createElement("h2", { style: h2Style }, "תהליך הטמעה מומלץ"),
+    createElement("p", { style: introStyle }, "זהו סדר מומלץ ולא התחייבות שלנו, והוא ישתנה לפי המסעדה ולפי הספק שתבחרו. העיקרון המשותף הוא לא להדליק עמדה לפני שהצוות והתפריט מוכנים אליה."),
+    createElement("ol", { style: olStyle }, createElement("li", null, "התפריט נבנה ונבדק על המסך, כולל תוספות, חובה־מול־רשות ותמונות."), createElement("li", null, "התשלום נבדק מקצה לקצה על כל אמצעי שאתם מתכוונים לקבל."), createElement("li", null, "הצוות עובר הדרכה קצרה — בעיקר למה לעשות כשסועד נתקע."), createElement("li", null, "העמדה נפתחת בשעה שקטה, לא בצהריים, וצופים בסועדים האמיתיים הראשונים."), createElement("li", null, "מתקנים את מה שהתגלה, ורק אז מכניסים אותה לשעת השיא.")),
     createElement("h2", { style: h2Style }, "איך זה תורם לעסק שלכם?"),
     createElement("p", { style: introStyle }, "קיוסק מצוין הוא לא רק חומרה — הוא דרך אמינה לשרת יותר סועדים, להעלות את הסל ולנהל משמרות רזות יותר בלי לפגוע באירוח."),
     createElement("h3", { style: h3Style }, "עלויות כוח אדם נמוכות יותר"),
@@ -100,6 +115,6 @@ return createElement(
         },
       ],
     }),
-    createElement(FaqSection, { items: GENERAL_FAQ.he, locale: "he" })
+    createElement(FaqSection, { items: [...KIOSK_FAQ.he, ...GENERAL_FAQ.he], locale: "he" })
   );
 }
