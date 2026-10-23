@@ -60,9 +60,20 @@ const hebrewOnlyRoutes: { path: string; priority: number }[] = [
  */
 const rootOnlyRoutes: { path: string; priority: number }[] = [];
 
+/**
+ * Static pages carry NO lastModified.
+ *
+ * It used to be `new Date()` for every one of them, i.e. the build time: each
+ * deploy told search engines that every page on the site had just changed.
+ * Google says it ignores lastmod once it stops matching reality, which means
+ * the honest dates on articles below were being discounted along with it.
+ *
+ * A real per-page date would need the page file's last commit, and Vercel
+ * builds from a shallow clone, so that history is not reliably there. An
+ * omitted lastmod is valid and makes no claim; a fabricated one is worse than
+ * none.
+ */
 export default function sitemap(): MetadataRoute.Sitemap {
-  const lastModified = new Date();
-
   const shared = sharedRoutes.flatMap((route) => {
     const heUrl = `${BASE}/he${route.path}`;
     const enUrl = `${BASE}/en${route.path}`;
@@ -70,7 +81,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
     return [heUrl, enUrl].map((url) => ({
       url,
-      lastModified,
       changeFrequency: "monthly" as const,
       priority: route.priority,
       alternates: { languages },
@@ -79,14 +89,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const hebrewOnly = hebrewOnlyRoutes.map((route) => ({
     url: `${BASE}/he${route.path}`,
-    lastModified,
     changeFrequency: "monthly" as const,
     priority: route.priority,
   }));
 
   const rootOnly = rootOnlyRoutes.map((route) => ({
     url: `${BASE}${route.path}`,
-    lastModified,
     changeFrequency: "monthly" as const,
     priority: route.priority,
   }));
