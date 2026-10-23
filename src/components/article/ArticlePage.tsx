@@ -95,12 +95,15 @@ export function ArticlePage({ locale, slug }: { locale: Locale; slug: string }) 
           </div>
         </header>
 
-        {/* COVER */}
-        <div className="mx-auto max-w-4xl px-6">
-          <div className="-mt-6 overflow-hidden rounded-card bg-brand-tint shadow-sm">
-            <div className="relative aspect-video w-full">
-              {article.featuredImage ? (
-                /* eslint-disable-next-line @next/next/no-img-element */
+        {/* COVER. Only when there is one: an article without a cover used to
+            render a large empty box reading "תמונת נושא בהכנה" ("cover image
+            pending") — placeholder text a crawler and an AI summary read as
+            part of the article. */}
+        {article.featuredImage ? (
+          <div className="mx-auto max-w-4xl px-6">
+            <div className="-mt-6 overflow-hidden rounded-card bg-brand-tint shadow-sm">
+              <div className="relative aspect-video w-full">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={article.featuredImage}
                   alt={article.imageAlt}
@@ -108,14 +111,10 @@ export function ArticlePage({ locale, slug }: { locale: Locale; slug: string }) 
                   height={900}
                   className="h-full w-full object-cover"
                 />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center text-sm text-brand-muted">
-                  {t.imagePending}
-                </div>
-              )}
+              </div>
             </div>
           </div>
-        </div>
+        ) : null}
 
         {/* BODY */}
         <div className="mx-auto max-w-3xl px-6 py-14">

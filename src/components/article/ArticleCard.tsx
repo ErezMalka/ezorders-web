@@ -33,9 +33,10 @@ export function ArticleCard({ article }: { article: Article }) {
               className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02]"
             />
           ) : (
-            <div className="flex h-full w-full items-center justify-center text-sm text-brand-muted">
-              {t.imagePending}
-            </div>
+            // An empty tinted panel keeps the cards in the grid the same height;
+            // it used to say "cover image pending", which is placeholder text,
+            // not content.
+            <div aria-hidden="true" className="h-full w-full" />
           )}
         </div>
       </Link>
