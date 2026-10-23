@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 // so the metadata output is identical to the previous single-root layout. Pages
 // override individual fields (title, canonical, og:locale, …) as they did before.
 const SITE_DESCRIPTION =
-  "EZorders turns offline to online — POS, digital menus, online ordering, kiosk stands, loyalty and multi-branch management for modern restaurants.";
+  "EZOrders turns offline to online — POS, digital menus, online ordering, kiosk stands, loyalty and multi-branch management for modern restaurants.";
 
 // Meta Business "facebook-domain-verification" code, added to every page's <head>
 // to prove domain ownership in Business Manager (needed for Aggregated Event
@@ -75,6 +75,8 @@ export const organizationSchema = {
   },
   image: "https://ezorders.com/images/logo.png",
   description: SITE_DESCRIPTION,
+  // Stated on /he/about ("מאז 2016" in the description and the stats strip).
+  foundingDate: "2016",
   telephone: "*4958",
   /**
    * Both numbers are real and they are not interchangeable: *4958 is the line

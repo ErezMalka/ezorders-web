@@ -5,7 +5,7 @@ const en: ProductContent = {
   tag: "Kiosk Stands Service",
   titleParts: ["The era of ", "long lines", " is over."],
   heroBody:
-    "EZorders delivers a modern self-service restaurant kiosk that turns rush-hour bottlenecks into fast, accurate, high-conversion orders – giving customers an intuitive flow and your team time back.",
+    "EZOrders delivers a modern self-service restaurant kiosk that turns rush-hour bottlenecks into fast, accurate, high-conversion orders – giving customers an intuitive flow and your team time back.",
   heroImage: "/images/kiosk-hero.webp",
   featuresHeading: "Kiosk Stands Features",
   featuresIntro:

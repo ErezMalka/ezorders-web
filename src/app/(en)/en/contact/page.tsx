@@ -36,7 +36,7 @@ export default function ContactPage() {
             </h1>
             <p className="mt-6 text-lg text-brand-muted">
               Ready to take your restaurant to the next level? Our experts are
-              here to answer your questions and show you how EZorders can help
+              here to answer your questions and show you how EZOrders can help
               grow your business. Contact us today and let’s start building your
               success together!
             </p>
