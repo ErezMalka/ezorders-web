@@ -1,6 +1,22 @@
 import type { Metadata } from "next";
 import { baseMetadata } from "./site-metadata";
 import type { Locale } from "@/i18n/config";
+import { alt as ogAlt, size as ogSize } from "@/app/opengraph-image";
+
+/**
+ * The site-wide card image (src/app/opengraph-image.tsx), stated explicitly.
+ *
+ * A file-based opengraph-image is only inherited by pages that do not declare
+ * their own `openGraph`; once a page sets one, the image has to be named or
+ * the page ships a card with no picture.
+ */
+export const SITE_OG_IMAGE = {
+  url: "/opengraph-image",
+  width: ogSize.width,
+  height: ogSize.height,
+  alt: ogAlt,
+  type: "image/png",
+};
 
 const OG_LOCALE: Record<Locale, string> = { he: "he_IL", en: "en_US" };
 
@@ -45,8 +61,7 @@ export function localeMetadata(locale: Locale): Metadata {
  *
  * This copies the page's title and description into og:* and twitter:*, sets
  * og:url to the page's own path (the same URL the canonical resolves to), and
- * keeps the locale-correct og:locale. The og:image still comes from the
- * file-based opengraph-image at the app root.
+ * keeps the locale-correct og:locale and the site-wide card image.
  *
  * Deliberately NOT applied to /he/kiosk-stands and /he/digital-menus: those
  * pages are in the middle of a timed SEO measurement and their page files are
@@ -72,11 +87,13 @@ export function pageMetadata(
       url: path,
       locale: OG_LOCALE[locale],
       alternateLocale: OG_LOCALE[other],
+      images: [SITE_OG_IMAGE],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
+      images: [SITE_OG_IMAGE],
     },
   };
 }

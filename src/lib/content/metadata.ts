@@ -9,6 +9,7 @@ import type { Metadata } from "next";
 import { getArticle, getTranslationGroup } from "./articles";
 import type { Article } from "./schema";
 import { locales, xDefaultLocale, type Locale } from "@/i18n/config";
+import { SITE_OG_IMAGE } from "@/app/_shared/locale-metadata";
 
 const SITE = "https://ezorders.com";
 
@@ -49,8 +50,15 @@ export function blogIndexMetadata(locale: Locale): Metadata {
       url,
       siteName: "EZOrders",
       locale: OG_LOCALE[locale],
+      // Setting openGraph here stops the root opengraph-image being inherited.
+      images: [SITE_OG_IMAGE],
     },
-    twitter: { card: "summary_large_image", title: meta.title, description: meta.description },
+    twitter: {
+      card: "summary_large_image",
+      title: meta.title,
+      description: meta.description,
+      images: [SITE_OG_IMAGE],
+    },
   };
 }
 
