@@ -31,7 +31,7 @@ export default function HeDigitalMenusPage() {
     "section",
     { style: sectionStyle },
     createElement("span", { style: tagStyle }, "שירות תפריטים דיגיטליים"),
-    createElement("h1", { style: h1Style }, "תנו לתפריט שלכם להצטרף לעולם הדיגיטלי"),
+    createElement("h1", { style: h1Style }, "תפריט דיגיטלי למסעדה"),
     createElement("p", { style: leadStyle }, "החליפו את התפריט המודפס בתפריט דיגיטלי רספונסיבי שמתעדכן בשניות, נראה מצוין בכל טלפון, ומוביל את הסועד בביטחון מהעיון ועד ההזמנה בלחיצה אחת. פחות חיכוך, יותר החלטות — ויותר הזמנות."),
     createElement("img", { src: "/images/ai/ezorders-mobile-ordering-app.webp", width: 1024, height: 1024, alt: "תפריט דיגיטלי למסעדה על מסך טלפון — אפליקציית EZOrders ליד מעמד QR על שולחן", style: imgStyle, loading: "lazy" }),
     createElement("h2", { style: h2Style }, "יכולות התפריט הדיגיטלי"),
