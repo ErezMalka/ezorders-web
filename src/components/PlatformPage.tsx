@@ -8,6 +8,7 @@ import { FaqSection } from "@/components/sections/FaqSection";
 import { GENERAL_FAQ } from "@/data/faq";
 import { ModuleIcon } from "@/components/Icons";
 import { SIGNUP_URL } from "@/data/content";
+import { breadcrumbSchema } from "@/lib/seo/breadcrumbs";
 import {
   getPlatformContent,
   type Locale,
@@ -162,6 +163,19 @@ export function PlatformPage({ locale = "en" }: { locale?: Locale }) {
 
   return (
     <PageLayout locale={locale}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(
+            breadcrumbSchema(
+              locale,
+              // Same label as the main navigation item that links here.
+              { name: locale === "he" ? "המערכת" : "The Platform", path: "/platform" },
+              { underSolutions: false },
+            ),
+          ),
+        }}
+      />
       {/* HERO */}
       <section className="relative overflow-hidden pb-16 pt-36">
         <div className="mx-auto grid max-w-container items-center gap-12 px-6 md:grid-cols-2">

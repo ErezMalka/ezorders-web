@@ -6,6 +6,7 @@ import { FaqSection } from "@/components/sections/FaqSection";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { GENERAL_FAQ } from "@/data/faq";
 import { breadcrumbSchema } from "@/lib/seo/breadcrumbs";
+import { productSoftwareSchema } from "@/lib/seo/product-schema";
 import { ModuleIcon } from "@/components/Icons";
 import { SIGNUP_URL } from "@/data/content";
 import { getHomeContent, type Locale } from "@/data/homeContent";
@@ -62,6 +63,10 @@ export function PosPage({ locale = "en" }: { locale?: Locale }) {
             }),
           ),
         }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productSoftwareSchema(locale, "pos")) }}
       />
       {/* HERO */}
       <section className="relative overflow-hidden pb-16 pt-36">

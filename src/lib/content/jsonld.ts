@@ -9,6 +9,8 @@
 import type { Article } from "./schema";
 
 const SITE = "https://ezorders.com";
+/** The Organization node SiteScripts emits on every page (site-metadata.ts). */
+const ORGANIZATION_ID = `${SITE}/#organization`;
 
 export function articleJsonLd(article: Article) {
   return {
@@ -19,12 +21,14 @@ export function articleJsonLd(article: Article) {
     image: article.featuredImage ? [`${SITE}${article.featuredImage}`] : undefined,
     datePublished: article.publishedAt,
     dateModified: article.updatedAt,
-    author: { "@type": "Organization", name: article.author, url: SITE },
-    publisher: {
-      "@type": "Organization",
-      name: "EZOrders",
-      url: SITE,
-    },
+    // By @id, so the author and publisher ARE the site's Organization (with its
+    // address, phone and founding date) rather than an unconnected namesake.
+    // Only when the byline is the company; a person's byline stays a name.
+    author:
+      article.author === "EZOrders"
+        ? { "@type": "Organization", "@id": ORGANIZATION_ID, name: "EZOrders", url: SITE }
+        : { "@type": "Organization", name: article.author, url: SITE },
+    publisher: { "@type": "Organization", "@id": ORGANIZATION_ID, name: "EZOrders", url: SITE },
     mainEntityOfPage: { "@type": "WebPage", "@id": article.canonicalUrl },
     inLanguage: article.locale,
     wordCount: article.wordCount || undefined,
