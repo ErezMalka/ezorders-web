@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/app/_shared/locale-metadata";
 import { createElement } from "react";
 import { PageLayout } from "@/components/PageLayout";
 import { ContactForm } from "@/components/ContactForm";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata("/he/contact", {
   title: "צור קשר — דמו למערכת הזמנות למסעדה | EZOrders",
   description:
     "רוצים לשמוע עוד על EZOrders? צרו איתנו קשר ונשמח להראות לכם איך תפריטים דיגיטליים והזמנות אונליין יכולים לעזור למסעדה שלכם.",
@@ -16,7 +17,7 @@ export const metadata: Metadata = {
       "x-default": "/he/contact",
     },
   },
-};
+});
 
 export default function HeContactPage() {
   const intro = createElement(

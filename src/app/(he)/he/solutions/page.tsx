@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/app/_shared/locale-metadata";
 import { createElement } from "react";
 import { PageLayout } from "@/components/PageLayout";
 import { FaqSection } from "@/components/sections/FaqSection";
 import { GENERAL_FAQ } from "@/data/faq";
 import { breadcrumbSchema } from "@/lib/seo/breadcrumbs";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata("/he/solutions", {
   title: "פתרונות דיגיטליים למסעדות — קופה, קיוסק ותפריט | EZOrders",
   description:
     "הפתרונות של EZOrders למסעדות: אתר הזמנות למסעדה, תפריטים דיגיטליים, עמדות קיוסק ואפליקציית הזמנות — הכל מסונכרן ומתעדכן בזמן אמת.",
@@ -17,7 +18,7 @@ export const metadata: Metadata = {
       "x-default": "/he/solutions",
     },
   },
-};
+});
 
 const solutions = [
   {

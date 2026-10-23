@@ -22,7 +22,7 @@ const en: ProductContent = {
   benefitsIntro:
     "A digital menu for restaurants reduces friction at every step: guests explore visually, choose confidently, and order faster.",
   benefits: [
-    { title: "Unique Features", body: "From multi-language menus to allergen disclosures and per-table QR routing, ezorders packs the details that matter to modern diners. Build trust with clarity while keeping your team focused on hospitality." },
+    { title: "Unique Features", body: "From multi-language menus to allergen disclosures and per-table QR routing, EZOrders packs the details that matter to modern diners. Build trust with clarity while keeping your team focused on hospitality." },
     { title: "Fast and easy to use", body: "Edit once, update everywhere. Change prices, mark items sold out, or schedule seasonal dishes in seconds. No designer, no developer- just a clean interface built for busy operators." },
     { title: "User Friendly", body: "Guests get a friction-free browsing experience: crisp photos, clear categories, and immediate actions." },
   ],

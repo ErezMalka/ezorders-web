@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/app/_shared/locale-metadata";
 import { createElement } from "react";
 import { PageLayout } from "@/components/PageLayout";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
@@ -24,7 +25,7 @@ import { breadcrumbSchema } from "@/lib/seo/breadcrumbs";
  * beyond that, because nothing else has been verified.
  */
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata("/he/integrations", {
   title: "חיבור קופה לוולט, תן ביס וסיבוס | EZOrders",
   description:
     "המערכת מתחברת לוולט, תן ביס, סיבוס, זאפ רסט, משלוחה ו-HAAT. כל ההזמנות נוחתות על אותו מסך ובאותם דוחות — בלי להקליד הזמנה פעמיים.",
@@ -34,7 +35,7 @@ export const metadata: Metadata = {
     // point at. Claiming one would send an English visitor to a 404.
     languages: { he: "/he/integrations", "x-default": "/he/integrations" },
   },
-};
+});
 
 const sectionStyle = { padding: "8rem 1.5rem 2rem", maxWidth: "56rem", margin: "0 auto" } as const;
 const lowerStyle = { padding: "1rem 1.5rem 4rem", maxWidth: "56rem", margin: "0 auto" } as const;

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/app/_shared/locale-metadata";
 import { createElement } from "react";
 import { PageLayout } from "@/components/PageLayout";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
@@ -6,12 +7,12 @@ import { FaqSection } from "@/components/sections/FaqSection";
 import { GENERAL_FAQ } from "@/data/faq";
 import { breadcrumbSchema } from "@/lib/seo/breadcrumbs";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata("/he/restaurant-ordering-website", {
   title: "אתר הזמנות למסעדה — משלוחים ואיסוף עצמי אונליין | EZOrders",
   description: "אתר הזמנות אונליין למסעדה שלכם — חוויית הזמנה חלקה, תשלום מאובטח, אפסייל חכם ומערכת ניהול לקוחות שמגדילה מכירות.",
   alternates: {
     canonical: "./", languages: { en: "/en/restaurant-ordering-website", he: "/he/restaurant-ordering-website", "x-default": "/he/restaurant-ordering-website" } },
-};
+});
 
 const sectionStyle = { padding: "8rem 1.5rem 4rem", maxWidth: "56rem", margin: "0 auto" } as const;
 const tagStyle = { display: "inline-block", color: "#D22F63", fontWeight: 600, marginBottom: "1rem" } as const;

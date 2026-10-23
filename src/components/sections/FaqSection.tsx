@@ -23,10 +23,19 @@ export function FaqSection({
   items,
   locale = "he",
   heading,
+  schemaItems = [],
 }: {
   items: FaqItem[];
   locale?: "he" | "en";
   heading?: string;
+  /**
+   * Questions the page answers VISIBLY elsewhere — in its own body copy rather
+   * than in this accordion. They go first in the FAQPage JSON-LD, so the page's
+   * structured data leads with what this page is about instead of only the
+   * general block repeated across the product pages. Never pass a question that
+   * is not visible on the page: FAQPage must describe content a visitor can see.
+   */
+  schemaItems?: FaqItem[];
 }) {
   if (items.length === 0) return null;
 
@@ -36,7 +45,7 @@ export function FaqSection({
   const schema = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    mainEntity: items.map((item) => ({
+    mainEntity: [...schemaItems, ...items].map((item) => ({
       "@type": "Question",
       name: item.q,
       acceptedAnswer: { "@type": "Answer", text: item.a },

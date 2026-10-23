@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/app/_shared/locale-metadata";
 import { PageLayout } from "@/components/PageLayout";
 import { PriceTabs } from "@/components/PriceTabs";
 import { PricingCalculator } from "@/components/PricingCalculator";
@@ -6,7 +7,7 @@ import { loadHardwareShowcase, loadPublicCatalogue } from "@/lib/agent/products"
 import { ContactBand } from "@/components/sections/ContactBand";
 import { softwareApplicationSchema } from "@/lib/seo/product-schema";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata("/en/price", {
   alternates: {
     canonical: "./",
     languages: {
@@ -19,7 +20,7 @@ export const metadata: Metadata = {
   title: "Pricing — Restaurant System Cost Calculator | EZOrders",
   description:
     "Build your EZOrders package and see the price live: POS, ordering website, kiosk, loyalty and integrations, in shekels, with a monthly discount of up to 40%.",
-};
+});
 
 /**
  * Same calculator, same catalogue, same engine as /he/price — the English page

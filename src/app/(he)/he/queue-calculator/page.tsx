@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/app/_shared/locale-metadata";
 import { PageLayout } from "@/components/PageLayout";
 import { QueueCalculator } from "@/components/funnels/QueueCalculator";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata("/he/queue-calculator", {
   title: "מחשבון: כמה עולה לך התור? | EZOrders",
   description:
     "בדקו תוך 30 שניות כמה כסף התור בקופה מבריח לכם בכל חודש — ומה עמדת קיוסק יכולה להחזיר. מחשבון חינם למסעדות מזון מהיר.",
   alternates: {
     canonical: "./", languages: { he: "/he/queue-calculator", "x-default": "/he/queue-calculator" } },
-};
+});
 
 export default function QueueCalculatorPage() {
   return (

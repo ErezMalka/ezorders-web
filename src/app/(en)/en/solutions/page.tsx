@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/app/_shared/locale-metadata";
 import Link from "next/link";
 import { PageLayout } from "@/components/PageLayout";
 import { CTAButton } from "@/components/CTAButton";
 import { ContactBand } from "@/components/sections/ContactBand";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata("/en/solutions", {
   alternates: {
     canonical: "./",
     languages: {
@@ -17,7 +18,7 @@ export const metadata: Metadata = {
   title: "Restaurant Solutions — POS, Kiosk, Menu & Website | EZOrders",
   description:
     "Digitize your restaurant menu with endless options — digital menus, websites, membership clubs, kiosk stands, applications and an order management system.",
-};
+});
 
 const technologies = [
   { label: "Digital Menus", href: "/en/digital-menus" },
@@ -80,10 +81,9 @@ export default function SolutionsPage() {
         </p>
         <h2 className="text-4xl font-bold md:text-5xl">Our Services</h2>
         <p className="mt-4 max-w-2xl text-brand-muted">
-          Here at EZorders we turn Offline to Online. Unlock the future of
-          restaurant operations with our advanced ordering system. intuitive
-          digital menus, user-friendly online platforms, and cutting-edge kiosk
-          stands.
+          At EZOrders we turn offline to online. One ordering system for your
+          restaurant: digital menus, online ordering platforms and self-order
+          kiosk stands.
         </p>
 
         <div className="mt-10 grid gap-10 md:grid-cols-2">

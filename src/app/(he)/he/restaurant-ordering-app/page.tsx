@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/app/_shared/locale-metadata";
 import { createElement } from "react";
 import { PageLayout } from "@/components/PageLayout";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
@@ -6,12 +7,12 @@ import { FaqSection } from "@/components/sections/FaqSection";
 import { GENERAL_FAQ } from "@/data/faq";
 import { breadcrumbSchema } from "@/lib/seo/breadcrumbs";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata("/he/restaurant-ordering-app", {
   title: "אפליקציית הזמנות למסעדה — מותגת עם מועדון לקוחות | EZOrders",
   description: "אפליקציית הזמנות למסעדה שמנהלת הזמנות אונליין, מגבירה נאמנות לקוחות ומגדילה מכירות — עם התראות פוש, מעקב הזמנות ותשלום מאובטח.",
   alternates: {
     canonical: "./", languages: { en: "/en/restaurant-ordering-app", he: "/he/restaurant-ordering-app", "x-default": "/he/restaurant-ordering-app" } },
-};
+});
 
 const sectionStyle = { padding: "8rem 1.5rem 4rem", maxWidth: "56rem", margin: "0 auto" } as const;
 const tagStyle = { display: "inline-block", color: "#D22F63", fontWeight: 600, marginBottom: "1rem" } as const;

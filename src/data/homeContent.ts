@@ -12,47 +12,43 @@ const en = {
     "awesome"
   ],
   heroTitleSuffix: " with a click",
-  heroLead: "It\u2019s the time to dive in the newest technology that will let you enjoy the digital world and it\u2019s benefits.",
+  heroLead: "It\u2019s time to adopt new technology and enjoy everything the digital world offers your restaurant.",
   ctaTrial: "Book a Demo Now",
   ctaLearnMore: "Learn More",
-  trustedLabel: "Trusted Users",
-  trustedRated: "Rated 5 out of 5",
-  trustedOver: "Over ",
-  trustedUsers: " happy users all over the world",
   servicesTitlePrefix: "Our ",
   servicesTitleAccent: "Services",
   servicesTitleSuffix: "",
-  servicesLead: "Here at EZorders we turn Offline to Online. Unlock the future of restaurant operations with our advanced ordering system. intuitive digital menus, user-friendly online platforms, and cutting-edge kiosk stands..",
+  servicesLead: "At EZOrders we turn offline to online. One ordering system for your restaurant: digital menus, online ordering platforms and self-order kiosk stands.",
   services: [
     {
       title: "Digital Menus",
-      body: "Introducing our revolutionary Digital Menus! Say goodbye to traditional paper menus and embrace the future of dining. Browse vivid food images, personalized options, and more.",
+      body: "Replace the printed menu with a digital one: food photos, personalised options and more.",
       href: "/en/digital-menus",
       icon: "/icons/digital-menus.svg"
     },
     {
-      title: "website",
-      body: "On customer view you only users can use this version, they can explore and order foods from there.",
+      title: "Ordering Website",
+      body: "Customers browse your menu and order food directly from your website, on any device.",
       href: "/en/restaurant-ordering-website",
       icon: "/icons/website.svg"
     },
     {
       title: "Kiosk Stands",
-      body: "On this version only rides can use this. They can pick up orders from restaurants and deliver to customers",
+      body: "Fast self-ordering at a station in the restaurant: shorter queues, less pressure on staff and more accurate orders.",
       href: "/en/kiosk-stands",
       icon: "/icons/kiosk-stands.svg"
     },
     {
       title: "Applications",
-      body: "On this version only rides can use this. They can pick up orders from restaurants and deliver to customers",
+      body: "A branded app for your restaurant with a live menu, payments and order tracking, all in one place.",
       href: "/en/restaurant-ordering-app",
       icon: "/icons/applications.svg"
     }
   ],
-  benefitsTitlePrefix: "How it\u2019s ",
-  benefitsTitleAccent: "benefits",
-  benefitsTitleSuffix: " your business?",
-  benefitsLead: "Discover why restaurants worldwide trust EzOrders to power their restaurant ordering system.",
+  benefitsTitlePrefix: "How it ",
+  benefitsTitleAccent: "helps",
+  benefitsTitleSuffix: " your business",
+  benefitsLead: "Three ways restaurants use EZOrders to show their menu and take orders.",
   benefits: [
     {
       title: "Digital menu boards",
@@ -71,10 +67,10 @@ const en = {
   aboutTitleAccent: "About",
   aboutTitleSuffix: " Us",
   aboutParagraphs: [
-    "At EZORDERS, we revolutionize restaurant operations with our top-notch ordering system solutions. With industry expertise and a customer-centric approach, we deliver innovative technology that simplifies ordering, enhances experiences, and drives business growth.",
+    "EZOrders builds ordering systems for restaurants. We focus on technology that makes ordering simpler for guests and for staff, and helps the business grow.",
     "Our comprehensive system offers digital menus, intuitive online ordering, and sleek kiosk stands. Customers can browse, customize, and pay securely from any device. Say goodbye to traditional order-taking with our direct ordering kiosks, reducing wait times and boosting satisfaction.",
     "We pride ourselves on exceptional customer service, tailoring solutions to meet specific needs. Whether you\u2019re a small eatery or a large chain, our scalable and customizable system fits your requirements.",
-    "Join satisfied clients and unlock streamlined operations, increased revenue, and happier customers. Contact us today to revolutionize your restaurant\u2019s ordering process."
+    "Talk to us about how your restaurant takes orders today, and we will show you how it could work with EZOrders."
   ],
   processTitlePrefix: "",
   processTitleAccent: "Friendly",
@@ -84,25 +80,25 @@ const en = {
     {
       number: 1,
       title: "Picture your menu",
-      body: "On customer view you only users can use this version, they can explore and order foods from there."
+      body: "Upload your existing menu and we will turn it into a complete digital menu."
     },
     {
       number: 2,
       title: "Review your menu",
-      body: "On this stage you will go through your menu and define all the restaurant details"
+      body: "In this step you go through your menu and set all the restaurant details."
     },
     {
       number: 3,
       title: "Select the required platforms",
-      body: "Choose the required platforms that you willing your restaurant to appear on and enjoy of full digitization."
+      body: "Choose the platforms you want your restaurant to appear on."
     }
   ],
   sampleTitlePrefix: "Sample ",
   sampleTitleAccent: "Apps",
   sampleTitleSuffix: "",
-  sampleLead: "See real restaurant apps built with EZorders-fully branded, live-synced menus, powered by the same online restaurant ordering system you can launch.",
+  sampleLead: "See real restaurant apps built with EZOrders: fully branded, live-synced menus, powered by the same online restaurant ordering system you can launch.",
   contactTitle: "Let\u2019s Talk",
-  contactLead: "Ready to take your restaurant to the next level? Whether you have questions or want to see how EZorders can help grow your business, we\u2019re here to chat. Contact us today and let\u2019s start building your success together!"
+  contactLead: "Ready to take your restaurant to the next level? Whether you have questions or want to see how EZOrders can help grow your business, we\u2019re here to chat. Contact us today and let\u2019s start building your success together!"
 };
 
 const he = {
@@ -116,10 +112,6 @@ const he = {
   heroLead: "\u05d4\u05d2\u05d9\u05e2 \u05d4\u05d6\u05de\u05df \u05dc\u05e6\u05dc\u05d5\u05dc \u05dc\u05d8\u05db\u05e0\u05d5\u05dc\u05d5\u05d2\u05d9\u05d4 \u05d4\u05d7\u05d3\u05e9\u05d4 \u05e9\u05ea\u05d0\u05e4\u05e9\u05e8 \u05dc\u05db\u05dd \u05dc\u05d9\u05d4\u05e0\u05d5\u05ea \u05de\u05d4\u05e2\u05d5\u05dc\u05dd \u05d4\u05d3\u05d9\u05d2\u05d9\u05d8\u05dc\u05d9 \u05d5\u05de\u05db\u05dc \u05d4\u05d9\u05ea\u05e8\u05d5\u05e0\u05d5\u05ea \u05e9\u05dc\u05d5.",
   ctaTrial: "\u05e7\u05d1\u05e2\u05d5 \u05d3\u05de\u05d5 \u05e2\u05db\u05e9\u05d9\u05d5",
   ctaLearnMore: "\u05de\u05d9\u05d3\u05e2 \u05e0\u05d5\u05e1\u05e3",
-  trustedLabel: "\u05dc\u05e7\u05d5\u05d7\u05d5\u05ea \u05de\u05e8\u05d5\u05e6\u05d9\u05dd",
-  trustedRated: "\u05d3\u05d9\u05e8\u05d5\u05d2 5 \u05de\u05ea\u05d5\u05da 5",
-  trustedOver: "\u05de\u05e2\u05dc ",
-  trustedUsers: " \u05de\u05e9\u05ea\u05de\u05e9\u05d9\u05dd \u05de\u05e8\u05d5\u05e6\u05d9\u05dd \u05d1\u05db\u05dc \u05d4\u05e2\u05d5\u05dc\u05dd",
   servicesTitlePrefix: "\u05d4\u05e9\u05d9\u05e8\u05d5\u05ea\u05d9\u05dd ",
   servicesTitleAccent: "\u05e9\u05dc\u05e0\u05d5",
   servicesTitleSuffix: "",

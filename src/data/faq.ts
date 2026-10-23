@@ -121,3 +121,29 @@ export const KIOSK_FAQ: Record<"he" | "en", FaqItem[]> = {
     },
   ],
 };
+
+/**
+ * The three questions /he/kitchen-display answers in its own body, under
+ * "שאלות נפוצות על מסך מטבח". The page renders them as headings and paragraphs
+ * (one answer carries a link to /he/pos), so they are restated here as plain
+ * text for its FAQPage JSON-LD.
+ *
+ * MIRRORS THE PAGE. The wording must stay identical to what the page shows;
+ * change both together.
+ */
+export const KDS_FAQ: Record<"he", FaqItem[]> = {
+  he: [
+    {
+      q: "האם צריך חומרה מיוחדת?",
+      a: "לא. המערכת רצה על כל מסך מגע או טאבלט עמיד למטבח. אנחנו נמליץ על תצורה לפי גודל המטבח ומספר התחנות — ממסך אחד ועד מסך לכל תחנת הכנה.",
+    },
+    {
+      q: "מה קורה אם האינטרנט נופל?",
+      a: "ההזמנות שכבר נקלטו נשמרות מקומית וממשיכות להופיע על המסך. ברגע שהחיבור חוזר, הכל מסתנכרן אוטומטית מול הקופה והדוחות.",
+    },
+    {
+      q: "האם אפשר לחלק הזמנות בין תחנות?",
+      a: "כן — מנות מתפצלות אוטומטית לפי תחנה (גריל, סלטים, בר), וכרטיס ההזמנה המרכזי מתעדכן כשכל התחנות סיימו. ההגשה יוצאת שלמה וחמה.",
+    },
+  ],
+};

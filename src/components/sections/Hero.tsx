@@ -15,7 +15,12 @@ export function Hero({ locale = "en" }: { locale?: Locale }) {
   const t = getHomeContent(locale);
   const words = t.heroWords;
   const [wordIndex, setWordIndex] = useState(0);
-  const [text, setText] = useState("");
+  // Start on the first word, fully typed, not on "". This component renders on
+  // the server too, and the server HTML is what a crawler or an AI fetcher
+  // reads: starting empty published "Your entrance to the | with a click" as
+  // the page's H1. Fully typed, the effect below simply pauses on the word and
+  // then begins deleting, so the animation is unchanged for visitors.
+  const [text, setText] = useState(() => words[0] ?? "");
   const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
@@ -57,7 +62,11 @@ export function Hero({ locale = "en" }: { locale?: Locale }) {
             {t.heroTitlePrefix}
             <span className="text-brand-indigo">
               {text}
-              <span className="animate-pulse">|</span>
+              {/* The caret is drawn, not typed: a literal "|" became part of the H1 text. */}
+              <span
+                aria-hidden="true"
+                className="ms-0.5 inline-block h-[0.9em] w-[2px] animate-pulse bg-current align-[-0.1em]"
+              />
             </span>
             {t.heroTitleSuffix}
           </h1>

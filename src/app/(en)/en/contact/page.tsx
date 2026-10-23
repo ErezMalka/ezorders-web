@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/app/_shared/locale-metadata";
 import { PageLayout } from "@/components/PageLayout";
 import { ContactForm } from "@/components/ContactForm";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata("/en/contact", {
   alternates: {
     canonical: "./",
     languages: {
@@ -16,7 +17,7 @@ export const metadata: Metadata = {
   title: "Contact — Book a Demo of the Restaurant System | EZOrders",
   description:
     "Our experts can answer your questions. Contact EZOrders today and let’s start building your success together.",
-};
+});
 
 export default function ContactPage() {
   return (
@@ -36,7 +37,7 @@ export default function ContactPage() {
             </h1>
             <p className="mt-6 text-lg text-brand-muted">
               Ready to take your restaurant to the next level? Our experts are
-              here to answer your questions and show you how EZorders can help
+              here to answer your questions and show you how EZOrders can help
               grow your business. Contact us today and let’s start building your
               success together!
             </p>

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/app/_shared/locale-metadata";
 import { PageLayout } from "@/components/PageLayout";
 import { Hero } from "@/components/sections/Hero";
 import { Services } from "@/components/sections/Services";
@@ -9,7 +10,7 @@ import { FriendlyProcess } from "@/components/sections/FriendlyProcess";
 import { SampleApps } from "@/components/sections/SampleApps";
 import { ContactBand } from "@/components/sections/ContactBand";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata("/en", {
   alternates: {
     canonical: "./",
     languages: {
@@ -21,8 +22,8 @@ export const metadata: Metadata = {
   },
   title: "Restaurant Management System — POS, Kiosk, Menu | EZOrders",
   description:
-    "EZorders turns offline to online — digital menus, online ordering, kiosk stands and apps for modern restaurants.",
-};
+    "EZOrders turns offline to online — digital menus, online ordering, kiosk stands and apps for modern restaurants.",
+});
 
 export default function HomePage() {
   return (

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/app/_shared/locale-metadata";
 import { createElement } from "react";
 import { PageLayout } from "@/components/PageLayout";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
@@ -21,7 +22,7 @@ import { GLOSSARY } from "@/data/glossary";
  * description. Marking it up as questions would have been the lazier fit.
  */
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata("/he/glossary", {
   title: "מילון מונחים למסעדות — POS, KDS, דוח Z | EZOrders",
   description:
     "מה זה KDS, מה ההבדל בין דוח X לדוח Z, מה עושה שבא ומה זה מספר הקצאה. המונחים שכל בעל מסעדה נתקל בהם, מוסברים בעברית פשוטה.",
@@ -29,7 +30,7 @@ export const metadata: Metadata = {
     canonical: "./",
     languages: { he: "/he/glossary", "x-default": "/he/glossary" },
   },
-};
+});
 
 const sectionStyle = { padding: "8rem 1.5rem 2rem", maxWidth: "52rem", margin: "0 auto" } as const;
 const listStyle = { padding: "0 1.5rem 3rem", maxWidth: "52rem", margin: "0 auto" } as const;

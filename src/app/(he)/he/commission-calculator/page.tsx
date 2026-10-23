@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/app/_shared/locale-metadata";
 import { PageLayout } from "@/components/PageLayout";
 import { CommissionCalculator } from "@/components/funnels/CommissionCalculator";
 import { RelatedLinks } from "@/components/sections/RelatedLinks";
 import { breadcrumbSchema } from "@/lib/seo/breadcrumbs";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata("/he/commission-calculator", {
   title: "מחשבון: כמה עולות לכם עמלות המשלוחים? | EZOrders",
   description:
     "בדקו כמה אתם משלמים בעמלות לוולט, לתן ביס ולסיבוס — וכמה מזה חוזר אליכם כשלקוחות חוזרים מזמינים ישירות מהאתר שלכם. מחשבון חינם למסעדות.",
@@ -13,7 +14,7 @@ export const metadata: Metadata = {
     // Hebrew only: the commission rates and the platforms are Israeli.
     languages: { he: "/he/commission-calculator", "x-default": "/he/commission-calculator" },
   },
-};
+});
 
 export default function CommissionCalculatorPage() {
   return (

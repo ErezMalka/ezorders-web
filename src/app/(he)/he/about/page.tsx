@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/app/_shared/locale-metadata";
 import Link from "next/link";
 
 import { PageLayout } from "@/components/PageLayout";
@@ -9,7 +10,7 @@ import { ContactBand } from "@/components/sections/ContactBand";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { breadcrumbSchema } from "@/lib/seo/breadcrumbs";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata("/he/about", {
   title: "אודות EZOrders — המערכת החכמה ביותר לענף המזון המהיר",
   description:
     "מאז 2016 אנחנו בונים למסעדות ולרשתות מזון מהיר מערכת אחת: קופה, קיוסק, אתר ואפליקציית הזמנות, מסך מטבח, מועדון לקוחות וחיבור לוולט, תן ביס וסיבוס — הכול על תפריט אחד ודוח אחד.",
@@ -21,7 +22,7 @@ export const metadata: Metadata = {
       "x-default": "/he/about",
     },
   },
-};
+});
 
 /**
  * The about page used to say "mission" and "vision" in two grey paragraphs.

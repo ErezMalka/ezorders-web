@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/app/_shared/locale-metadata";
 import { PageLayout } from "@/components/PageLayout";
 import { CTAButton } from "@/components/CTAButton";
 import { ContactBand } from "@/components/sections/ContactBand";
 import { SIGNUP_URL } from "@/data/content";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata("/en/about", {
   alternates: {
     canonical: "./",
     languages: {
@@ -17,7 +18,7 @@ export const metadata: Metadata = {
   title: "About EZOrders — Restaurant Ordering Systems in Israel",
   description:
     "Get to know EZOrders — we build mobile-first digital menus for restaurants that update in seconds and guide guests smoothly from browsing to ordering.",
-};
+});
 
 export default function AboutPage() {
   return (
@@ -33,11 +34,12 @@ export default function AboutPage() {
             <span className="text-brand-indigo">Orders.</span>
           </h1>
           <p className="mt-6 text-lg text-brand-muted">
-            EZorders helps restaurants turn every menu view into a moment of
-            decision. We build mobile-first digital menus for restaurants that
-            update in seconds, look great on any phone, and guide people smoothly
-            from browsing to ordering-raising average check and reducing
-            front-of-house friction.
+            EZOrders helps restaurants turn every menu view into a moment of
+            decision. We build one system for restaurants and quick-service
+            chains: POS, self-order kiosk, ordering website and app, kitchen
+            display, loyalty club, and connections to Wolt, 10bis and Cibus, all
+            on one menu and one report. Built in Israel, for restaurants in
+            Israel, since 2016.
           </p>
         </div>
       </section>
@@ -48,8 +50,8 @@ export default function AboutPage() {
           <div>
             <h2 className="mb-4 text-3xl font-bold">Our Mission</h2>
             <p className="text-brand-muted">
-              Empowering restaurant owners to stay in control-even mid-rush.
-              Ezorders puts pricing, availability, and specials a tap away on
+              Empowering restaurant owners to stay in control, even mid-rush.
+              EZOrders puts pricing, availability, and specials a tap away on
               phone, tablet, or kiosk, so you can react to demand without
               reprints or design tickets. Clear item cards with photos and
               transparent info (allergens, tags, languages) cut back-and-forth at

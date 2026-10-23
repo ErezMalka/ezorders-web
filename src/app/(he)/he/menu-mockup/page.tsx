@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/app/_shared/locale-metadata";
 import { PageLayout } from "@/components/PageLayout";
 import { MenuMockup } from "@/components/funnels/MenuMockup";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata("/he/menu-mockup", {
   title: "שלחו תפריט → קבלו הדמיית קיוסק | EZOrders",
   description:
     "שלחו לנו תמונה של התפריט ונבנה לכם הדמיה חינם איך המסעדה שלכם נראית בעמדת קיוסק להזמנה עצמית. ללא התחייבות.",
   alternates: {
     canonical: "./", languages: { he: "/he/menu-mockup", "x-default": "/he/menu-mockup" } },
-};
+});
 
 export default function MenuMockupPage() {
   return (

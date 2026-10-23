@@ -3,6 +3,15 @@ import { PRICING_CONFIG } from "@/lib/pricing";
 const SITE = "https://ezorders.com";
 
 /**
+ * The Organization node emitted on every page by SiteScripts
+ * (src/app/_shared/site-metadata.ts). Referencing it by @id, instead of
+ * restating name and url, tells a parser that the provider here is that same
+ * entity — with its address, phone, founding date and profiles — rather than a
+ * second, thinner organisation that happens to share a name.
+ */
+export const ORGANIZATION_ID = `${SITE}/#organization`;
+
+/**
  * SoftwareApplication + AggregateOffer for the pricing page.
  *
  * Until now the only structured data on the whole site was Organization, so
@@ -46,7 +55,7 @@ export function softwareApplicationSchema(locale: "he" | "en") {
       ...PRICING_CONFIG.coreProducts.map((p) => p.label),
       ...PRICING_CONFIG.addonsIncluded.map((p) => p.label),
     ],
-    provider: { "@type": "Organization", name: "EZOrders", url: SITE },
+    provider: { "@id": ORGANIZATION_ID },
     offers: {
       "@type": "AggregateOffer",
       priceCurrency: "ILS",
@@ -61,9 +70,83 @@ export function softwareApplicationSchema(locale: "he" | "en") {
         "@type": "UnitPriceSpecification",
         priceCurrency: "ILS",
         unitCode: "MON",
+        // PRICING_CONFIG is pre-VAT throughout, and the calculator says so.
+        valueAddedTaxIncluded: false,
         description: he
           ? `מחיר חודשי לרכיב. הקמה חד-פעמית מ-${PRICING_CONFIG.initialSetup.setup} ₪.`
           : `Monthly price per component. One-time setup from ILS ${PRICING_CONFIG.initialSetup.setup}.`,
+      },
+    },
+  };
+}
+
+type ProductPage = "pos" | "kitchen-display";
+
+/**
+ * SoftwareApplication for a single product page (/pos, /kitchen-display).
+ *
+ * The price page describes the system as a whole; these describe the one
+ * component the page is about, so an answer engine asked "how much is the
+ * EZOrders POS" finds the figure on the page that is about the POS.
+ *
+ * Every number is read from PRICING_CONFIG — the same object the public
+ * calculator on /price renders — never restated. Prices are pre-VAT, and the
+ * one-time charges are spelled out in the description so the monthly figure is
+ * not read as the whole cost. No rating, for the reason given above.
+ *
+ * Not used on /he/kiosk-stands or /he/digital-menus, whose pages are frozen
+ * during a running SEO measurement.
+ */
+export function productSoftwareSchema(locale: "he" | "en", page: ProductPage) {
+  const he = locale === "he";
+  const item =
+    page === "pos"
+      ? PRICING_CONFIG.coreProducts.find((p) => p.id === "pos")
+      : PRICING_CONFIG.addonsIncluded.find((p) => p.id === "kds");
+  if (!item) throw new Error(`productSoftwareSchema: no PRICING_CONFIG entry for ${page}`);
+
+  const initial = PRICING_CONFIG.initialSetup.setup;
+  const copy = {
+    pos: {
+      name: he ? "EZOrders — מערכת קופה למסעדות" : "EZOrders POS",
+      sub: he ? "מערכת קופה (POS) למסעדות" : "Restaurant POS",
+      unit: he ? "לקופה" : "per till",
+    },
+    "kitchen-display": {
+      name: he ? "EZOrders — מסך מטבח KDS" : "EZOrders Kitchen Display (KDS)",
+      sub: he ? "מסך מטבח דיגיטלי (KDS) למסעדות" : "Restaurant kitchen display system",
+      unit: he ? "למסך" : "per screen",
+    },
+  }[page];
+
+  const url = `${SITE}/${locale}/${page}`;
+  const priceUrl = `${SITE}/${locale}/price`;
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "@id": `${url}#software`,
+    name: copy.name,
+    url,
+    applicationCategory: "BusinessApplication",
+    applicationSubCategory: copy.sub,
+    inLanguage: locale,
+    provider: { "@id": ORGANIZATION_ID },
+    offers: {
+      "@type": "Offer",
+      price: item.monthly,
+      priceCurrency: "ILS",
+      availability: "https://schema.org/InStock",
+      url: priceUrl,
+      priceSpecification: {
+        "@type": "UnitPriceSpecification",
+        price: item.monthly,
+        priceCurrency: "ILS",
+        unitCode: "MON",
+        valueAddedTaxIncluded: false,
+        description: he
+          ? `${item.monthly} ₪ לחודש ${copy.unit}, לפני מע״מ. הקמה חד-פעמית: ${item.setup} ₪ ${copy.unit}, בנוסף להקמת מערכת ראשונית של ${initial.toLocaleString("en-US")} ₪.`
+          : `ILS ${item.monthly} a month ${copy.unit}, excluding VAT. One-time setup: ILS ${item.setup} ${copy.unit}, plus the initial system setup of ILS ${initial.toLocaleString("en-US")}.`,
       },
     },
   };

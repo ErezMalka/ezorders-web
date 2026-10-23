@@ -13,11 +13,16 @@ const SITE = "https://ezorders.com";
 export function breadcrumbSchema(
   locale: "he" | "en",
   page: { name: string; path: string },
+  /** Top-level pages (in the main nav, not under Solutions) get Home > page. */
+  options: { underSolutions?: boolean } = {},
 ) {
   const he = locale === "he";
+  const { underSolutions = true } = options;
   const trail = [
     { name: he ? "דף הבית" : "Home", url: `${SITE}/${locale}` },
-    { name: he ? "פתרונות" : "Solutions", url: `${SITE}/${locale}/solutions` },
+    ...(underSolutions
+      ? [{ name: he ? "פתרונות" : "Solutions", url: `${SITE}/${locale}/solutions` }]
+      : []),
     { name: page.name, url: `${SITE}/${locale}${page.path}` },
   ];
 
