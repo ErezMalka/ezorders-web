@@ -31,3 +31,52 @@ export function localeMetadata(locale: Locale): Metadata {
     },
   };
 }
+
+/**
+ * A page's own metadata, with Open Graph and Twitter cards that describe THAT
+ * page.
+ *
+ * Next merges metadata one top-level key at a time, so a page that sets
+ * `title` and `description` but no `openGraph` inherits the layout's
+ * `openGraph` verbatim — which is the homepage's. Every page on the site was
+ * telling anything that reads Open Graph (link previews, and the AI answer
+ * engines that use og:title / og:url to name and link a source) that it was
+ * the English homepage at "/".
+ *
+ * This copies the page's title and description into og:* and twitter:*, sets
+ * og:url to the page's own path (the same URL the canonical resolves to), and
+ * keeps the locale-correct og:locale. The og:image still comes from the
+ * file-based opengraph-image at the app root.
+ *
+ * Deliberately NOT applied to /he/kiosk-stands and /he/digital-menus: those
+ * pages are in the middle of a timed SEO measurement and their page files are
+ * frozen, so they keep inheriting the layout's values until it ends.
+ *
+ * @param path  The page's path, e.g. "/he/price" — must match its canonical.
+ */
+export function pageMetadata(
+  path: string,
+  metadata: Metadata & { title: string; description: string },
+): Metadata {
+  const locale: Locale = path === "/en" || path.startsWith("/en/") ? "en" : "he";
+  const other: Locale = locale === "he" ? "en" : "he";
+  const { title, description } = metadata;
+
+  return {
+    ...metadata,
+    openGraph: {
+      type: "website",
+      siteName: "EZOrders",
+      title,
+      description,
+      url: path,
+      locale: OG_LOCALE[locale],
+      alternateLocale: OG_LOCALE[other],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+    },
+  };
+}

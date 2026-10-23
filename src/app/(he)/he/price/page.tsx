@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/app/_shared/locale-metadata";
 import { PageLayout } from "@/components/PageLayout";
 import { PriceTabs } from "@/components/PriceTabs";
 import { PricingCalculator } from "@/components/PricingCalculator";
@@ -6,7 +7,7 @@ import { loadHardwareShowcase, loadPublicCatalogue } from "@/lib/agent/products"
 import { softwareApplicationSchema } from "@/lib/seo/product-schema";
 import { ContactBand } from "@/components/sections/ContactBand";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata("/he/price", {
   title: "מחירון מערכת למסעדה — מחשבון עלות חודשית | EZOrders",
   description:
     "\u05ea\u05de\u05d7\u05d5\u05e8 \u05e4\u05e9\u05d5\u05d8 \u05d5\u05e9\u05e7\u05d5\u05e3 ל-EZOrders. \u05d1\u05d7\u05e8\u05d5 \u05d0\u05ea \u05d4\u05d7\u05d1\u05d9\u05dc\u05d4 \u05e9\u05de\u05ea\u05d0\u05d9\u05de\u05d4 \u05dc\u05de\u05e1\u05e2\u05d3\u05d4 \u05e9\u05dc\u05db\u05dd \u05d5\u05d4\u05ea\u05d7\u05d9\u05dc\u05d5 \u05d1\u05d4\u05ea\u05e0\u05e1\u05d5\u05ea \u05d7\u05d9\u05e0\u05dd \u05dc-14 \u05d9\u05d5\u05dd, \u05dc\u05dc\u05d0 \u05db\u05e8\u05d8\u05d9\u05e1 \u05d0\u05e9\u05e8\u05d0\u05d9.",
@@ -18,7 +19,7 @@ export const metadata: Metadata = {
       "x-default": "/he/price",
     },
   },
-};
+});
 
 /**
  * Rebuilt at most once a minute rather than on every request.

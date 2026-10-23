@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/app/_shared/locale-metadata";
 import { PosPage } from "@/components/PosPage";
 import { getPosContent } from "@/data/posContent";
 
 const t = getPosContent("he");
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata("/he/pos", {
   title: t.meta.title,
   description: t.meta.description,
   alternates: {
@@ -15,7 +16,7 @@ export const metadata: Metadata = {
       "x-default": "/he/pos",
     },
   },
-};
+});
 
 export default function HePosRoute() {
   return <PosPage locale="he" />;

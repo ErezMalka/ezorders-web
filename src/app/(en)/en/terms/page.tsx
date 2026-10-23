@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/app/_shared/locale-metadata";
 import { PageLayout } from "@/components/PageLayout";
 import { TermsOfUse } from "@/components/TermsOfUse";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata("/en/terms", {
   title: "Terms of use - EZOrders",
   description: "Terms of use for ezorders.com: what the site is, calculators and estimates, intellectual property, liability and governing law.",
   alternates: {
@@ -13,7 +14,7 @@ export const metadata: Metadata = {
       "x-default": "/he/terms",
     },
   },
-};
+});
 
 export default function TermsPage() {
   return (

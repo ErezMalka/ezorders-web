@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/app/_shared/locale-metadata";
 import { ProductPageLayout } from "@/components/ProductPageLayout";
 import { kioskStandsContent } from "@/data/products/kiosk-stands";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata("/en/kiosk-stands", {
   alternates: {
     canonical: "./",
     languages: {
@@ -15,7 +16,7 @@ export const metadata: Metadata = {
   title: "Self-Order Kiosks for Restaurants — Cut Queues | EZOrders",
   description:
     "A modern self-service restaurant kiosk that turns rush-hour bottlenecks into fast, accurate, high-conversion orders.",
-};
+});
 
 export default function KioskStandsPage() {
   return <ProductPageLayout content={kioskStandsContent.en}  path="/kiosk-stands" />;

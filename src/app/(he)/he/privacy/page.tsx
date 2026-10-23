@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/app/_shared/locale-metadata";
 import { createElement } from "react";
 import { PageLayout } from "@/components/PageLayout";
 import { PrivacyPolicy } from "@/components/PrivacyPolicy";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata("/he/privacy", {
   title: "מדיניות פרטיות - ezorders",
   description:
     "כיצד EZOrders אוספת, משתמשת ומגנה על המידע שאתם משתפים דרך האתר שלנו.",
@@ -15,7 +16,7 @@ export const metadata: Metadata = {
       "x-default": "/he/privacy",
     },
   },
-};
+});
 
 export default function HePrivacyPage() {
   return createElement(PageLayout, { locale: "he" }, createElement(PrivacyPolicy, { locale: "he" }));

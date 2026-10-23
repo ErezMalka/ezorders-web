@@ -1,17 +1,18 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/app/_shared/locale-metadata";
 import { PageLayout } from "@/components/PageLayout";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { FaqSection } from "@/components/sections/FaqSection";
 import { GENERAL_FAQ } from "@/data/faq";
 import { breadcrumbSchema } from "@/lib/seo/breadcrumbs";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata("/he/qr-ordering", {
   title: "הזמנה בסריקת QR מהשולחן — בלי אפליקציה ובלי המתנה | EZOrders",
   description:
     "תפריט QR למסעדה: הסועדים סורקים קוד בשולחן, מזמינים ומשלמים מהטלפון — בלי אפליקציה, בלי המתנה למלצר. יותר הזמנות, פחות עומס על הצוות.",
   alternates: {
     canonical: "./", languages: { he: "/he/qr-ordering", "x-default": "/he/qr-ordering" } },
-};
+});
 
 const sectionStyle = { padding: "8rem 1.5rem 4rem", maxWidth: "56rem", margin: "0 auto" } as const;
 const tagStyle = { display: "inline-block", color: "#D22F63", fontWeight: 600, marginBottom: "1rem" } as const;

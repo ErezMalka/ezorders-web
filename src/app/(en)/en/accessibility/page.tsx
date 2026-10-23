@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/app/_shared/locale-metadata";
 import { PageLayout } from "@/components/PageLayout";
 import { AccessibilityStatement } from "@/components/AccessibilityStatement";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata("/en/accessibility", {
   title: "Accessibility statement - EZOrders",
   description:
     "What EZOrders has done to make this website accessible, what the accessibility menu offers, and whom to contact if something is in your way.",
@@ -14,7 +15,7 @@ export const metadata: Metadata = {
       "x-default": "/he/accessibility",
     },
   },
-};
+});
 
 export default function EnAccessibilityPage() {
   return (

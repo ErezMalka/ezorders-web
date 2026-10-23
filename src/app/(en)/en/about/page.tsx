@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/app/_shared/locale-metadata";
 import { PageLayout } from "@/components/PageLayout";
 import { CTAButton } from "@/components/CTAButton";
 import { ContactBand } from "@/components/sections/ContactBand";
 import { SIGNUP_URL } from "@/data/content";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata("/en/about", {
   alternates: {
     canonical: "./",
     languages: {
@@ -17,7 +18,7 @@ export const metadata: Metadata = {
   title: "About EZOrders — Restaurant Ordering Systems in Israel",
   description:
     "Get to know EZOrders — we build mobile-first digital menus for restaurants that update in seconds and guide guests smoothly from browsing to ordering.",
-};
+});
 
 export default function AboutPage() {
   return (

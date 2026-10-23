@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/app/_shared/locale-metadata";
 import Link from "next/link";
 import { PageLayout } from "@/components/PageLayout";
 import { CTAButton } from "@/components/CTAButton";
 import { ContactBand } from "@/components/sections/ContactBand";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata("/en/solutions", {
   alternates: {
     canonical: "./",
     languages: {
@@ -17,7 +18,7 @@ export const metadata: Metadata = {
   title: "Restaurant Solutions — POS, Kiosk, Menu & Website | EZOrders",
   description:
     "Digitize your restaurant menu with endless options — digital menus, websites, membership clubs, kiosk stands, applications and an order management system.",
-};
+});
 
 const technologies = [
   { label: "Digital Menus", href: "/en/digital-menus" },

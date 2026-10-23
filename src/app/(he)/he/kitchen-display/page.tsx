@@ -1,17 +1,18 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/app/_shared/locale-metadata";
 import { PageLayout } from "@/components/PageLayout";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { FaqSection } from "@/components/sections/FaqSection";
 import { GENERAL_FAQ } from "@/data/faq";
 import { breadcrumbSchema } from "@/lib/seo/breadcrumbs";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata("/he/kitchen-display", {
   title: "מסך מטבח דיגיטלי KDS — כל ההזמנות במסך אחד | EZOrders",
   description:
     "מסך מטבח KDS למסעדות: כל ההזמנות מכל הערוצים על מסך אחד במטבח, עם זמני הכנה, סטטוסים ולוח מוכנות ללקוחות. נגמר עידן הבונים המודפסים.",
   alternates: {
     canonical: "./", languages: { he: "/he/kitchen-display", "x-default": "/he/kitchen-display" } },
-};
+});
 
 const sectionStyle = { padding: "8rem 1.5rem 4rem", maxWidth: "56rem", margin: "0 auto" } as const;
 const tagStyle = { display: "inline-block", color: "#D22F63", fontWeight: 600, marginBottom: "1rem" } as const;
