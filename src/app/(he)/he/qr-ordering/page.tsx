@@ -3,6 +3,7 @@ import { PageLayout } from "@/components/PageLayout";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { FaqSection } from "@/components/sections/FaqSection";
 import { GENERAL_FAQ } from "@/data/faq";
+import { autoFaq } from "@/data/faq-auto";
 import { breadcrumbSchema } from "@/lib/seo/breadcrumbs";
 
 export const metadata: Metadata = {
@@ -100,7 +101,7 @@ export default function HeQrOrderingPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema("he", { name: "הזמנה בסריקת QR", path: "/qr-ordering" })) }}
       />
-      <FaqSection items={GENERAL_FAQ.he} locale="he" />
+      <FaqSection items={[...autoFaq("/he/qr-ordering"), ...GENERAL_FAQ.he]} locale="he" />
     </PageLayout>
   );
 }

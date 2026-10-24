@@ -4,6 +4,7 @@ import { PageLayout } from "@/components/PageLayout";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { FaqSection } from "@/components/sections/FaqSection";
 import { GENERAL_FAQ } from "@/data/faq";
+import { autoFaq } from "@/data/faq-auto";
 import { breadcrumbSchema } from "@/lib/seo/breadcrumbs";
 
 export const metadata: Metadata = {
@@ -66,6 +67,6 @@ return createElement(
     dangerouslySetInnerHTML: { __html: JSON.stringify(breadcrumbSchema("he", { name: "אפליקציית הזמנות למסעדה", path: "/restaurant-ordering-app" })) },
   }),
   content,
-  createElement(FaqSection, { items: GENERAL_FAQ.he, locale: "he" }),
+  createElement(FaqSection, { items: [...autoFaq("/he/restaurant-ordering-app"), ...GENERAL_FAQ.he], locale: "he" }),
   );
 }

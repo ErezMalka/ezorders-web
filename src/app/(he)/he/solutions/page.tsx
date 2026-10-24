@@ -3,6 +3,7 @@ import { createElement } from "react";
 import { PageLayout } from "@/components/PageLayout";
 import { FaqSection } from "@/components/sections/FaqSection";
 import { GENERAL_FAQ } from "@/data/faq";
+import { autoFaq } from "@/data/faq-auto";
 import { breadcrumbSchema } from "@/lib/seo/breadcrumbs";
 
 export const metadata: Metadata = {
@@ -155,6 +156,6 @@ return createElement(
     },
   }),
   content,
-  createElement(FaqSection, { items: GENERAL_FAQ.he, locale: "he" })
+  createElement(FaqSection, { items: [...autoFaq("/he/solutions"), ...GENERAL_FAQ.he], locale: "he" })
   );
 }

@@ -3,6 +3,7 @@ import { PageLayout } from "@/components/PageLayout";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { FaqSection } from "@/components/sections/FaqSection";
 import { GENERAL_FAQ } from "@/data/faq";
+import { autoFaq } from "@/data/faq-auto";
 import { breadcrumbSchema } from "@/lib/seo/breadcrumbs";
 
 export const metadata: Metadata = {
@@ -104,7 +105,7 @@ export default function HeKitchenDisplayPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema("he", { name: "מסך מטבח דיגיטלי (KDS)", path: "/kitchen-display" })) }}
       />
-      <FaqSection items={GENERAL_FAQ.he} locale="he" />
+      <FaqSection items={[...autoFaq("/he/kitchen-display"), ...GENERAL_FAQ.he]} locale="he" />
     </PageLayout>
   );
 }
