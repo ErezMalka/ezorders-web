@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ProductPageLayout } from "@/components/ProductPageLayout";
 import { kioskStandsContent } from "@/data/products/kiosk-stands";
+import { autoFaq } from "@/data/faq-auto";
 
 export const metadata: Metadata = {
   alternates: {
@@ -18,5 +19,5 @@ export const metadata: Metadata = {
 };
 
 export default function KioskStandsPage() {
-  return <ProductPageLayout content={kioskStandsContent.en}  path="/kiosk-stands" />;
+  return <ProductPageLayout content={kioskStandsContent.en} path="/kiosk-stands" extraFaq={autoFaq("/en/kiosk-stands")} />;
 }

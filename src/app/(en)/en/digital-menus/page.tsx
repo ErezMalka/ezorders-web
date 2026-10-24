@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ProductPageLayout } from "@/components/ProductPageLayout";
 import { digitalMenusContent } from "@/data/products/digital-menus";
+import { autoFaq } from "@/data/faq-auto";
 
 export const metadata: Metadata = {
   alternates: {
@@ -18,5 +19,5 @@ export const metadata: Metadata = {
 };
 
 export default function DigitalMenusPage() {
-  return <ProductPageLayout content={digitalMenusContent.en}  path="/digital-menus" />;
+  return <ProductPageLayout content={digitalMenusContent.en} path="/digital-menus" extraFaq={autoFaq("/en/digital-menus")} />;
 }

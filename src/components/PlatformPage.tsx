@@ -5,7 +5,7 @@ import { AdminScreens } from "@/components/sections/AdminScreens";
 import { Capabilities } from "@/components/sections/Capabilities";
 import { ContactBand } from "@/components/sections/ContactBand";
 import { FaqSection } from "@/components/sections/FaqSection";
-import { GENERAL_FAQ } from "@/data/faq";
+import { GENERAL_FAQ, type FaqItem } from "@/data/faq";
 import { ModuleIcon } from "@/components/Icons";
 import { SIGNUP_URL } from "@/data/content";
 import {
@@ -156,7 +156,17 @@ function ModuleChips({ items }: { items: { name: string; icon: Parameters<typeof
   );
 }
 
-export function PlatformPage({ locale = "en" }: { locale?: Locale }) {
+export function PlatformPage({
+  locale = "en",
+  extraFaq = [],
+}: {
+  locale?: Locale;
+  /**
+   * Answers the growth autopilot added for this page (src/data/faq-auto.ts), shown before the
+   * shared ones. The page passes its own, so one answer changes one page.
+   */
+  extraFaq?: FaqItem[];
+}) {
   const t = getPlatformContent(locale);
   const contactHref = locale === "he" ? "/he/contact" : "/contact";
 
@@ -299,7 +309,7 @@ export function PlatformPage({ locale = "en" }: { locale?: Locale }) {
         </div>
       </section>
 
-      <FaqSection items={GENERAL_FAQ[locale]} locale={locale} />
+      <FaqSection items={[...extraFaq, ...GENERAL_FAQ[locale]]} locale={locale} />
 
       <ContactBand locale={locale} />
     </PageLayout>

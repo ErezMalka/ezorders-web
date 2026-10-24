@@ -3,7 +3,7 @@ import { CTAButton } from "./CTAButton";
 import { FeatureCard } from "./FeatureCard";
 import { PricingTeaser } from "./sections/PricingTeaser";
 import { FaqSection } from "./sections/FaqSection";
-import { GENERAL_FAQ } from "@/data/faq";
+import { GENERAL_FAQ, type FaqItem } from "@/data/faq";
 import { breadcrumbSchema } from "@/lib/seo/breadcrumbs";
 import { ContactBand } from "./sections/ContactBand";
 import { getHomeContent, type Locale } from "@/data/homeContent";
@@ -27,11 +27,17 @@ export function ProductPageLayout({
   content,
   locale = "en",
   path,
+  extraFaq = [],
 }: {
   content: ProductContent;
   locale?: Locale;
   /** Locale-agnostic route, e.g. "/kiosk-stands". Omit to skip breadcrumbs. */
   path?: string;
+  /**
+   * Answers the growth autopilot added for this page (src/data/faq-auto.ts), shown before the
+   * shared ones. The page passes its own, so one answer changes one page.
+   */
+  extraFaq?: FaqItem[];
 }) {
   const home = getHomeContent(locale);
   const solutionsHref = locale === "he" ? "/he/solutions" : "/solutions";
@@ -138,6 +144,7 @@ export function ProductPageLayout({
       <FaqSection
         locale={locale}
         items={[
+          ...extraFaq,
           ...content.faq.filter((f): f is { q: string; a: string } => Boolean(f.a)),
           ...GENERAL_FAQ[locale],
         ]}
