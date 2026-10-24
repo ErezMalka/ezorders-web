@@ -6,6 +6,7 @@ import { RelatedLinks } from "@/components/sections/RelatedLinks";
 import { ConnectedRestaurant } from "@/components/sections/ConnectedRestaurant";
 import { FaqSection } from "@/components/sections/FaqSection";
 import { GENERAL_FAQ } from "@/data/faq";
+import { autoFaq } from "@/data/faq-auto";
 import { breadcrumbSchema } from "@/lib/seo/breadcrumbs";
 
 /**
@@ -171,6 +172,6 @@ export default function HeIntegrationsPage() {
         },
       ],
     }),
-    createElement(FaqSection, { items: GENERAL_FAQ.he, locale: "he" }),
+    createElement(FaqSection, { items: [...autoFaq("/he/integrations"), ...GENERAL_FAQ.he], locale: "he" }),
   );
 }
