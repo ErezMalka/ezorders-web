@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { PlatformPage } from "@/components/PlatformPage";
 import { getPlatformContent } from "@/data/platformContent";
+import { autoFaq } from "@/data/faq-auto";
 
 const t = getPlatformContent("he");
 
@@ -18,5 +19,5 @@ export const metadata: Metadata = {
 };
 
 export default function HePlatformRoute() {
-  return <PlatformPage locale="he" />;
+  return <PlatformPage locale="he" extraFaq={autoFaq("/he/platform")} />;
 }

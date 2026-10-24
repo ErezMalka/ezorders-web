@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { PosPage } from "@/components/PosPage";
 import { getPosContent } from "@/data/posContent";
+import { autoFaq } from "@/data/faq-auto";
 
 const t = getPosContent("he");
 
@@ -18,5 +19,5 @@ export const metadata: Metadata = {
 };
 
 export default function HePosRoute() {
-  return <PosPage locale="he" />;
+  return <PosPage locale="he" extraFaq={autoFaq("/he/pos")} />;
 }
